@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel, AnyHttpUrl, Field, root_validator
 
 
@@ -8,8 +8,12 @@ class InfoResponse(BaseModel):
     api_version: str = Field(..., example="0.1.0")
 
 
-class DownloadResponse(BaseModel):
+class StatusResponse(BaseModel):
     status: str = "OK"
+
+
+class ExceptionSchema(BaseModel):
+    detail: str
 
 
 class AudioFormatOptions(str, Enum):
@@ -65,14 +69,6 @@ class YTDLParams(BaseModel):
 
 
 class DownloadParamsModel(BaseModel):
-    socketio_sid: Optional[str] = Field(
-        None,
-        title="SocketIO client ID",
-        description=(
-            "ID of socket IO client which will be notified"
-            " about progress during download process (event download_progress)"
-        ),
-    )
     params: YTDLParams = Field(
         ..., title="Download params", description="Youtube-dl download params"
     )

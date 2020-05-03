@@ -1,6 +1,6 @@
 import youtube_dl
 
-from . import schemas, websockets
+from . import schemas
 from .logger import YDLLogger
 from .config import settings
 
@@ -48,11 +48,7 @@ def download_task(
 
         def progress_hook(data: dict):
             if data["status"] == "finished":
-                websockets.sio.emit(
-                    "download_progress",
-                    {"status": data["status"]},
-                    room=socketio_client,
-                )
+                pass
 
         ytdl_params["progress_hooks"] = [progress_hook]
 

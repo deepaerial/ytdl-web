@@ -8,7 +8,7 @@ def serve():
         "log_level": "debug",
         "reload": True,
     }
-    uvicorn.run("ytdl.asgi:app", **kwargs)
+    uvicorn.run("ytdl_api.asgi:app", **kwargs)
 
 
 if __name__ == "__main__":

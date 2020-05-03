@@ -5,6 +5,15 @@ from .asgi import app
 client = TestClient(app)
 
 
+def test_session_endpoint():
+    """
+    Test endpoint that initializes session for client (both authorized and non-authorized)
+    """
+    response = client.get("/api/session/init")
+    assert response.status_code == 200
+    assert "status" in response.json()
+
+
 def test_version_endpoint():
     """
     Test endpoint that returns information about API version.
@@ -12,6 +21,7 @@ def test_version_endpoint():
     response = client.get("/api/version")
     assert response.status_code == 200
     assert "api_version" in response.json()
+    assert "youtube_dl_version" in response.json()
 
 
 def test_dowload_endpoint_no_format():
@@ -20,7 +30,7 @@ def test_dowload_endpoint_no_format():
 
     Verify that error raised when no format is passed in POST body.
     """
-    response = client.post(
+    response = client.put(
         "/api/download",
         json={"params": {"urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"]}},
     )
@@ -34,7 +44,7 @@ def test_dowload_endpoint_video():
 
     Verify that video dowload works
     """
-    response = client.post(
+    response = client.put(
         "/api/download",
         json={
             "params": {
@@ -43,7 +53,7 @@ def test_dowload_endpoint_video():
             },
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert "status" in response.json()
 
 
@@ -53,7 +63,7 @@ def test_dowload_endpoint_audio():
 
     Verify that audio dowload works
     """
-    response = client.post(
+    response = client.put(
         "/api/download",
         json={
             "params": {
@@ -62,5 +72,5 @@ def test_dowload_endpoint_audio():
             },
         },
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     assert "status" in response.json()
