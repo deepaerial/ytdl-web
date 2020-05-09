@@ -3,13 +3,33 @@ from typing import List
 from pydantic import BaseModel, AnyHttpUrl, Field, root_validator
 
 
-class InfoResponse(BaseModel):
+class DefaultErrorResponse(BaseModel):
+    detail: str = Field(
+        ..., description="Error detail message", example="Internal Server Error"
+    )
+
+
+class NoValidSessionError(DefaultErrorResponse):
+    detail: str = Field(..., example="No valid session")
+
+
+class VersionResponse(BaseModel):
     youtube_dl_version: str = Field(..., example="2020.03.24")
     api_version: str = Field(..., example="0.1.0")
 
 
+class InfoResponse(BaseModel):
+    video_url: str = Field(
+        ...,
+        description="URL of video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
+    )
+
+
 class StatusResponse(BaseModel):
-    status: str = "OK"
+    status: str = Field(
+        "OK", description="Error detail message", example="OK"
+    )
 
 
 class ExceptionSchema(BaseModel):

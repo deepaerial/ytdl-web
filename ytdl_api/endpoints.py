@@ -10,20 +10,25 @@ from . import task
 router = APIRouter()
 
 
-@router.get("/session/init")
+@router.get("/session/init", response_class=RedirectResponse, status_code=307)
 async def session_init(request: Request):
     request.session.update({"u_id": uuid.uuid4().hex})
     return RedirectResponse(request.url_for("session_check"))
 
 
-@router.get("/session/check", status_code=200, response_model=schemas.StatusResponse)
+@router.get(
+    "/session/check",
+    status_code=200,
+    response_model=schemas.StatusResponse,
+    responses={401: {"model": schemas.NoValidSessionError}},
+)
 async def session_check(request: Request):
     if not request.session.get("u_id"):
         raise HTTPException(401, "No valid session")
     return {}
 
 
-@router.get("/version", response_model=schemas.InfoResponse, status_code=200)
+@router.get("/version", response_model=schemas.VersionResponse, status_code=200)
 async def api_version():
     """
     Endpoint for getting info about server API.
