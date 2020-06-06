@@ -1,11 +1,12 @@
 import uuid
-from fastapi import APIRouter, BackgroundTasks, Request, HTTPException
+import re
+
+import urllib
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from pydantic import AnyHttpUrl
 from starlette.responses import RedirectResponse
 
-from . import __version__, __youtube_dl_version__
-from . import schemas
-from . import task
-
+from . import __version__, __youtube_dl_version__, schemas, task
 
 router = APIRouter()
 
@@ -36,6 +37,24 @@ async def api_version():
     return {
         "youtube_dl_version": __youtube_dl_version__,
         "api_version": __version__,
+    }
+
+
+@router.get("/info/", response_model=schemas.InfoResponse)
+async def video_info(video_url: AnyHttpUrl):
+    """
+    Endpoint for getting info about video
+    """
+    if not re.match(r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", video_url):
+        return {
+            "video_url": video_url,
+
+        }
+    parsed_url = urllib.parse.urlparse(video_url)
+    video_id = urllib.parse.parse_qs(parsed_url.query)["v"][0]
+    return {
+        "video_url": video_url,
+        "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/0.jpg",
     }
 
 

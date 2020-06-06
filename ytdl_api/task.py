@@ -22,6 +22,7 @@ def download_task(
         "outtmpl": (settings.media_path / outtmpl).absolute().as_posix(),
         "logger": YDLLogger(),
         "updatetime": download_params.use_last_modified,
+        "noplaylist": False,  # download only video if URL refers to playlist and video
     }
 
     postprocessors = []

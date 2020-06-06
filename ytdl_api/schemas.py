@@ -24,12 +24,15 @@ class InfoResponse(BaseModel):
         description="URL of video",
         example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
     )
+    thumbnail_url: AnyHttpUrl = Field(
+        ...,
+        description="Link to video thumbnail",
+        example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
+    )
 
 
 class StatusResponse(BaseModel):
-    status: str = Field(
-        "OK", description="Error detail message", example="OK"
-    )
+    status: str = Field("OK", description="Error detail message", example="OK")
 
 
 class ExceptionSchema(BaseModel):
