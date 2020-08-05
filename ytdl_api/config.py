@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from starlette.middleware import Middleware
 from starlette_authlib.middleware import AuthlibMiddleware as SessionMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseSettings
 
 from . import __version__
@@ -29,9 +30,9 @@ class Settings(BaseSettings):
     media_path: Path
 
     def init_app(__pydantic_self__) -> FastAPI:
-        '''
+        """
         Generate FastAPI instance.
-        '''
+        """
         kwargs: Dict[str, Any] = {
             "debug": __pydantic_self__.debug,
             "docs_url": __pydantic_self__.docs_url,
@@ -42,7 +43,14 @@ class Settings(BaseSettings):
             "description": __pydantic_self__.description,
             "version": __pydantic_self__.version,
             "middleware": [
-                Middleware(SessionMiddleware, secret_key=__pydantic_self__.secret_key)
+                Middleware(SessionMiddleware, secret_key=__pydantic_self__.secret_key),
+                Middleware(
+                    CORSMiddleware,
+                    allow_origins=["*"],
+                    allow_credentials=True,
+                    allow_methods=["*"],
+                    allow_headers=["*"],
+                ),
             ],
         }
         if __pydantic_self__.disable_docs:

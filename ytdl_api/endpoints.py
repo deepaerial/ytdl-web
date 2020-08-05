@@ -48,7 +48,6 @@ async def video_info(video_url: AnyHttpUrl):
     if not re.match(r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", video_url):
         return {
             "video_url": video_url,
-
         }
     parsed_url = urllib.parse.urlparse(video_url)
     video_id = urllib.parse.parse_qs(parsed_url.query)["v"][0]
