@@ -18,23 +18,6 @@ class VersionResponse(BaseModel):
     api_version: str = Field(..., example="0.1.0")
 
 
-class InfoResponse(BaseModel):
-    video_url: str = Field(
-        ...,
-        description="URL of video",
-        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
-    )
-    thumbnail_url: AnyHttpUrl = Field(
-        ...,
-        description="Link to video thumbnail",
-        example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
-    )
-
-
-class StatusResponse(BaseModel):
-    status: str = Field("OK", description="Error detail message", example="OK")
-
-
 class ExceptionSchema(BaseModel):
     detail: str
 
@@ -83,6 +66,9 @@ class YTDLParams(BaseModel):
         description="Output template https://github.com/ytdl-org/youtube-dl#output-template",
     )
 
+    class Config:
+        validate_all = True
+
     @root_validator(pre=True)
     def validate_format(cls, values):
         audio_f, video_f = values.get("audio_format"), values.get("video_format")
@@ -91,10 +77,20 @@ class YTDLParams(BaseModel):
         return values
 
 
-class DownloadParamsModel(BaseModel):
-    params: YTDLParams = Field(
-        ..., title="Download params", description="Youtube-dl download params"
+class DownloadItem(BaseModel):
+    video_url: str = Field(
+        ...,
+        description="URL of video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
+    )
+    thumbnail_url: AnyHttpUrl = Field(
+        ...,
+        description="Link to video thumbnail",
+        example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
     )
 
-    class Config:
-        validate_all = True
+
+class DownloadListResponse(BaseModel):
+    downloads: List[DownloadItem] = Field(
+        ..., description="List of pending and finished downloads",
+    )

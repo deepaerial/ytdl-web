@@ -11,7 +11,7 @@ def test_session_endpoint():
     """
     response = client.get("/api/session/init")
     assert response.status_code == 200
-    assert "status" in response.json()
+    assert "downloads" in response.json()
 
 
 def test_version_endpoint():
@@ -47,14 +47,12 @@ def test_dowload_endpoint_video():
     response = client.put(
         "/api/download",
         json={
-            "params": {
-                "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
-                "video_format": "mp4",
-            },
+            "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
+            "video_format": "mp4",
         },
     )
     assert response.status_code == 201
-    assert "status" in response.json()
+    assert "downloads" in response.json()
 
 
 def test_dowload_endpoint_audio():
@@ -66,11 +64,9 @@ def test_dowload_endpoint_audio():
     response = client.put(
         "/api/download",
         json={
-            "params": {
-                "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
-                "audio_format": "mp3",
-            },
+            "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
+            "audio_format": "mp3",
         },
     )
     assert response.status_code == 201
-    assert "status" in response.json()
+    assert "downloads" in response.json()

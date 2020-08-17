@@ -1,5 +1,7 @@
 import youtube_dl
 
+from pydantic import UUID4
+
 from . import schemas
 from .logger import YDLLogger
 from .config import settings
@@ -7,13 +9,15 @@ from .config import settings
 
 def download_task(
     download_params: schemas.YTDLParams,
+    download_id: UUID4,
     socketio_client: str = None,
     outtmpl: str = "%(title)s.%(ext)s",
 ):
     """
     Download task
 
-    Options: https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/options.py
+    Options:
+    https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/options.py
     """
     ytdl_params = {
         "verbose": True,
@@ -47,11 +51,13 @@ def download_task(
 
     if socketio_client:
 
-        def progress_hook(data: dict):
-            if data["status"] == "finished":
-                pass
+        def _get_hook_for_download(download_id):
+            def progress_hook(data: dict):
+                if data["status"] == "finished":
+                    pass
+            return progress_hook
 
-        ytdl_params["progress_hooks"] = [progress_hook]
+        ytdl_params["progress_hooks"] = [_get_hook_for_download(download_id)]
 
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         result_status = ydl.download(download_params.urls)
