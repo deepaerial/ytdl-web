@@ -7,7 +7,7 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
-import { fetchVersion } from '../api.js'
+import { fetchVersion, sessionInit } from '../api.js'
 
 import "../styles.css"
 
@@ -27,6 +27,7 @@ class App extends React.Component {
     }
 
     async componentDidMount() {
+        const success = await sessionInit();
         const version = await fetchVersion();
         this.setState({ version });
     }

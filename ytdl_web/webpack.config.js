@@ -10,6 +10,7 @@ module.exports = {
     devServer: {
         historyApiFallback: true
     },
+    devtool : 'inline-source-maps',
     module: {
         rules: [
             {
