@@ -2,7 +2,6 @@ from typing import Dict, Any
 from pathlib import Path
 from fastapi import FastAPI
 from starlette.middleware import Middleware
-from starlette_authlib.middleware import AuthlibMiddleware as SessionMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseSettings
 
@@ -43,10 +42,14 @@ class Settings(BaseSettings):
             "description": __pydantic_self__.description,
             "version": __pydantic_self__.version,
             "middleware": [
-                Middleware(SessionMiddleware, secret_key=__pydantic_self__.secret_key),
                 Middleware(
                     CORSMiddleware,
-                    allow_origins=["*"],
+                    allow_origins=[
+                        "http://localhost",
+                        "http://localhost:8080",
+                        "http://127.0.0.1",
+                        "http://127.0.0.1:8080",
+                    ],
                     allow_credentials=True,
                     allow_methods=["*"],
                     allow_headers=["*"],

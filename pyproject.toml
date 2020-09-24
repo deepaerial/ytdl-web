@@ -8,13 +8,12 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.8"
 youtube-dl = "^2020.3.6"
-fastapi = "^0.52.0"
+fastapi = "*"
 uvicorn = "^0.11.3"
 pyyaml = "^5.3"
 pydantic = {extras = ["dotenv"], version = "^1.4"}
 python-socketio = "^4.5.1"
 itsdangerous = "^1.1.0"
-starlette-authlib = "^0.1.6"
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"

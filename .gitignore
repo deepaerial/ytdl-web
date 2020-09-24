@@ -170,3 +170,6 @@ sketch
 .venv/
 .env
 media/
+
+# Ignore .pem files
+*.pem

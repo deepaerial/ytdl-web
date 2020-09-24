@@ -1,8 +1,10 @@
 import uuid
 import re
+import typing
 
 import urllib
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Cookie, Response
+from fastapi.responses import JSONResponse
 from starlette.responses import RedirectResponse
 
 from . import __version__, __youtube_dl_version__, schemas, task
@@ -14,22 +16,14 @@ def get_UUID4():
     return uuid.uuid4()
 
 
-@router.get("/session/init", response_class=RedirectResponse, status_code=307)
-async def session_init(request: Request):
-    request.session.update({"u_id": get_UUID4().hex})
-    return RedirectResponse(request.url_for("session_check"))
-
-
-@router.get(
-    "/session/check",
-    status_code=200,
-    response_model=schemas.DownloadListResponse,
-    responses={401: {"model": schemas.NoValidSessionError}},
-)
-async def session_check(request: Request):
-    if not request.session.get("u_id"):
-        raise HTTPException(401, "No valid session")
-    return {"downloads": []}
+@router.get("/check", status_code=200)
+async def session_check(response: Response, u_id: typing.Optional[str] = Cookie(None)):
+    content = {"downloads": []}
+    if not u_id:
+        u_id = get_UUID4().hex
+        response.set_cookie(key="sid", value=u_id, secure=True, httponly=False, samesite="None")
+        return content
+    return content
 
 
 @router.get("/version", response_model=schemas.VersionResponse, status_code=200)
@@ -43,8 +37,8 @@ async def api_version():
     }
 
 
-@router.put("/download", response_model=schemas.DownloadListResponse, status_code=201)
-async def download_put(json_params: schemas.YTDLParams, task_queue: BackgroundTasks):
+@router.put("/fetch", response_model=schemas.DownloadListResponse, status_code=201)
+async def fetch_media(json_params: schemas.YTDLParams, task_queue: BackgroundTasks):
     """
     Endpoint for fetching video from Youtube and converting it to
     specified format.
