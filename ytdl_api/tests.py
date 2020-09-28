@@ -9,7 +9,7 @@ def test_session_endpoint():
     """
     Test endpoint that initializes session for client (both authorized and non-authorized)
     """
-    response = client.get("/api/session/init")
+    response = client.get("/api/check")
     assert response.status_code == 200
     assert "downloads" in response.json()
 
@@ -31,7 +31,7 @@ def test_dowload_endpoint_no_format():
     Verify that error raised when no format is passed in POST body.
     """
     response = client.put(
-        "/api/download",
+        "/api/fetch",
         json={"params": {"urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"]}},
     )
     assert response.status_code == 422
@@ -45,7 +45,7 @@ def test_dowload_endpoint_video():
     Verify that video dowload works
     """
     response = client.put(
-        "/api/download",
+        "/api/fetch",
         json={
             "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
             "video_format": "mp4",
@@ -62,7 +62,7 @@ def test_dowload_endpoint_audio():
     Verify that audio dowload works
     """
     response = client.put(
-        "/api/download",
+        "/api/fetch",
         json={
             "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
             "audio_format": "mp3",

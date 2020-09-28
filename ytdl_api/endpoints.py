@@ -1,11 +1,10 @@
 import uuid
 import re
 import typing
+import youtube_dl
 
 import urllib
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Cookie, Response
-from fastapi.responses import JSONResponse
-from starlette.responses import RedirectResponse
+from fastapi import APIRouter, BackgroundTasks, Cookie, Response
 
 from . import __version__, __youtube_dl_version__, schemas, task
 
@@ -21,7 +20,9 @@ async def session_check(response: Response, u_id: typing.Optional[str] = Cookie(
     content = {"downloads": []}
     if not u_id:
         u_id = get_UUID4().hex
-        response.set_cookie(key="sid", value=u_id, secure=True, httponly=False, samesite="None")
+        response.set_cookie(
+            key="ytdl_sid", value=u_id, secure=True, httponly=False, samesite="None"
+        )
         return content
     return content
 
@@ -37,24 +38,12 @@ async def api_version():
     }
 
 
-@router.put("/fetch", response_model=schemas.DownloadListResponse, status_code=201)
+@router.put("/fetch", response_model=schemas.FetchedListResponse, status_code=201)
 async def fetch_media(json_params: schemas.YTDLParams, task_queue: BackgroundTasks):
     """
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    downloads = []
-    for url in json_params.urls:
-        if not re.match(r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", url):
-            downloads.append({"video_url": url, "thumbnail_url": None})
-        else:
-            parsed_url = urllib.parse.urlparse(url)
-            video_id = urllib.parse.parse_qs(parsed_url.query)["v"][0]
-            downloads.append(
-                {
-                    "video_url": url,
-                    "thumbnail_url": f"https://img.youtube.com/vi/{video_id}/0.jpg",
-                }
-            )
-    task_queue.add_task(task.download_task, json_params, get_UUID4())
+    downloads = task.video_info(json_params)
+    task_queue.add_task(task.download, json_params, get_UUID4())
     return {"downloads": downloads}

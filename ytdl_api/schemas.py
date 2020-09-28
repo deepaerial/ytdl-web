@@ -77,20 +77,48 @@ class YTDLParams(BaseModel):
         return values
 
 
-class DownloadItem(BaseModel):
-    video_url: str = Field(
-        ...,
-        description="URL of video",
-        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
-    )
-    thumbnail_url: AnyHttpUrl = Field(
+class ThumbnailInfo(BaseModel):
+    url: AnyHttpUrl = Field(
         ...,
         description="Link to video thumbnail",
         example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
     )
+    width: int = Field(
+        ..., description="Thumbnail width", example=246,
+    )
+    height: int = Field(
+        ..., description="Thumbnail height", example=138,
+    )
 
 
-class DownloadListResponse(BaseModel):
-    downloads: List[DownloadItem] = Field(
+class FetchedItem(BaseModel):
+    title: str = Field(
+        ...,
+        description="Video title",
+        example="Adam Knight - I've Got The Gold (Shoby Remix)",
+    )
+    duration: int = Field(
+        ...,
+        description="Video duration (in milliseconds)",
+        example=479000
+    )
+    filesize: int = Field(
+        None,
+        description="Video/audio filesize (in bytes)",
+        example=5696217
+    )
+    video_url: AnyHttpUrl = Field(
+        ...,
+        description="URL of video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
+    )
+    thumbnail: ThumbnailInfo = Field(
+        ...,
+        description="Video thumbnail"
+    )
+
+
+class FetchedListResponse(BaseModel):
+    downloads: List[FetchedItem] = Field(
         ..., description="List of pending and finished downloads",
     )
