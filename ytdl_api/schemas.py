@@ -98,14 +98,10 @@ class FetchedItem(BaseModel):
         example="Adam Knight - I've Got The Gold (Shoby Remix)",
     )
     duration: int = Field(
-        ...,
-        description="Video duration (in milliseconds)",
-        example=479000
+        ..., description="Video duration (in milliseconds)", example=479000
     )
     filesize: int = Field(
-        None,
-        description="Video/audio filesize (in bytes)",
-        example=5696217
+        None, description="Video/audio filesize (in bytes)", example=5696217
     )
     video_url: AnyHttpUrl = Field(
         ...,
@@ -114,7 +110,32 @@ class FetchedItem(BaseModel):
     )
     thumbnail: ThumbnailInfo = Field(
         ...,
-        description="Video thumbnail"
+        description="Video thumbnail",
+        example={
+            "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+            "width": 1920,
+            "height": 1080,
+        },
+    )
+
+
+class SessionCheckResponse(BaseModel):
+    downloads: List[FetchedItem] = Field(
+        ...,
+        description="List of current downloads in session",
+        example=[
+            {
+                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+                "duration": 231000,
+                "filesize": None,
+                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+                "thumbnail": {
+                    "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+                    "width": 1920,
+                    "height": 1080,
+                },
+            }
+        ],
     )
 
 

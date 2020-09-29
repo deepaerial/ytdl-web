@@ -15,7 +15,7 @@ def get_UUID4():
     return uuid.uuid4()
 
 
-@router.get("/check", status_code=200)
+@router.get("/check", response_model=schemas.SessionCheckResponse, status_code=200)
 async def session_check(response: Response, u_id: typing.Optional[str] = Cookie(None)):
     content = {"downloads": []}
     if not u_id:
