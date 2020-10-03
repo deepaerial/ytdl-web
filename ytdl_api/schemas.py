@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List
-from pydantic import BaseModel, AnyHttpUrl, Field, root_validator
+from pydantic import BaseModel, AnyHttpUrl, Field
 
 
 class DefaultErrorResponse(BaseModel):
@@ -22,7 +22,16 @@ class ExceptionSchema(BaseModel):
     detail: str
 
 
-class AudioFormatOptions(str, Enum):
+class MediaFormatOptions(str, Enum):
+    # Video formats
+    MP4 = "mp4"
+    FLV = "flv"
+    WEBM = "webm"
+    OGG = "ogg"
+    MKV = "mkv"
+    AVI = "avi"
+
+    # Audio formats
     BEST = "best"  # allow youtube-dl automatically decide which one to use
     AAC = "aac"
     FLAC = "flac"
@@ -32,14 +41,18 @@ class AudioFormatOptions(str, Enum):
     VORBIS = "vorbis"
     WAV = "wav"
 
-
-class VideoFormatOptions(str, Enum):
-    MP4 = "mp4"
-    FLV = "flv"
-    WEBM = "webm"
-    OGG = "ogg"
-    MKV = "mkv"
-    AVI = "avi"
+    @property
+    def is_audio(self) -> bool:
+        return self.name in [
+            "best",
+            "aac",
+            "flac",
+            "mp3",
+            "m4a",
+            "opus",
+            "vorbis",
+            "wav",
+        ]
 
 
 class YTDLParams(BaseModel):
@@ -49,11 +62,8 @@ class YTDLParams(BaseModel):
         description="URLs to videos",
         example=["https://www.youtube.com/watch?v=B8WgNGN0IVA"],
     )
-    audio_format: AudioFormatOptions = Field(
-        None, description="Audio format of file (needed only if extracting audio)",
-    )
-    video_format: VideoFormatOptions = Field(
-        None, description="Video extension/format of file"
+    media_format: MediaFormatOptions = Field(
+        ..., description="Video or audio (when extracting) format of file",
     )
     use_last_modified: bool = Field(
         False,
@@ -68,13 +78,6 @@ class YTDLParams(BaseModel):
 
     class Config:
         validate_all = True
-
-    @root_validator(pre=True)
-    def validate_format(cls, values):
-        audio_f, video_f = values.get("audio_format"), values.get("video_format")
-        if not any([audio_f, video_f]):
-            raise ValueError("At least on format type is required")
-        return values
 
 
 class ThumbnailInfo(BaseModel):

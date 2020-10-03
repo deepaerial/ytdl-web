@@ -48,7 +48,7 @@ def test_dowload_endpoint_video():
         "/api/fetch",
         json={
             "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
-            "video_format": "mp4",
+            "media_format": "mp4",
         },
     )
     assert response.status_code == 201
@@ -65,7 +65,7 @@ def test_dowload_endpoint_audio():
         "/api/fetch",
         json={
             "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
-            "audio_format": "mp3",
+            "media_format": "mp3",
         },
     )
     assert response.status_code == 201

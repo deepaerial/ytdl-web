@@ -1,5 +1,4 @@
 import re
-import urllib
 import typing
 import youtube_dl
 
@@ -24,7 +23,7 @@ def video_info(
             ytdl_params = {
                 "verbose": True,
                 "rm_cachedir": True,
-                "format": download_params.video_format,
+                "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
                 "outtmpl": (settings.media_path / "%(title)s.%(ext)s")
                 .absolute()
                 .as_posix(),
@@ -32,33 +31,14 @@ def video_info(
                 "updatetime": download_params.use_last_modified,
                 "noplaylist": False,
             }
-            postprocessors = []
-
-            if download_params.audio_format:
-                postprocessors.append(
-                    {
-                        "key": "FFmpegExtractAudio",
-                        "preferredcodec": download_params.audio_format.value,
-                        "preferredquality": "192",
-                    }
-                )
-                choosen_format = download_params.audio_format.value
-            elif download_params.video_format:
-                postprocessors.append(
-                    {
-                        "key": "FFmpegVideoConvertor",
-                        "preferedformat": download_params.video_format.value,
-                    }
-                )
-                choosen_format = download_params.video_format.value
-            ytdl_params["postprocessors"] = postprocessors
             with youtube_dl.YoutubeDL(ytdl_params) as ydl:
                 info_dict = ydl.extract_info(url, download=False)
-                if download_params.video_format:
+                if not download_params.media_format.is_audio:
                     filesize = [
                         _format["filesize"]
                         for _format in info_dict["formats"]
-                        if _format["ext"] == choosen_format or _format["ext"] 
+                        if _format["ext"] == download_params.media_format.value
+                        or _format["ext"]
                     ][0]
                 else:
                     filesize = None
@@ -84,7 +64,6 @@ def download(
     download_params: schemas.YTDLParams,
     download_id: UUID4,
     socketio_client: str = None,
-    outtmpl: str = "%(title)s.%(ext)s",
 ) -> int:
     """
     Download task
@@ -96,32 +75,28 @@ def download(
         "verbose": True,
         "rm_cachedir": True,
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "outtmpl": (settings.media_path / outtmpl).absolute().as_posix(),
+        "outtmpl": (settings.media_path / download_params.outtmpl).absolute().as_posix(),
         "logger": YDLLogger(),
         "updatetime": download_params.use_last_modified,
         "noplaylist": False,  # download only video if URL refers to playlist and video
     }
-
     postprocessors = []
-
-    if download_params.audio_format:
+    if download_params.media_format.is_audio:
         postprocessors.append(
             {
                 "key": "FFmpegExtractAudio",
-                "preferredcodec": download_params.audio_format.value,
+                "preferredcodec": download_params.media_format.value,
                 "preferredquality": "192",
             }
         )
-    elif download_params.video_format:
+    else:
         postprocessors.append(
             {
                 "key": "FFmpegVideoConvertor",
-                "preferedformat": download_params.video_format.value,
+                "preferedformat": download_params.media_format.value,
             }
         )
-
     ytdl_params["postprocessors"] = postprocessors
-
     if socketio_client:
 
         def _get_hook_for_download(download_id):
