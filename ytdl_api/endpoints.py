@@ -1,9 +1,6 @@
 import uuid
-import re
 import typing
-import youtube_dl
 
-import urllib
 from fastapi import APIRouter, BackgroundTasks, Cookie, Response
 
 from . import __version__, __youtube_dl_version__, schemas, task
@@ -17,6 +14,9 @@ def get_UUID4():
 
 @router.get("/check", response_model=schemas.SessionCheckResponse, status_code=200)
 async def session_check(response: Response, u_id: typing.Optional[str] = Cookie(None)):
+    """
+    Endpoint for checking existing downloads.
+    """
     content = {"downloads": []}
     if not u_id:
         u_id = get_UUID4().hex
