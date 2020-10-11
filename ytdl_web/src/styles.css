@@ -1,7 +1,8 @@
-* {
+*, *::before, *::after {
     margin: 0px;
     padding: 0px;
     font-family: 'Raleway', sans-serif;
+    box-sizing: border-box;
 }
 
 body {
