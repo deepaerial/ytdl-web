@@ -13,11 +13,6 @@ class NoValidSessionError(DefaultErrorResponse):
     detail: str = Field(..., example="No valid session")
 
 
-class VersionResponse(BaseModel):
-    youtube_dl_version: str = Field(..., example="2020.03.24")
-    api_version: str = Field(..., example="0.1.0")
-
-
 class ExceptionSchema(BaseModel):
     detail: str
 
@@ -32,7 +27,6 @@ class MediaFormatOptions(str, Enum):
     AVI = "avi"
 
     # Audio formats
-    BEST = "best"  # allow youtube-dl automatically decide which one to use
     AAC = "aac"
     FLAC = "flac"
     MP3 = "mp3"
@@ -53,6 +47,16 @@ class MediaFormatOptions(str, Enum):
             "vorbis",
             "wav",
         ]
+
+
+class VersionResponse(BaseModel):
+    youtube_dl_version: str = Field(..., example="2020.03.24")
+    api_version: str = Field(..., example="0.1.0")
+    media_options: List[MediaFormatOptions] = Field(
+        ...,
+        description="List of available media options for download",
+        example=[media_format.value for media_format in MediaFormatOptions],
+    )
 
 
 class YTDLParams(BaseModel):

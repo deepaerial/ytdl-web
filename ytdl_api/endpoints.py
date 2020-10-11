@@ -35,6 +35,9 @@ async def api_version():
     return {
         "youtube_dl_version": __youtube_dl_version__,
         "api_version": __version__,
+        "media_options": [
+            media_format.value for media_format in schemas.MediaFormatOptions
+        ],
     }
 
 
