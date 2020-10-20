@@ -7,7 +7,8 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
-import { fetchVersion, sessionCheck } from '../api.js'
+import { apiVersion, apiCheck } from '../api'
+import DownloadsContext from '../context/DownloadsContext.jsx';
 
 import "../styles.css"
 
@@ -23,25 +24,26 @@ const Content = styled.div`
 class App extends React.Component {
 
     state = {
-        version: null
+        version: null,
+        downloads: [],
+        media_options: [],
     }
 
     async componentDidMount() {
-        const success = await sessionCheck();
-        const version = await fetchVersion();
-        this.setState({ version });
+        const success = await apiCheck();
+        const {api_version, media_options} = await apiVersion();
+        this.setState({ version: api_version , media_options});
     }
 
-    onSearch = async (event) => {
-        event.preventDefault();
-        alert(this.state.version);
-    };
 
     render() {
+        const {version, media_options} = this.state
         return (
             <Content>
-                <Header version={this.state.version} />
-                <SearchBar onSearch={this.onSearch} />
+                <Header version={version} />
+                <DownloadsContext.Provider value={[]}>
+                    <SearchBar mediaOptions={media_options}/>
+                </DownloadsContext.Provider>
             </Content>
         )
     }
