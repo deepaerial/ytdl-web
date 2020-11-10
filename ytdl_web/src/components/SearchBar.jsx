@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
 import PropTypes from "prop-types";
 
-import styled, { keyframes } from 'styled-components'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { apiFetch } from '../api'
+import styled, { keyframes } from 'styled-components';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import DownloadsContext from '../context/DownloadsContext';
+import { apiFetch } from '../api';
 
 const SearchBarWrapper = styled.div`
     margin-top: 3rem;
-    min-width: ${props => props.isDesktop ? 60 : 90 }%;
+    min-width: ${props => props.isDesktop ? 60 : 90}%;
     display: flex;
     align-items: flex-start;
     padding: 0.5rem;
@@ -27,6 +28,7 @@ const SearchBarInput = styled.input`
     margin: auto 0;
     border: none;
     font-size: 1.2rem;
+    text-align: center;
 
     ::placeholder {
         color: #B0BEC5; 
@@ -45,6 +47,7 @@ const SearchBarInput = styled.input`
 const SearchBarMediaSelect = styled.select`
     appearance: none;
     border: none;
+    background-color: #FFF;
     font-size: 1.2rem;
     line-height: 2.5rem;
     margin-right: 1rem;
@@ -72,8 +75,11 @@ const SearchBarButton = styled.button`
 
 export default class SearchBar extends Component {
 
+    static contextType = DownloadsContext;
+
     static propTypes = {
-        mediaOptions: PropTypes.arrayOf(PropTypes.string)
+        mediaOptions: PropTypes.arrayOf(PropTypes.string),
+        isDesktop: PropTypes.bool,
     }
 
     state = {
@@ -82,53 +88,46 @@ export default class SearchBar extends Component {
         selectedMediaOption: null,
     }
 
-    componentDidMount = () => {
-        this.setIsDektop()
-        window.addEventListener('resize', this.setIsDektop);
-    }
-
     componentDidUpdate = (prevProps) => {
-        const {mediaOptions} = this.props;
-        if(mediaOptions !== prevProps.mediaOptions){
-            if (mediaOptions){
-                this.setState({selectedMediaOption: mediaOptions[0]});
+        const { mediaOptions } = this.props;
+        if (mediaOptions !== prevProps.mediaOptions) {
+            if (mediaOptions) {
+                this.setState({ selectedMediaOption: mediaOptions[0] });
             }
         }
     }
 
     onSearch = async (event) => {
         event.preventDefault();
-        apiFetch([this.state.url], this.state.selectedMediaOption);
+        const downloads = await apiFetch([this.state.url], this.state.selectedMediaOption);
+        const { setDownloads } = this.context;
+        setDownloads(downloads);
         this.setState({ url: '' });
     };
 
     onChange = (event) => {
         const value = event.target.value;
-        if (event.target.name === 'search'){
+        if (event.target.name === 'search') {
             this.setState({ url: value })
         } else {
-            this.setState({selectedMediaOption: value});
+            this.setState({ selectedMediaOption: value });
         }
     }
 
-    setIsDektop = () => {
-        const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        this.setState({isDesktop: viewportWidth >= 1024});
-    }
 
     render() {
-        const {mediaOptions} = this.props;
-        const {isDesktop, selectedMediaOption} = this.state;
+        const { mediaOptions, isDesktop } = this.props;
+        const { selectedMediaOption } = this.state;
         const selectProps = {
             name: mediaOptions,
             onChange: this.onChange
         }
-        if (selectedMediaOption){
+        if (selectedMediaOption) {
             selectProps.value = selectedMediaOption;
         }
         return (
             <SearchBarWrapper isDesktop={isDesktop}>
-                <SearchBarInput name='search' type="text" placeholder="Your text here..." value={this.state.url} onChange={this.onChange} />
+                <SearchBarInput name='search' type="text" placeholder="Video URL..." value={this.state.url} onChange={this.onChange} />
                 <SearchBarMediaSelect {...selectProps}>
                     {mediaOptions.map((option, index) => <option key={option} value={option}>{option}</option>)}
                 </SearchBarMediaSelect>

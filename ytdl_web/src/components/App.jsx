@@ -8,9 +8,10 @@ import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
 import { apiVersion, apiCheck } from '../api'
-import DownloadsContext from '../context/DownloadsContext.jsx';
+import DownloadsContext from '../context/DownloadsContext';
 
 import "../styles.css"
+import PendingList from './PendingList.jsx';
 
 const Content = styled.div`
     display: flex;
@@ -26,23 +27,37 @@ class App extends React.Component {
     state = {
         version: null,
         downloads: [],
-        media_options: [],
+        mediaOptions: [],
+        isDesktop: false
     }
+
+    setIsDektop = () => {
+        const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+        this.setState({ isDesktop: viewportWidth >= 1024 });
+    }
+
 
     async componentDidMount() {
+        this.setIsDektop();
+        window.addEventListener('resize', this.setIsDektop);
         const success = await apiCheck();
         const {api_version, media_options} = await apiVersion();
-        this.setState({ version: api_version , media_options});
+        this.setState({ version: api_version , mediaOptions: media_options});
     }
 
+    setDownloads = (downloads) => {
+        this.setState({downloads});
+    }
 
     render() {
-        const {version, media_options} = this.state
+        const {version, downloads, mediaOptions, isDesktop} = this.state
+        const {setDownloads} = this;
         return (
             <Content>
                 <Header version={version} />
-                <DownloadsContext.Provider value={[]}>
-                    <SearchBar mediaOptions={media_options}/>
+                <DownloadsContext.Provider value={{downloads, setDownloads}}>
+                    <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop}/>
+                    <PendingList isDesktop={isDesktop}/>
                 </DownloadsContext.Provider>
             </Content>
         )

@@ -25,7 +25,7 @@ const AppTitle = styled.h1`
 const Version = styled.span`
     display: block;
     margin-top: 2px;
-    font-size: 0.6em;
+    font-size: 0.9em;
 `;
 
 const Description = styled.p`
