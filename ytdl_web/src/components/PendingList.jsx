@@ -33,11 +33,11 @@ export default class PendingList extends Component {
         }
         return (
             <ListContainer isDesktop={isDesktop}>
-                {/* {downloads.map((download, index) => <MediaItem key={index} downloadItem={download} />)} */}
-                <MediaItem key={0} downloadItem={exampleValue} isDesktop={isDesktop}/>
+                {downloads.map((download, index) => <MediaItem key={index} downloadItem={download} />)}
+                {/* <MediaItem key={0} downloadItem={exampleValue} isDesktop={isDesktop}/>
                 <MediaItem key={1} downloadItem={exampleValue} isDesktop={isDesktop}/>
                 <MediaItem key={2} downloadItem={exampleValue} isDesktop={isDesktop}/>
-                {/* <MediaItem key={3} downloadItem={exampleValue} isDesktop={isDesktop} />
+                <MediaItem key={3} downloadItem={exampleValue} isDesktop={isDesktop} />
                 <MediaItem key={4} downloadItem={exampleValue} isDesktop={isDesktop}/>
                 <MediaItem key={5} downloadItem={exampleValue} isDesktop={isDesktop}/> */}
             </ListContainer>
