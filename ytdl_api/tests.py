@@ -7,7 +7,7 @@ client = TestClient(app)
 
 def test_session_endpoint():
     """
-    Test endpoint that initializes session for client (both authorized and non-authorized)
+    Test endpoint that initializes session for client.
     """
     response = client.get("/api/check")
     assert response.status_code == 200
@@ -26,7 +26,7 @@ def test_version_endpoint():
 
 def test_dowload_endpoint_no_format():
     """
-    Test enpoint for downloading video.
+    Test endpoint for starting video download task.
 
     Verify that error raised when no format is passed in POST body.
     """
@@ -40,7 +40,7 @@ def test_dowload_endpoint_no_format():
 
 def test_dowload_endpoint_video():
     """
-    Test enpoint for downloading video.
+    Test endpoint for starting video download task.
 
     Verify that video dowload works
     """
@@ -57,7 +57,7 @@ def test_dowload_endpoint_video():
 
 def test_dowload_endpoint_audio():
     """
-    Test enpoint for downloading video.
+    Test enpoint for starting audio download task.
 
     Verify that audio dowload works
     """
