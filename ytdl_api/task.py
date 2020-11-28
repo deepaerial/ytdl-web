@@ -4,6 +4,8 @@ import typing
 import functools
 import youtube_dl
 
+import pytube
+
 from . import schemas
 from .logger import YDLLogger
 from .config import settings
@@ -111,3 +113,15 @@ async def download(
     if result_status == 0:
         pass
     return result_status
+
+
+async def download_pytube(
+    download_params: schemas.YTDLParams,
+    progress_hook: typing.Optional[typing.Callable[[dict], None]],
+) -> int:
+    '''
+    Downloading video using pytube library.
+    '''
+    pytube.YouTube(
+        download_params.urls[0], on_progress_callback=progress_hook
+    ).streams.filter(progressive=True).order_by('resolution').first().download()

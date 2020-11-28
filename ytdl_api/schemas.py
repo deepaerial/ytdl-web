@@ -164,3 +164,8 @@ class DownloadProgress(BaseModel):
         progress_str = data['_percent_str'].strip().replace("%", "") 
         progress = round(float(progress_str))
         return cls(media_id=media_id, status=status, progress=progress)
+
+    @classmethod
+    def from_pytube_stream(cls, media_id: str, strem, chunk, bytes_remaining):
+        progress = int(bytes_remaining)
+        return cls(media_id=media_id, status='download', progress=progress)

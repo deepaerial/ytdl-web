@@ -17,7 +17,11 @@ class NotificationQueue:
     def get_put(self, topic: str) -> typing.Callable:
         queue = self.queues[topic]
 
-        async def inner_put(data: DownloadDataInfo):
-            return await queue.put(DownloadProgress.from_data(topic, data))
+        async def inner_put(stream, chunk, bytes_remaining):
+            return await queue.put(
+                DownloadProgress.from_pytube_stream(
+                    topic, stream, chunk, bytes_remaining
+                )
+            )
 
         return inner_put

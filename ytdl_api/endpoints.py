@@ -46,7 +46,7 @@ async def fetch_media(
     specified format.
     """
     downloads = task.video_info(json_params)
-    task_queue.add_task(task.download, json_params, event_queue.get_put(uid))
+    task_queue.add_task(task.download_pytube, json_params, event_queue.get_put(uid))
     return {"downloads": downloads}
 
 

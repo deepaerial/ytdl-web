@@ -13,6 +13,7 @@ uvicorn = "^0.11.3"
 pyyaml = "^5.3"
 pydantic = {extras = ["dotenv"], version = "^1.4"}
 sse-starlette = "^0.6.1"
+pytube = {git = "https://github.com/tfdahlin/pytube.git", rev = "improvement/async_callbacks"}
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
