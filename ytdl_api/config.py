@@ -1,9 +1,11 @@
-from typing import Dict, Any
 from pathlib import Path
+from typing import Any, Dict
+
 from fastapi import FastAPI
-from starlette.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseSettings
+from starlette.middleware import Middleware
+from youtube_dl.version import __version__ as youtube_dl_version
 
 from . import __version__
 
@@ -24,6 +26,7 @@ class Settings(BaseSettings):
     title: str = "YTDL API"
     description: str = "API for YTDL backend server."
     version: str = __version__
+    youtube_dl_version = youtube_dl_version
     disable_docs: bool = False
 
     media_path: Path
