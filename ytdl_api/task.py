@@ -1,8 +1,8 @@
 import re
+import asyncio
 import typing
+import functools
 import youtube_dl
-
-from pydantic import UUID4
 
 from . import schemas
 from .logger import YDLLogger
@@ -60,10 +60,9 @@ def video_info(
     return downloads
 
 
-def download(
+async def download(
     download_params: schemas.YTDLParams,
-    download_id: UUID4,
-    socketio_client: str = None,
+    progress_hook: typing.Optional[typing.Callable[[dict], None]],
 ) -> int:
     """
     Download task
@@ -75,7 +74,9 @@ def download(
         "verbose": True,
         "rm_cachedir": True,
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-        "outtmpl": (settings.media_path / download_params.outtmpl).absolute().as_posix(),
+        "outtmpl": (settings.media_path / download_params.outtmpl)
+        .absolute()
+        .as_posix(),
         "logger": YDLLogger(),
         "updatetime": download_params.use_last_modified,
         "noplaylist": False,  # download only video if URL refers to playlist and video
@@ -97,16 +98,13 @@ def download(
             }
         )
     ytdl_params["postprocessors"] = postprocessors
-    if socketio_client:
-
-        def _get_hook_for_download(download_id):
-            def progress_hook(data: dict):
-                if data["status"] == "finished":
-                    pass
-
-            return progress_hook
-
-        ytdl_params["progress_hooks"] = [_get_hook_for_download(download_id)]
+    if progress_hook:
+        if asyncio.iscoroutinefunction(progress_hook):
+            def progress_hook_wrapper(data):
+                asyncio.create_task(progress_hook(data))
+            ytdl_params["progress_hooks"] = [progress_hook_wrapper]
+        else:
+            ytdl_params["progress_hooks"] = [progress_hook]
 
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         result_status = ydl.download(download_params.urls)

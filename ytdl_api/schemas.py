@@ -2,6 +2,8 @@ from enum import Enum
 from typing import List
 from pydantic import BaseModel, AnyHttpUrl, Field
 
+from . import types
+
 
 class DefaultErrorResponse(BaseModel):
     detail: str = Field(
@@ -56,6 +58,11 @@ class VersionResponse(BaseModel):
         ...,
         description="List of available media options for download",
         example=[media_format.value for media_format in MediaFormatOptions],
+    )
+    uid: str = Field(
+        ...,
+        description="Unique session identifier",
+        example="1080c61c7683442e8d466c69917e8aa4",
     )
 
 
@@ -126,10 +133,10 @@ class FetchedItem(BaseModel):
     )
 
 
-class SessionCheckResponse(BaseModel):
+class FetchedListResponse(BaseModel):
     downloads: List[FetchedItem] = Field(
         ...,
-        description="List of current downloads in session",
+        description="List of pending and finished downloads",
         example=[
             {
                 "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
@@ -146,7 +153,14 @@ class SessionCheckResponse(BaseModel):
     )
 
 
-class FetchedListResponse(BaseModel):
-    downloads: List[FetchedItem] = Field(
-        ..., description="List of pending and finished downloads",
-    )
+class DownloadProgress(BaseModel):
+    media_id: str = Field(..., description="Id of downloaded media")
+    status: str = Field(..., description="Download status")
+    progress: int = Field(..., description="Download progress of a file")
+
+    @classmethod
+    def from_data(cls, media_id: str, data: types.DownloadDataInfo) -> 'DownloadProgress':
+        status = data['status']
+        progress_str = data['_percent_str'].strip().replace("%", "") 
+        progress = round(float(progress_str))
+        return cls(media_id=media_id, status=status, progress=progress)
