@@ -14,7 +14,7 @@ class NotificationQueue:
         queue = self.queues[topic]
         return await queue.get()
 
-    def get_put(self, topic: str) -> typing.Callable:
+    def get_put(self, topic: str) -> typing.Coroutine:
         queue = self.queues[topic]
 
         async def inner_put(data: DownloadDataInfo):
