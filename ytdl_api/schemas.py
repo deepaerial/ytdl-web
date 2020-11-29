@@ -159,8 +159,10 @@ class DownloadProgress(BaseModel):
     progress: int = Field(..., description="Download progress of a file")
 
     @classmethod
-    def from_data(cls, media_id: str, data: types.DownloadDataInfo) -> 'DownloadProgress':
-        status = data['status']
-        progress_str = data['_percent_str'].strip().replace("%", "") 
+    def from_data(
+        cls, media_id: str, data: types.DownloadDataInfo
+    ) -> "DownloadProgress":
+        status = data["status"]
+        progress_str = data["_percent_str"].strip().replace("%", "")
         progress = round(float(progress_str))
         return cls(media_id=media_id, status=status, progress=progress)

@@ -54,11 +54,12 @@ async def fetch_media(
 async def fetch_stream(
     uid: str,
     request: Request,
-    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue)
+    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue),
 ):
-    '''
+    """
     SSE endpoint for recieving download status of media items.
-    '''
+    """
+
     async def _stream():
         while True:
             if await request.is_disconnected():
