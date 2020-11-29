@@ -1,7 +1,6 @@
 import re
 import asyncio
 import typing
-import functools
 import youtube_dl
 
 from . import schemas
@@ -60,7 +59,7 @@ def video_info(
     return downloads
 
 
-async def download(
+def download(
     download_params: schemas.YTDLParams,
     progress_hook: typing.Optional[typing.Callable[[dict], None]],
 ) -> int:
@@ -100,9 +99,9 @@ async def download(
     ytdl_params["postprocessors"] = postprocessors
     if progress_hook:
         if asyncio.iscoroutinefunction(progress_hook):
-            def progress_hook_wrapper(data):
-                asyncio.create_task(progress_hook(data))
-            ytdl_params["progress_hooks"] = [progress_hook_wrapper]
+            ytdl_params["progress_hooks"] = [
+                lambda data: asyncio.run(progress_hook(data))
+            ]
         else:
             ytdl_params["progress_hooks"] = [progress_hook]
 
