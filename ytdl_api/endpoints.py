@@ -1,11 +1,12 @@
 import typing
 import asyncio
 import uuid
+import functools
 
 from fastapi import APIRouter, BackgroundTasks, Request, Depends
 from sse_starlette.sse import EventSourceResponse
 
-from . import deps, schemas, task, config, queue
+from . import dependencies, schemas, task, config, queue
 
 router = APIRouter()
 
@@ -17,7 +18,7 @@ def get_UUID4():
 @router.get("/info", response_model=schemas.VersionResponse, status_code=200)
 async def info(
     uid: typing.Optional[str] = None,
-    settings: config.Settings = Depends(deps.get_settings),
+    settings: config.Settings = Depends(dependencies.get_settings),
 ):
     """
     Endpoint for getting info about server API.
@@ -39,7 +40,7 @@ async def fetch_media(
     uid: str,
     json_params: schemas.YTDLParams,
     task_queue: BackgroundTasks,
-    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue),
+    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
@@ -54,7 +55,7 @@ async def fetch_media(
 async def fetch_stream(
     uid: str,
     request: Request,
-    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue),
+    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
     SSE endpoint for recieving download status of media items.

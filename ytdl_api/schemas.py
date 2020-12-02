@@ -3,6 +3,8 @@ from typing import List
 from pydantic import BaseModel, AnyHttpUrl, Field
 
 from . import types
+from .config import settings
+from .logger import YDLLogger
 
 
 class DefaultErrorResponse(BaseModel):
@@ -67,11 +69,11 @@ class VersionResponse(BaseModel):
 
 
 class YTDLParams(BaseModel):
-    urls: List[AnyHttpUrl] = Field(
+    url: AnyHttpUrl = Field(
         ...,
-        title="URLs",
-        description="URLs to videos",
-        example=["https://www.youtube.com/watch?v=B8WgNGN0IVA"],
+        title="URL",
+        description="URL to video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
     )
     media_format: MediaFormatOptions = Field(
         ..., description="Video or audio (when extracting) format of file",
@@ -89,6 +91,33 @@ class YTDLParams(BaseModel):
 
     class Config:
         validate_all = True
+
+    def get_youtube_dl_params(self) -> dict:
+        ytdl_params = {
+            "verbose": True,
+            "rm_cachedir": True,
+            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
+            "outtmpl": (settings.media_path / self.outtmpl).absolute().as_posix(),
+            "logger": YDLLogger(),
+            "updatetime": self.use_last_modified,
+            "noplaylist": False,  # download only video if URL refers to playlist and video
+        }
+        if self.media_format.is_audio:
+            ytdl_params["postprocessors"] = [
+                {
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": self.media_format.value,
+                    "preferredquality": "192",
+                }
+            ]
+        else:
+            ytdl_params["postprocessors"] = [
+                {
+                    "key": "FFmpegVideoConvertor",
+                    "preferedformat": self.media_format.value,
+                }
+            ]
+        return ytdl_params
 
 
 class ThumbnailInfo(BaseModel):
