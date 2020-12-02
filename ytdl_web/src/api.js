@@ -20,9 +20,9 @@ export const apiInfo = async () => {
     return json_response;
 };
 
-export const apiFetch = async (uid, urls, media_format) => {
+export const apiFetch = async (uid, videoUrl, media_format) => {
     let json_body = {
-        urls,
+        url: videoUrl,
         media_format
     }
     const url = parametrizeUrl(`${API_URL}/fetch`, { uid }); 

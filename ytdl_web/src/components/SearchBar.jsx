@@ -101,7 +101,7 @@ export default class SearchBar extends Component {
     onSearch = async (event) => {
         event.preventDefault();
         const uid = localStorage.getItem(UID_KEY);
-        const downloads = await apiFetch(uid, [this.state.url], this.state.selectedMediaOption);
+        const downloads = await apiFetch(uid, this.state.url, this.state.selectedMediaOption);
         const { setDownloads } = this.context;
         setDownloads(downloads);
         this.setState({ url: '' });
