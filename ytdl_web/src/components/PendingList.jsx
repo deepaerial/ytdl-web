@@ -6,7 +6,7 @@ import MediaItem from './MediaItem.jsx';
 
 const ListContainer = styled.div`
     max-width: ${props => props.isDesktop ? 60 : 90}%;
-    margin-top: 20px;
+    margin-top: 15px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -34,12 +34,6 @@ export default class PendingList extends Component {
         return (
             <ListContainer isDesktop={isDesktop}>
                 {downloads.map((download, index) => <MediaItem key={index} downloadItem={download} />)}
-                {/* <MediaItem key={0} downloadItem={exampleValue} isDesktop={isDesktop}/>
-                <MediaItem key={1} downloadItem={exampleValue} isDesktop={isDesktop}/>
-                <MediaItem key={2} downloadItem={exampleValue} isDesktop={isDesktop}/>
-                <MediaItem key={3} downloadItem={exampleValue} isDesktop={isDesktop} />
-                <MediaItem key={4} downloadItem={exampleValue} isDesktop={isDesktop}/>
-                <MediaItem key={5} downloadItem={exampleValue} isDesktop={isDesktop}/> */}
             </ListContainer>
         )
     }

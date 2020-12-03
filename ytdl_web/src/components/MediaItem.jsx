@@ -8,7 +8,7 @@ import {bytesToHumanReadableFileSize, millisecToHumanReadable} from '../utils';
 
 const CardBox = styled.div`
     position: relative;
-    margin: ${props => props.isDesktop ? 20 : 20}px ${props => props.isDesktop ? 20 : 0}px;
+    margin: ${props => props.isDesktop ? 20 : 10}px ${props => props.isDesktop ? 20 : 5}px;
     background-image: url(${props => props.backgroundUrl});
     background-size: cover;
     background-color: #FFF;
