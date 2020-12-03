@@ -1,29 +1,32 @@
-const API_URL = 'https://127.0.0.1:8000/api'
+import { parametrizeUrl } from './utils'
+
+import { UID_KEY } from './constants'
+
+export const API_URL = 'https://127.0.0.1:8000/api'
 
 
-export const apiVersion = async () => {
-    const response = await fetch(`${API_URL}/version`, { credentials: 'include' });
+export const apiInfo = async () => {
+    let url = `${API_URL}/info`;
+    const uid = localStorage.getItem(UID_KEY);
+    if (uid) {
+        url = parametrizeUrl(url, { uid });
+    }
+    const response = await fetch(url, { credentials: 'include' });
     if (!response.ok) {
         alert(`Error ${response.status}`);
     }
-    return await response.json();
+    const json_response = await response.json();
+    localStorage.setItem(UID_KEY, json_response.uid);
+    return json_response;
 };
 
-export const apiCheck = async () => {
-    const response = await fetch(`${API_URL}/check`, { credentials: 'include' });
-    if (!response.ok) {
-        alert(`Error ${response.status}`);
-    }
-    const status = response.status;
-    return status;
-};
-
-export const apiFetch = async (urls, media_format) => {
+export const apiFetch = async (uid, videoUrl, media_format) => {
     let json_body = {
-        urls,
+        url: videoUrl,
         media_format
     }
-    const response = await fetch(`${API_URL}/fetch`, {
+    const url = parametrizeUrl(`${API_URL}/fetch`, { uid }); 
+    const response = await fetch(url, {
         method: 'PUT',
         body: JSON.stringify(json_body)
     });

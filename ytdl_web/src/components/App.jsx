@@ -7,10 +7,12 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
-import { apiVersion, apiCheck } from '../api'
+import { API_URL, apiInfo } from '../api';
+import { parametrizeUrl } from '../utils';
+import { UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 
-import "../styles.css"
+import "../styles.css";
 import PendingList from './PendingList.jsx';
 
 const Content = styled.div`
@@ -40,24 +42,30 @@ class App extends React.Component {
     async componentDidMount() {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
-        const success = await apiCheck();
-        const {api_version, media_options} = await apiVersion();
-        this.setState({ version: api_version , mediaOptions: media_options});
+        const { api_version, media_options, uid } = await apiInfo();
+        this.setState({ version: api_version, mediaOptions: media_options });
+        const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
+        eventSource.addEventListener("message", function (event) {
+            console.log(event.data);
+        });
+        eventSource.addEventListener("end", function (event) {
+            eventSource.close();
+        });
     }
 
     setDownloads = (downloads) => {
-        this.setState({downloads});
+        this.setState({ downloads });
     }
 
     render() {
-        const {version, downloads, mediaOptions, isDesktop} = this.state
-        const {setDownloads} = this;
+        const { version, downloads, mediaOptions, isDesktop } = this.state
+        const { setDownloads } = this;
         return (
             <Content>
                 <Header version={version} />
-                <DownloadsContext.Provider value={{downloads, setDownloads}}>
-                    <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop}/>
-                    <PendingList isDesktop={isDesktop}/>
+                <DownloadsContext.Provider value={{ downloads, setDownloads }}>
+                    <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} />
+                    <PendingList isDesktop={isDesktop} />
                 </DownloadsContext.Provider>
             </Content>
         )

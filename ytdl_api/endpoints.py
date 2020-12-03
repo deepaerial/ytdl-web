@@ -5,25 +5,21 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Request, Depends
 from sse_starlette.sse import EventSourceResponse
 
-from . import deps, schemas, task, config, queue
+from . import dependencies, schemas, task, config, queue, db
 
 router = APIRouter()
-
-
-def get_UUID4():
-    return uuid.uuid4()
 
 
 @router.get("/info", response_model=schemas.VersionResponse, status_code=200)
 async def info(
     uid: typing.Optional[str] = None,
-    settings: config.Settings = Depends(deps.get_settings),
+    settings: config.Settings = Depends(dependencies.get_settings),
 ):
     """
     Endpoint for getting info about server API.
     """
     if uid is None:
-        uid = get_UUID4().hex
+        uid = uuid.uuid4().hex
     return {
         "youtube_dl_version": settings.youtube_dl_version,
         "api_version": settings.version,
@@ -39,26 +35,30 @@ async def fetch_media(
     uid: str,
     json_params: schemas.YTDLParams,
     task_queue: BackgroundTasks,
-    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue),
+    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
+    datasource: db.DAOInterface = Depends(dependencies.get_database)
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    downloads = task.video_info(json_params)
-    task_queue.add_task(task.download_pytube, json_params, event_queue.get_put(uid))
-    return {"downloads": downloads}
+    download = task.video_info(json_params)
+    datasource.put_download(uid, download)
+    task_queue.add_task(task.download, json_params, event_queue.get_put(uid, download.media_id))
+    return {"downloads": datasource.fetch_downloads(uid)}
 
 
 @router.get("/fetch/stream")
 async def fetch_stream(
     uid: str,
     request: Request,
-    event_queue: queue.NotificationQueue = Depends(deps.get_notification_queue)
+    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
+    datasource: db.DAOInterface = Depends(dependencies.get_database)
 ):
-    '''
+    """
     SSE endpoint for recieving download status of media items.
-    '''
+    """
+
     async def _stream():
         while True:
             if await request.is_disconnected():
@@ -68,6 +68,8 @@ async def fetch_stream(
             except asyncio.QueueEmpty:
                 continue
             else:
+                download = datasource.get_download(data.client_id, data.media_id)
+                download._progress = data.progress
                 yield data.json()
 
     return EventSourceResponse(_stream())

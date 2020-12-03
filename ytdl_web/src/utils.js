@@ -1,4 +1,4 @@
-const millisecToHumanReadable = (millisec) => {
+export const millisecToHumanReadable = (millisec) => {
     var seconds = (millisec / 1000).toFixed(0);
     var minutes = Math.floor(seconds / 60);
     var hours = "";
@@ -18,13 +18,18 @@ const millisecToHumanReadable = (millisec) => {
 };
 
 
-const bytesToHumanReadableFileSize = (bytes)  => {
+export const bytesToHumanReadableFileSize = (bytes) => {
     if (bytes < 1024) return bytes + ' B';
     let i = Math.floor(Math.log(bytes) / Math.log(1024));
     let num = (bytes / Math.pow(1024, i));
     let round = Math.round(num);
     num = round < 10 ? num.toFixed(2) : round < 100 ? num.toFixed(1) : round;
-    return `${num} ${'KMGTPEZY'[i-1]}B`
-  }
+    return `${num} ${'KMGTPEZY'[i - 1]}B`
+};
 
-export {millisecToHumanReadable, bytesToHumanReadableFileSize};
+
+export const parametrizeUrl = (urlString, params) => {
+    const url = new URL(urlString);
+    url.search = new URLSearchParams(params);
+    return url;
+};
