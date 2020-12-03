@@ -5,20 +5,11 @@ from .asgi import app
 client = TestClient(app)
 
 
-def test_session_endpoint():
-    """
-    Test endpoint that initializes session for client.
-    """
-    response = client.get("/api/check")
-    assert response.status_code == 200
-    assert "downloads" in response.json()
-
-
 def test_version_endpoint():
     """
     Test endpoint that returns information about API version.
     """
-    response = client.get("/api/version")
+    response = client.get("/api/info")
     assert response.status_code == 200
     assert "api_version" in response.json()
     assert "youtube_dl_version" in response.json()
@@ -32,7 +23,7 @@ def test_dowload_endpoint_no_format():
     """
     response = client.put(
         "/api/fetch",
-        json={"params": {"urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"]}},
+        json={"params": {"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"}},
     )
     assert response.status_code == 422
     assert "detail" in response.json()
@@ -47,7 +38,7 @@ def test_dowload_endpoint_video():
     response = client.put(
         "/api/fetch",
         json={
-            "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
+            "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
             "media_format": "mp4",
         },
     )
@@ -64,7 +55,7 @@ def test_dowload_endpoint_audio():
     response = client.put(
         "/api/fetch",
         json={
-            "urls": ["https://www.youtube.com/watch?v=0ruMGbPXxbA"],
+            "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
             "media_format": "mp3",
         },
     )

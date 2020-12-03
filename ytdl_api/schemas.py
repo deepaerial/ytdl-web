@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import List
-from pydantic import BaseModel, AnyHttpUrl, Field
+from typing import List, Optional, TypedDict
+from pydantic import BaseModel, AnyHttpUrl, Field, PrivateAttr
 
-from . import types
 from .config import settings
 from .logger import YDLLogger
 
@@ -134,7 +133,7 @@ class ThumbnailInfo(BaseModel):
     )
 
 
-class FetchedItem(BaseModel):
+class Download(BaseModel):
     title: str = Field(
         ...,
         description="Video title",
@@ -160,10 +159,15 @@ class FetchedItem(BaseModel):
             "height": 1080,
         },
     )
+    status: str = Field(None, description="Download status", example="downloading")
+    media_id: str = Field(
+        ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
+    )
+    _progress: float = PrivateAttr()
 
 
 class FetchedListResponse(BaseModel):
-    downloads: List[FetchedItem] = Field(
+    downloads: List[Download] = Field(
         ...,
         description="List of pending and finished downloads",
         example=[
@@ -182,16 +186,41 @@ class FetchedListResponse(BaseModel):
     )
 
 
+class DownloadDataInfo(TypedDict):
+    _eta_str: Optional[str]
+    _percent_str: Optional[str]
+    _speed_str: Optional[str]
+    _total_bytes_str: Optional[str]
+    status: str
+    filename: str
+    tmpfilename: str
+    downloaded_bytes: int
+    total_bytes: int
+    total_bytes_estimate: Optional[int]
+    elapsed: int
+    eta: Optional[int]
+    speed: Optional[int]
+    fragment_index: Optional[int]
+    fragment_count: Optional[int]
+
+
 class DownloadProgress(BaseModel):
+    client_id: str = Field(..., description="Id of client")
     media_id: str = Field(..., description="Id of downloaded media")
     status: str = Field(..., description="Download status")
     progress: int = Field(..., description="Download progress of a file")
 
     @classmethod
     def from_data(
-        cls, media_id: str, data: types.DownloadDataInfo
+        cls, client_id: str, media_id: str, data: DownloadDataInfo
     ) -> "DownloadProgress":
+        import json
+        print(json.dumps(data, sort_keys=True, indent=4))
         status = data["status"]
-        progress_str = data["_percent_str"].strip().replace("%", "")
+        percentage = data.get("_percent_str")
+        if percentage:
+            progress_str = percentage.strip().replace("%", "")
+        else:
+            progress_str = 0
         progress = round(float(progress_str))
-        return cls(media_id=media_id, status=status, progress=progress)
+        return cls(media_id=media_id, client_id=client_id, status=status, progress=progress)

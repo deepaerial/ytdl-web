@@ -2,22 +2,22 @@ import typing
 import asyncio
 from collections import defaultdict
 
-from .types import DownloadDataInfo
-from .schemas import DownloadProgress
+
+from .schemas import DownloadProgress, DownloadDataInfo
 
 
 class NotificationQueue:
 
     queues: typing.Dict[str, asyncio.Queue] = defaultdict(asyncio.Queue)
 
-    async def get(self, topic: str) -> DownloadProgress:
-        queue = self.queues[topic]
+    async def get(self, client_id: str) -> DownloadProgress:
+        queue = self.queues[client_id]
         return await queue.get()
 
-    def get_put(self, topic: str) -> typing.Coroutine:
-        queue = self.queues[topic]
+    def get_put(self, client_id: str, media_id: str) -> typing.Coroutine:
+        queue = self.queues[client_id]
 
         async def inner_put(data: DownloadDataInfo):
-            return await queue.put(DownloadProgress.from_data(topic, data))
+            return await queue.put(DownloadProgress.from_data(client_id, media_id, data))
 
         return inner_put

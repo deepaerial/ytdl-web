@@ -1,4 +1,5 @@
 import re
+import uuid
 import asyncio
 import typing
 import youtube_dl
@@ -6,44 +7,43 @@ import youtube_dl
 from . import schemas
 
 
-def video_info(
-    download_params: schemas.YTDLParams,
-) -> typing.List[schemas.FetchedItem]:
+def video_info(download_params: schemas.YTDLParams,) -> schemas.Download:
     """
     Fetch video info data.
     """
-    downloads = []
-    if not re.match(r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", download_params.url):
-        downloads.append(schemas.FetchedItem(video_url=download_params.url, thumbnail_url=None))
-    else:
-        ytdl_params = download_params.get_youtube_dl_params()
-        with youtube_dl.YoutubeDL(ytdl_params) as ydl:
-            info_dict = ydl.extract_info(download_params.url, download=False)
-            if not download_params.media_format.is_audio:
-                filesize = [
-                    _format["filesize"]
-                    for _format in info_dict["formats"]
-                    if _format["ext"] == download_params.media_format.value
-                    or _format["ext"]
-                ][0]
-            else:
-                filesize = None
-            title = info_dict.get("title", None)
-            thumbnail_data = info_dict["thumbnails"][-1]
-        downloads.append(
-            schemas.FetchedItem(
-                duration=info_dict["duration"] * 1000,  # Duration in milliseconds
-                filesize=filesize,  # size in bytes,
-                title=title,
-                video_url=download_params.url,
-                thumbnail=schemas.ThumbnailInfo(
-                    url=thumbnail_data["url"],
-                    width=thumbnail_data["width"],
-                    height=thumbnail_data["height"],
-                ),
-            )
+    if not re.match(
+        r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", download_params.url
+    ):
+        return schemas.Download(
+            media_id=uuid.uuid4().hex, video_url=download_params.url, thumbnail_url=None
         )
-    return downloads
+    ytdl_params = download_params.get_youtube_dl_params()
+    with youtube_dl.YoutubeDL(ytdl_params) as ydl:
+        info_dict = ydl.extract_info(download_params.url, download=False)
+        if not download_params.media_format.is_audio:
+            filesize = [
+                _format["filesize"]
+                for _format in info_dict["formats"]
+                if _format["ext"] == download_params.media_format.value
+                or _format["ext"]
+            ][0]
+        else:
+            filesize = None
+        title = info_dict.get("title", None)
+        thumbnail_data = info_dict["thumbnails"][-1]
+        download = schemas.Download(
+            media_id=uuid.uuid4().hex,
+            duration=info_dict["duration"] * 1000,  # Duration in milliseconds
+            filesize=filesize,  # size in bytes,
+            title=title,
+            video_url=download_params.url,
+            thumbnail=schemas.ThumbnailInfo(
+                url=thumbnail_data["url"],
+                width=thumbnail_data["width"],
+                height=thumbnail_data["height"],
+            ),
+        )
+    return download
 
 
 def download(
