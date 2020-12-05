@@ -17,7 +17,6 @@ class Settings(BaseSettings):
     Application settings config
     """
 
-    secret_key: str
     debug: bool = False
     docs_url: str = "/docs"
     openapi_prefix: str = ""
