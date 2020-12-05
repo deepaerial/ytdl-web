@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List, Optional, TypedDict
+from pathlib import Path
 from pydantic import BaseModel, AnyHttpUrl, Field, PrivateAttr
 
 from .config import settings
@@ -139,6 +140,9 @@ class Download(BaseModel):
         description="Video title",
         example="Adam Knight - I've Got The Gold (Shoby Remix)",
     )
+    media_format: MediaFormatOptions = Field(
+        ..., description="Video or audio (when extracting) format of file",
+    )
     duration: int = Field(
         ..., description="Video duration (in milliseconds)", example=479000
     )
@@ -163,6 +167,7 @@ class Download(BaseModel):
     media_id: str = Field(
         ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
     )
+    _file_path: Optional[Path] = PrivateAttr(None)
     _progress: float = PrivateAttr()
 
 
