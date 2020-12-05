@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 import typing
+import itertools
 
+from pydantic import AnyHttpUrl
 
-from .schemas import Download
+from .schemas import Download, MediaFormatOptions
 
 
 class DAOInterface(ABC):
@@ -33,6 +35,23 @@ class DAOInterface(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def update_download_progress(self, client_id: str, media_id: str, progress: int):
+        """
+        Abstract method that updates progress for media item of specific user/client.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_download_if_exists(
+        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+    ) -> Download:
+        """
+        Abstract method that returns True if media with given url and media format exists
+        in downloaded media database.
+        """
+        raise NotImplementedError
+
 
 class InMemoryDB(DAOInterface):
     """
@@ -48,7 +67,21 @@ class InMemoryDB(DAOInterface):
         self.storage[client_id].append(download)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
-        instance = next(iter([
-            d for d in self.storage[client_id] if d.media_id == media_id
-        ]), None)
-        return instance
+        return next(
+            filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
+        )
+
+    def update_download_progress(self, client_id: str, media_id: str, progress: int):
+        download = self.get_download(client_id, media_id)
+        download._progress = progress
+
+    def get_download_if_exists(
+        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+    ) -> Download:
+        return next(
+            filter(
+                lambda d: d.url == url and d.media_format == media_format,
+                itertools.chain(self.storage.values()),
+            ),
+            None,
+        )

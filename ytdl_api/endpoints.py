@@ -36,7 +36,7 @@ async def fetch_media(
     json_params: schemas.YTDLParams,
     task_queue: BackgroundTasks,
     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-    datasource: db.DAOInterface = Depends(dependencies.get_database)
+    datasource: db.DAOInterface = Depends(dependencies.get_database),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
@@ -44,7 +44,9 @@ async def fetch_media(
     """
     download = task.video_info(json_params)
     datasource.put_download(uid, download)
-    task_queue.add_task(task.download, json_params, event_queue.get_put(uid, download.media_id))
+    task_queue.add_task(
+        task.download, json_params, event_queue.get_put(uid, download.media_id)
+    )
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
@@ -53,7 +55,7 @@ async def fetch_stream(
     uid: str,
     request: Request,
     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-    datasource: db.DAOInterface = Depends(dependencies.get_database)
+    datasource: db.DAOInterface = Depends(dependencies.get_database),
 ):
     """
     SSE endpoint for recieving download status of media items.
@@ -68,8 +70,9 @@ async def fetch_stream(
             except asyncio.QueueEmpty:
                 continue
             else:
-                download = datasource.get_download(data.client_id, data.media_id)
-                download._progress = data.progress
+                datasource.update_download_progress(
+                    data.client_id, data.media_id, data.progress
+                )
                 yield data.json()
 
     return EventSourceResponse(_stream())

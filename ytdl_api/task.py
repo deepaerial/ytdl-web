@@ -5,18 +5,24 @@ import typing
 import youtube_dl
 
 from . import schemas
+from .db import DAOInterface
 
 
-def video_info(download_params: schemas.YTDLParams,) -> schemas.Download:
+def video_info(
+    download_params: schemas.YTDLParams, datasource: DAOInterface
+) -> schemas.Download:
     """
     Fetch video info data.
     """
     if not re.match(
         r"^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$", download_params.url
     ):
-        return schemas.Download(
-            media_id=uuid.uuid4().hex, video_url=download_params.url, thumbnail_url=None
-        )
+        raise Exception("Unsuported we resource url")
+    existing_download = datasource.get_download_if_exists(
+        download_params.url, download_params.media_format
+    )
+    if existing_download:
+        return existing_download.copy(deep=True)
     ytdl_params = download_params.get_youtube_dl_params()
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         info_dict = ydl.extract_info(download_params.url, download=False)
@@ -58,12 +64,9 @@ def download(
     """
     ytdl_params = download_params.get_youtube_dl_params()
     if progress_hook:
-        if asyncio.iscoroutinefunction(progress_hook):
-            ytdl_params["progress_hooks"] = [
-                lambda data: asyncio.run(progress_hook(data))
-            ]
-        else:
-            ytdl_params["progress_hooks"] = [progress_hook]
+        ytdl_params["progress_hooks"] = [
+            lambda data: asyncio.run(progress_hook(data))
+        ]
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         result_status = ydl.download([download_params.url])
     if result_status == 0:
