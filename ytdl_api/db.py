@@ -45,7 +45,7 @@ class DAOInterface(ABC):
     @abstractmethod
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
-    ) -> Download:
+    ) -> typing.Optional[Download]:
         """
         Abstract method that returns True if media with given url and media format exists
         in downloaded media database.
@@ -77,7 +77,7 @@ class InMemoryDB(DAOInterface):
 
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
-    ) -> Download:
+    ) -> typing.Optional[Download]:
         return next(
             filter(
                 lambda d: d.url == url and d.media_format == media_format,

@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import List, Optional, TypedDict
 from pathlib import Path
-from pydantic import BaseModel, AnyHttpUrl, Field, PrivateAttr
+from typing import List, Optional, TypedDict, Union
+
+from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr
 
 from .config import settings
 from .logger import YDLLogger
@@ -134,6 +135,12 @@ class ThumbnailInfo(BaseModel):
     )
 
 
+class ProgressStatusEnum(str, Enum):
+    STARTED = "stated"
+    DOWNLOADING = "downloading"
+    FINISHED = "finished"
+
+
 class Download(BaseModel):
     title: str = Field(
         ...,
@@ -163,12 +170,16 @@ class Download(BaseModel):
             "height": 1080,
         },
     )
-    status: str = Field(None, description="Download status", example="downloading")
+    status: ProgressStatusEnum = Field(
+        None, description="Download status", example=ProgressStatusEnum.DOWNLOADING
+    )
     media_id: str = Field(
         ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
     )
     _file_path: Optional[Path] = PrivateAttr(None)
-    _progress: float = PrivateAttr()
+    progress: int = Field(
+        0, description="Download progress in ", example=20
+    )
 
 
 class FetchedListResponse(BaseModel):
@@ -181,11 +192,14 @@ class FetchedListResponse(BaseModel):
                 "duration": 231000,
                 "filesize": None,
                 "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+                "media_id": "1080c61c7683442e8d466c69917e8aa4",
+                "status": "started",
                 "thumbnail": {
                     "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
                     "width": 1920,
                     "height": 1080,
                 },
+                "progress": 0
             }
         ],
     )
@@ -212,15 +226,15 @@ class DownloadDataInfo(TypedDict):
 class DownloadProgress(BaseModel):
     client_id: str = Field(..., description="Id of client")
     media_id: str = Field(..., description="Id of downloaded media")
-    status: str = Field(..., description="Download status")
-    progress: int = Field(..., description="Download progress of a file")
+    status: ProgressStatusEnum = Field(
+        ..., description="Download status", example=ProgressStatusEnum.DOWNLOADING
+    )
+    progress: int = Field(..., description="Download progress of a file", example=10)
 
     @classmethod
     def from_data(
         cls, client_id: str, media_id: str, data: DownloadDataInfo
     ) -> "DownloadProgress":
-        import json
-        print(json.dumps(data, sort_keys=True, indent=4))
         status = data["status"]
         percentage = data.get("_percent_str")
         if percentage:
@@ -228,4 +242,10 @@ class DownloadProgress(BaseModel):
         else:
             progress_str = 0
         progress = round(float(progress_str))
-        return cls(media_id=media_id, client_id=client_id, status=status, progress=progress)
+        return cls(
+            media_id=media_id,
+            client_id=client_id,
+            status=status,
+            progress=int(progress),
+        )
+
