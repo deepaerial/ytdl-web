@@ -18,22 +18,26 @@ export default class PendingList extends Component {
     static contextType = DownloadsContext;
 
     render() {
-        const { downloads } = this.context;
+        let { downloads } = this.context;
         const { isDesktop } = this.props;
-        const exampleValue = {
-            "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
-            "duration": 479000,
-            "filesize": 5696217,
-            "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
-            "thumbnail": {
-                "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
-                "width": 1920,
-                "height": 1080
-            }
-        }
+        // const exampleValue = {
+        //     "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+        //     "duration": 479000,
+        //     "filesize": 5696217,
+        //     "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+        //     "thumbnail": {
+        //         "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+        //         "width": 1920,
+        //         "height": 1080
+        //     },
+        //     "progress": 80,
+        //     "status": "downloading"
+        // }
+        downloads = Object.entries(downloads).map(([k, v]) => v);
         return (
             <ListContainer isDesktop={isDesktop}>
                 {downloads.map((download, index) => <MediaItem key={index} downloadItem={download} />)}
+                {/* <MediaItem key={0} downloadItem={exampleValue} isDesktop={isDesktop}/> */}
             </ListContainer>
         )
     }

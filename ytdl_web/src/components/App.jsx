@@ -9,7 +9,7 @@ import SearchBar from './SearchBar.jsx';
 
 import { API_URL, apiInfo } from '../api';
 import { parametrizeUrl } from '../utils';
-import { UID_KEY } from '../constants';
+import { DOWNLOADS } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 
 import "../styles.css";
@@ -28,7 +28,7 @@ class App extends React.Component {
 
     state = {
         version: null,
-        downloads: [],
+        downloads: {},
         mediaOptions: [],
         isDesktop: false
     }
@@ -45,21 +45,46 @@ class App extends React.Component {
         const { api_version, media_options, uid } = await apiInfo();
         this.setState({ version: api_version, mediaOptions: media_options });
         const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
-        eventSource.addEventListener("message", function (event) {
-            console.log(event.data);
+        eventSource.addEventListener("message", (event) => {
+            this.onProgressUpdate(JSON.parse(event.data));
         });
-        eventSource.addEventListener("end", function (event) {
+        eventSource.addEventListener("end", (event) => {
             eventSource.close();
         });
     }
 
     setDownloads = (downloads) => {
+        downloads = Object.assign({}, ...downloads.map(d => {
+            const { media_id } = d;
+            return { [media_id]: d }
+        }));
+        localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
         this.setState({ downloads });
     }
 
+    onProgressUpdate = (download) => {
+        const { media_id, status, progress } = download;
+        const { downloads } = this.state;
+        let downloadItem = downloads[media_id];
+        if (downloadItem) {
+            downloadItem = Object.assign(downloadItem, {
+                status, progress
+            });
+            downloads[media_id] = downloadItem;
+            localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
+            this.setState({ downloads });
+        }
+    }
+
     render() {
-        const { version, downloads, mediaOptions, isDesktop } = this.state
+        const { version, mediaOptions, isDesktop } = this.state;
+        let downloads = this.state.downloads;
         const { setDownloads } = this;
+        if (!Object.keys(downloads).length) {
+            downloads = localStorage.getItem(DOWNLOADS);
+            if (downloads) downloads = JSON.parse(downloads);
+            else downloads = {}
+        }
         return (
             <Content>
                 <Header version={version} />

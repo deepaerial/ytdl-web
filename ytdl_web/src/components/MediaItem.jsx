@@ -2,21 +2,28 @@ import React, { Component } from 'react'
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
-import {bytesToHumanReadableFileSize, millisecToHumanReadable} from '../utils';
+
+import { bytesToHumanReadableFileSize, millisecToHumanReadable } from '../utils';
 
 
 const CardBox = styled.div`
     position: relative;
     margin: ${props => props.isDesktop ? 20 : 10}px ${props => props.isDesktop ? 20 : 5}px;
-    background-image: url(${props => props.backgroundUrl});
+    background-image: linear-gradient(
+          rgba(0, 0, 0, 0.3), 
+          rgba(0, 0, 0, 0.5)
+        ), url(${props => props.backgroundUrl});
     background-size: cover;
     background-color: #FFF;
     border-radius: 0.4rem;
+    min-width: 350px;
     max-width: 350px;
     height: 200px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    font-size: 1.2em;
+    font-size: 0.9em;
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 
     :hover{
@@ -58,7 +65,13 @@ const Size = styled.span`
     bottom: 10px;
 `;
 
-
+const LoaderContainer = styled.div`
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    left: 9em;
+    top: 3.5em;
+`;
 export default class MediaItem extends Component {
     static propTypes = {
         downloadItem: PropTypes.object
@@ -66,10 +79,19 @@ export default class MediaItem extends Component {
 
     render() {
         const { downloadItem, isDesktop } = this.props;
-        const { title, thumbnail, video_url, duration, filesize } = downloadItem;
+        const { title, thumbnail, video_url, duration, filesize, progress, status } = downloadItem;
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
                 <Title><Url href={video_url}>{title}</Url></Title>
+                <LoaderContainer>
+                    {
+                        status === 'downloading' && <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
+                            textColor: "#FFFFFF",
+                            trailColor: "rgb(214, 214, 214, 0.6)",
+                            pathColor: "#7953d2",
+                        })} />
+                    }
+                </LoaderContainer>
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 <Size>{bytesToHumanReadableFileSize(filesize)}</Size>
             </CardBox>
