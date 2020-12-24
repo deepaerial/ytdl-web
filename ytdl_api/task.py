@@ -22,7 +22,9 @@ def video_info(
         download_params.url, download_params.media_format
     )
     if existing_download:
-        return existing_download.copy(deep=True)
+        download = existing_download.copy(exclude={"media_id"}, deep=True)
+        download.media_id = uuid.uuid4().hex
+        return download
     ytdl_params = download_params.get_youtube_dl_params()
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         info_dict = ydl.extract_info(download_params.url, download=False)
@@ -39,6 +41,7 @@ def video_info(
         thumbnail_data = info_dict["thumbnails"][-1]
         download = schemas.Download(
             media_id=uuid.uuid4().hex,
+            media_format=download_params.media_format,
             duration=info_dict["duration"] * 1000,  # Duration in milliseconds
             filesize=filesize,  # size in bytes,
             title=title,

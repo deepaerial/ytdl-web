@@ -73,15 +73,16 @@ class InMemoryDB(DAOInterface):
 
     def update_download_progress(self, client_id: str, media_id: str, progress: int):
         download = self.get_download(client_id, media_id)
-        download._progress = progress
+        download.progress = progress
 
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
     ) -> typing.Optional[Download]:
+        downloads = list(itertools.chain.from_iterable(self.storage.values()))
         return next(
             filter(
-                lambda d: d.url == url and d.media_format == media_format,
-                itertools.chain(self.storage.values()),
+                lambda d: d.video_url == url and d.media_format == media_format,
+                downloads
             ),
             None,
         )

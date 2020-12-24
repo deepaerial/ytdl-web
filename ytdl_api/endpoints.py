@@ -42,7 +42,7 @@ async def fetch_media(
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    download = task.video_info(json_params)
+    download = task.video_info(json_params, datasource)
     datasource.put_download(uid, download)
     task_queue.add_task(
         task.download, json_params, event_queue.get_put(uid, download.media_id)
