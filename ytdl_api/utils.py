@@ -8,6 +8,10 @@ from . import schemas
 from .db import DAOInterface
 
 
+def get_unique_id() -> str:
+    return uuid.uuid4().hex
+
+
 def video_info(
     download_params: schemas.YTDLParams, datasource: DAOInterface
 ) -> schemas.Download:
@@ -23,7 +27,7 @@ def video_info(
     )
     if existing_download:
         download = existing_download.copy(exclude={"media_id"}, deep=True)
-        download.media_id = uuid.uuid4().hex
+        download.media_id = get_unique_id()
         return download
     ytdl_params = download_params.get_youtube_dl_params()
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
@@ -40,7 +44,7 @@ def video_info(
         title = info_dict.get("title", None)
         thumbnail_data = info_dict["thumbnails"][-1]
         download = schemas.Download(
-            media_id=uuid.uuid4().hex,
+            media_id=get_unique_id(),
             media_format=download_params.media_format,
             duration=info_dict["duration"] * 1000,  # Duration in milliseconds
             filesize=filesize,  # size in bytes,

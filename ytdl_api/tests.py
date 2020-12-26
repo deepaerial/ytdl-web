@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from .asgi import app
+from .utils import get_unique_id
 
 client = TestClient(app)
 
@@ -23,7 +24,8 @@ def test_dowload_endpoint_no_format():
     """
     response = client.put(
         "/api/fetch",
-        json={"params": {"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"}},
+        params={"uid": get_unique_id()},
+        json={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
     assert response.status_code == 422
     assert "detail" in response.json()
@@ -37,6 +39,7 @@ def test_dowload_endpoint_video():
     """
     response = client.put(
         "/api/fetch",
+        params={"uid": get_unique_id()},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
             "media_format": "mp4",
@@ -54,6 +57,7 @@ def test_dowload_endpoint_audio():
     """
     response = client.put(
         "/api/fetch",
+        params={"uid": get_unique_id()},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
             "media_format": "mp3",

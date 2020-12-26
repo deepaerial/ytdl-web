@@ -54,6 +54,88 @@ class MediaFormatOptions(str, Enum):
         ]
 
 
+class ProgressStatusEnum(str, Enum):
+    STARTED = "stated"
+    DOWNLOADING = "downloading"
+    FINISHED = "finished"
+
+
+class ThumbnailInfo(BaseModel):
+    url: AnyHttpUrl = Field(
+        ...,
+        description="Link to video thumbnail",
+        example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
+    )
+    width: int = Field(
+        ..., description="Thumbnail width", example=246,
+    )
+    height: int = Field(
+        ..., description="Thumbnail height", example=138,
+    )
+
+
+class Download(BaseModel):
+    title: str = Field(
+        ...,
+        description="Video title",
+        example="Adam Knight - I've Got The Gold (Shoby Remix)",
+    )
+    media_format: MediaFormatOptions = Field(
+        ..., description="Video or audio (when extracting) format of file",
+    )
+    duration: int = Field(
+        ..., description="Video duration (in milliseconds)", example=479000
+    )
+    filesize: int = Field(
+        None, description="Video/audio filesize (in bytes)", example=5696217
+    )
+    video_url: AnyHttpUrl = Field(
+        ...,
+        description="URL of video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
+    )
+    thumbnail: ThumbnailInfo = Field(
+        ...,
+        description="Video thumbnail",
+        example={
+            "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+            "width": 1920,
+            "height": 1080,
+        },
+    )
+    status: ProgressStatusEnum = Field(
+        None, description="Download status", example=ProgressStatusEnum.DOWNLOADING
+    )
+    media_id: str = Field(
+        ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
+    )
+    _file_path: Optional[Path] = PrivateAttr(None)
+    progress: int = Field(0, description="Download progress in ", example=20)
+
+
+class FetchedListResponse(BaseModel):
+    downloads: List[Download] = Field(
+        ...,
+        description="List of pending and finished downloads",
+        example=[
+            {
+                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+                "duration": 231000,
+                "filesize": None,
+                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+                "media_id": "1080c61c7683442e8d466c69917e8aa4",
+                "status": "started",
+                "thumbnail": {
+                    "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+                    "width": 1920,
+                    "height": 1080,
+                },
+                "progress": 0,
+            }
+        ],
+    )
+
+
 class VersionResponse(BaseModel):
     youtube_dl_version: str = Field(..., example="2020.03.24")
     api_version: str = Field(..., example="0.1.0")
@@ -66,6 +148,26 @@ class VersionResponse(BaseModel):
         ...,
         description="Unique session identifier",
         example="1080c61c7683442e8d466c69917e8aa4",
+    )
+    downloads: List[Download] = Field(
+        ...,
+        description="List of pending and finished downloads",
+        example=[
+            {
+                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+                "duration": 231000,
+                "filesize": None,
+                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+                "media_id": "1080c61c7683442e8d466c69917e8aa4",
+                "status": "started",
+                "thumbnail": {
+                    "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
+                    "width": 1920,
+                    "height": 1080,
+                },
+                "progress": 0,
+            }
+        ],
     )
 
 
@@ -119,90 +221,6 @@ class YTDLParams(BaseModel):
                 }
             ]
         return ytdl_params
-
-
-class ThumbnailInfo(BaseModel):
-    url: AnyHttpUrl = Field(
-        ...,
-        description="Link to video thumbnail",
-        example="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
-    )
-    width: int = Field(
-        ..., description="Thumbnail width", example=246,
-    )
-    height: int = Field(
-        ..., description="Thumbnail height", example=138,
-    )
-
-
-class ProgressStatusEnum(str, Enum):
-    STARTED = "stated"
-    DOWNLOADING = "downloading"
-    FINISHED = "finished"
-
-
-class Download(BaseModel):
-    title: str = Field(
-        ...,
-        description="Video title",
-        example="Adam Knight - I've Got The Gold (Shoby Remix)",
-    )
-    media_format: MediaFormatOptions = Field(
-        ..., description="Video or audio (when extracting) format of file",
-    )
-    duration: int = Field(
-        ..., description="Video duration (in milliseconds)", example=479000
-    )
-    filesize: int = Field(
-        None, description="Video/audio filesize (in bytes)", example=5696217
-    )
-    video_url: AnyHttpUrl = Field(
-        ...,
-        description="URL of video",
-        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
-    )
-    thumbnail: ThumbnailInfo = Field(
-        ...,
-        description="Video thumbnail",
-        example={
-            "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
-            "width": 1920,
-            "height": 1080,
-        },
-    )
-    status: ProgressStatusEnum = Field(
-        None, description="Download status", example=ProgressStatusEnum.DOWNLOADING
-    )
-    media_id: str = Field(
-        ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
-    )
-    _file_path: Optional[Path] = PrivateAttr(None)
-    progress: int = Field(
-        0, description="Download progress in ", example=20
-    )
-
-
-class FetchedListResponse(BaseModel):
-    downloads: List[Download] = Field(
-        ...,
-        description="List of pending and finished downloads",
-        example=[
-            {
-                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
-                "duration": 231000,
-                "filesize": None,
-                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
-                "media_id": "1080c61c7683442e8d466c69917e8aa4",
-                "status": "started",
-                "thumbnail": {
-                    "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
-                    "width": 1920,
-                    "height": 1080,
-                },
-                "progress": 0
-            }
-        ],
-    )
 
 
 class DownloadDataInfo(TypedDict):

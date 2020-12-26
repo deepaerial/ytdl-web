@@ -1,11 +1,10 @@
 import typing
 import asyncio
-import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Request, Depends
 from sse_starlette.sse import EventSourceResponse
 
-from . import dependencies, schemas, task, config, queue, db
+from . import dependencies, schemas, utils, config, queue, db
 
 router = APIRouter()
 
@@ -14,12 +13,13 @@ router = APIRouter()
 async def info(
     uid: typing.Optional[str] = None,
     settings: config.Settings = Depends(dependencies.get_settings),
+    datasource: db.DAOInterface = Depends(dependencies.get_database),
 ):
     """
     Endpoint for getting info about server API.
     """
     if uid is None:
-        uid = uuid.uuid4().hex
+        uid = utils.get_unique_id()
     return {
         "youtube_dl_version": settings.youtube_dl_version,
         "api_version": settings.version,
@@ -27,6 +27,7 @@ async def info(
             media_format.value for media_format in schemas.MediaFormatOptions
         ],
         "uid": uid,
+        "downloads": datasource.fetch_downloads(uid)
     }
 
 
@@ -42,10 +43,10 @@ async def fetch_media(
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    download = task.video_info(json_params, datasource)
+    download = utils.video_info(json_params, datasource)
     datasource.put_download(uid, download)
     task_queue.add_task(
-        task.download, json_params, event_queue.get_put(uid, download.media_id)
+        utils.download, json_params, event_queue.get_put(uid, download.media_id)
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 

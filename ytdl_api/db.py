@@ -61,7 +61,7 @@ class InMemoryDB(DAOInterface):
     storage: typing.DefaultDict[str, typing.List[Download]] = defaultdict(list)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        return self.storage[client_id]
+        return self.storage[client_id] or []
 
     def put_download(self, client_id: str, download: Download):
         self.storage[client_id].append(download)
