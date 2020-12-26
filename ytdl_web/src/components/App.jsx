@@ -24,6 +24,16 @@ const Content = styled.div`
     align-content: center;
 `;
 
+
+const mapDownloads = (downloads) => {
+    downloads = Object.assign({}, ...downloads.map(d => {
+        const { media_id } = d;
+        return { [media_id]: d }
+    }));
+    localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
+    return downloads;
+};
+
 class App extends React.Component {
 
     state = {
@@ -42,8 +52,8 @@ class App extends React.Component {
     async componentDidMount() {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
-        const { api_version, media_options, uid } = await apiInfo();
-        this.setState({ version: api_version, mediaOptions: media_options });
+        const { api_version, media_options, uid, downloads } = await apiInfo();
+        this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
         const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
         eventSource.addEventListener("message", (event) => {
             this.onProgressUpdate(JSON.parse(event.data));
@@ -54,11 +64,7 @@ class App extends React.Component {
     }
 
     setDownloads = (downloads) => {
-        downloads = Object.assign({}, ...downloads.map(d => {
-            const { media_id } = d;
-            return { [media_id]: d }
-        }));
-        localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
+        downloads = mapDownloads(downloads);
         this.setState({ downloads });
     }
 
