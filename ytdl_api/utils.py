@@ -2,9 +2,11 @@ import re
 import uuid
 import asyncio
 import typing
+from pathlib import Path
 import youtube_dl
 
 from . import schemas
+from .config import settings
 from .db import DAOInterface
 
 
@@ -42,10 +44,12 @@ def video_info(
         else:
             filesize = None
         title = info_dict.get("title", None)
+        media_format = download_params.media_format
+        file_path = Path(settings.media_path / f"{title}.{media_format}")
         thumbnail_data = info_dict["thumbnails"][-1]
         download = schemas.Download(
             media_id=get_unique_id(),
-            media_format=download_params.media_format,
+            media_format=media_format,
             duration=info_dict["duration"] * 1000,  # Duration in milliseconds
             filesize=filesize,  # size in bytes,
             title=title,
@@ -56,6 +60,7 @@ def video_info(
                 height=thumbnail_data["height"],
             ),
         )
+        download._file_path = file_path
     return download
 
 

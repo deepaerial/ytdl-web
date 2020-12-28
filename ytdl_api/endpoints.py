@@ -2,6 +2,7 @@ import typing
 import asyncio
 
 from fastapi import APIRouter, BackgroundTasks, Request, Depends
+from starlette.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
 from . import dependencies, schemas, utils, config, queue, db
@@ -27,7 +28,7 @@ async def info(
             media_format.value for media_format in schemas.MediaFormatOptions
         ],
         "uid": uid,
-        "downloads": datasource.fetch_downloads(uid)
+        "downloads": datasource.fetch_downloads(uid),
     }
 
 
@@ -49,6 +50,23 @@ async def fetch_media(
         utils.download, json_params, event_queue.get_put(uid, download.media_id)
     )
     return {"downloads": datasource.fetch_downloads(uid)}
+
+
+@router.get("/fetch")
+def download_media(
+    uid: str,
+    media_id: str,
+    datasource: db.DAOInterface = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for downloading fetched video from Youtube.
+    """
+    media_file = datasource.get_download(uid, media_id)
+    file_name = media_file._file_path.name
+    file_path = media_file._file_path.absolute().as_posix()
+    return FileResponse(
+        file_path, media_type="application/octet-stream", filename=file_name
+    )
 
 
 @router.get("/fetch/stream")

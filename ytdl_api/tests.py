@@ -16,7 +16,7 @@ def test_version_endpoint():
     assert "youtube_dl_version" in response.json()
 
 
-def test_dowload_endpoint_no_format():
+def test_download_endpoint_no_format():
     """
     Test endpoint for starting video download task.
 
@@ -31,7 +31,7 @@ def test_dowload_endpoint_no_format():
     assert "detail" in response.json()
 
 
-def test_dowload_endpoint_video():
+def test_download_endpoint_video():
     """
     Test endpoint for starting video download task.
 
@@ -49,9 +49,9 @@ def test_dowload_endpoint_video():
     assert "downloads" in response.json()
 
 
-def test_dowload_endpoint_audio():
+def test_download_endpoint_audio():
     """
-    Test enpoint for starting audio download task.
+    Test endpoint for starting audio download task.
 
     Verify that audio dowload works
     """
@@ -65,3 +65,26 @@ def test_dowload_endpoint_audio():
     )
     assert response.status_code == 201
     assert "downloads" in response.json()
+
+
+def test_download_fetched_media():
+    """
+    Test endpoint for fetching downloaded media.
+    """
+    uid = get_unique_id()
+    response = client.put(
+        "/api/fetch",
+        params={"uid": uid},
+        json={
+            "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "media_format": "mp3",
+        },
+    )
+    assert response.status_code == 201
+    assert "downloads" in response.json()
+    download = next(iter(response.json()['downloads']))
+    response = client.get(
+        "/api/fetch",
+        params={"uid": uid, "media_id": download['media_id']}
+    )
+    assert response.status_code == 200
