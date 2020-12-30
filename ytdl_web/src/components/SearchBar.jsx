@@ -5,7 +5,7 @@ import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DownloadsContext from '../context/DownloadsContext';
 
-import {UID_KEY} from '../constants';
+import { UID_KEY } from '../constants';
 import { apiFetch } from '../api';
 
 const SearchBarWrapper = styled.div`
@@ -64,6 +64,7 @@ const SearchBarButton = styled.button`
     background: none;
     border-radius: 50%;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 
     :hover{
         box-shadow: 0 3px 6px rgba(0,0,0,0.5), 0 3px 6px rgba(0,0,0,0.5);

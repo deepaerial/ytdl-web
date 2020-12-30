@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-
+import DownloadButton from './DownloadButton.jsx'
 import { bytesToHumanReadableFileSize, millisecToHumanReadable } from '../utils';
 
 
@@ -69,7 +69,7 @@ const LoaderContainer = styled.div`
     position: absolute;
     width: 100px;
     height: 100px;
-    left: 9em;
+    left: 8.9em;
     top: 3.5em;
 `;
 export default class MediaItem extends Component {
@@ -92,6 +92,7 @@ export default class MediaItem extends Component {
                         })} />
                     }
                 </LoaderContainer>
+                <DownloadButton />
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 <Size>{bytesToHumanReadableFileSize(filesize)}</Size>
             </CardBox>

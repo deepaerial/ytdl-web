@@ -2,7 +2,7 @@ import React from 'react';
 
 import styled from 'styled-components';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
 
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
@@ -103,6 +103,6 @@ class App extends React.Component {
     }
 }
 
-library.add(faSearch);
+library.add(faSearch, faDownload);
 
 export default App;
