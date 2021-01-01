@@ -89,9 +89,7 @@ async def fetch_stream(
             except asyncio.QueueEmpty:
                 continue
             else:
-                datasource.update_download_progress(
-                    data.client_id, data.media_id, data.progress
-                )
+                datasource.update_download_progress(data)
                 yield data.json()
 
     return EventSourceResponse(_stream())

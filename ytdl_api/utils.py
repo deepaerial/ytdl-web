@@ -53,6 +53,7 @@ def video_info(
             duration=info_dict["duration"] * 1000,  # Duration in milliseconds
             filesize=filesize,  # size in bytes,
             title=title,
+            status=schemas.ProgressStatusEnum.STARTED.value,
             video_url=download_params.url,
             thumbnail=schemas.ThumbnailInfo(
                 url=thumbnail_data["url"],

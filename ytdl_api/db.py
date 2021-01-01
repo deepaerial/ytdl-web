@@ -5,7 +5,7 @@ import itertools
 
 from pydantic import AnyHttpUrl
 
-from .schemas import Download, MediaFormatOptions
+from .schemas import Download, MediaFormatOptions, DownloadProgress
 
 
 class DAOInterface(ABC):
@@ -36,7 +36,7 @@ class DAOInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update_download_progress(self, client_id: str, media_id: str, progress: int):
+    def update_download_progress(self, progress_obj: DownloadProgress):
         """
         Abstract method that updates progress for media item of specific user/client.
         """
@@ -55,7 +55,7 @@ class DAOInterface(ABC):
 
 class InMemoryDB(DAOInterface):
     """
-    SQLite implementation for DAOInterface.
+    In-memory database implementation for DAOInterface.
     """
 
     storage: typing.DefaultDict[str, typing.List[Download]] = defaultdict(list)
@@ -71,9 +71,10 @@ class InMemoryDB(DAOInterface):
             filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
         )
 
-    def update_download_progress(self, client_id: str, media_id: str, progress: int):
-        download = self.get_download(client_id, media_id)
-        download.progress = progress
+    def update_download_progress(self, progress_obj: DownloadProgress):
+        download = self.get_download(progress_obj.client_id, progress_obj.media_id)
+        download.progress = progress_obj.progress
+        download.status = progress_obj.status
 
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
