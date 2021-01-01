@@ -8,20 +8,6 @@ from .config import settings
 from .logger import YDLLogger
 
 
-class DefaultErrorResponse(BaseModel):
-    detail: str = Field(
-        ..., description="Error detail message", example="Internal Server Error"
-    )
-
-
-class NoValidSessionError(DefaultErrorResponse):
-    detail: str = Field(..., example="No valid session")
-
-
-class ExceptionSchema(BaseModel):
-    detail: str
-
-
 class MediaFormatOptions(str, Enum):
     # Video formats
     MP4 = "mp4"
@@ -186,21 +172,17 @@ class YTDLParams(BaseModel):
         title="Last-modified header",
         description="Use the Last-modified header to set the file modification time",
     )
-    outtmpl: str = Field(
-        "%(title)s.%(ext)s",
-        title="Output format",
-        description="Output template https://github.com/ytdl-org/youtube-dl#output-template",
-    )
 
     class Config:
         validate_all = True
 
-    def get_youtube_dl_params(self) -> dict:
+    def get_youtube_dl_params(self, media_id: str) -> dict:
+        outtmpl = f"{media_id}.%(ext)s"
         ytdl_params = {
             "verbose": True,
             "rm_cachedir": True,
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-            "outtmpl": (settings.media_path / self.outtmpl).absolute().as_posix(),
+            "outtmpl": (settings.media_path / outtmpl).absolute().as_posix(),
             "logger": YDLLogger(),
             "updatetime": self.use_last_modified,
             "noplaylist": False,  # download only video if URL refers to playlist and video
