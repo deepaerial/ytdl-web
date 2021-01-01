@@ -31,7 +31,8 @@ def video_info(
         download = existing_download.copy(exclude={"media_id"}, deep=True)
         download.media_id = get_unique_id()
         return download
-    ytdl_params = download_params.get_youtube_dl_params()
+    media_id = get_unique_id()
+    ytdl_params = download_params.get_youtube_dl_params(media_id)
     with youtube_dl.YoutubeDL(ytdl_params) as ydl:
         info_dict = ydl.extract_info(download_params.url, download=False)
         if not download_params.media_format.is_audio:
@@ -45,10 +46,10 @@ def video_info(
             filesize = None
         title = info_dict.get("title", None)
         media_format = download_params.media_format
-        file_path = Path(settings.media_path / f"{title}.{media_format}")
+        file_path = Path(settings.media_path / f"{media_id}.{media_format}")
         thumbnail_data = info_dict["thumbnails"][-1]
         download = schemas.Download(
-            media_id=get_unique_id(),
+            media_id=media_id,
             media_format=media_format,
             duration=info_dict["duration"] * 1000,  # Duration in milliseconds
             filesize=filesize,  # size in bytes,
@@ -67,6 +68,7 @@ def video_info(
 
 def download(
     download_params: schemas.YTDLParams,
+    media_id: str,
     progress_hook: typing.Optional[typing.Callable[[dict], None]],
 ) -> int:
     """
@@ -75,7 +77,7 @@ def download(
     Options:
     https://github.com/ytdl-org/youtube-dl/blob/3e4cedf9e8cd3157df2457df7274d0c842421945/youtube_dl/options.py
     """
-    ytdl_params = download_params.get_youtube_dl_params()
+    ytdl_params = download_params.get_youtube_dl_params(media_id)
     if progress_hook:
         ytdl_params["progress_hooks"] = [
             lambda data: asyncio.run(progress_hook(data))

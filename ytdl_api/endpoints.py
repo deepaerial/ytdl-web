@@ -1,7 +1,7 @@
 import typing
 import asyncio
 
-from fastapi import APIRouter, BackgroundTasks, Request, Depends
+from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
 from starlette.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
@@ -47,7 +47,7 @@ async def fetch_media(
     download = utils.video_info(json_params, datasource)
     datasource.put_download(uid, download)
     task_queue.add_task(
-        utils.download, json_params, event_queue.get_put(uid, download.media_id)
+        utils.download, json_params, download.media_id, event_queue.get_put(uid, download.media_id)
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 
@@ -62,7 +62,10 @@ def download_media(
     Endpoint for downloading fetched video from Youtube.
     """
     media_file = datasource.get_download(uid, media_id)
-    file_name = media_file._file_path.name
+    if not media_file:
+        raise HTTPException(status_code=404, detail="Download not found")
+    title = media_file.title
+    file_name = f"{title}.{media_file.media_format}"
     file_path = media_file._file_path.absolute().as_posix()
     return FileResponse(
         file_path, media_type="application/octet-stream", filename=file_name
