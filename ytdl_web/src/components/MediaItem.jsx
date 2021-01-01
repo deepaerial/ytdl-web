@@ -7,6 +7,7 @@ import 'react-circular-progressbar/dist/styles.css';
 
 import DownloadButton from './DownloadButton.jsx'
 import { bytesToHumanReadableFileSize, millisecToHumanReadable } from '../utils';
+import { UID_KEY } from '../constants.js';
 
 
 const CardBox = styled.div`
@@ -80,6 +81,7 @@ export default class MediaItem extends Component {
     render() {
         const { downloadItem, isDesktop } = this.props;
         const { title, thumbnail, video_url, duration, filesize, progress, status } = downloadItem;
+        const uid = localStorage.getItem(UID_KEY);
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
                 <Title><Url href={video_url}>{title}</Url></Title>
@@ -92,7 +94,7 @@ export default class MediaItem extends Component {
                         })} />
                     }
                 </LoaderContainer>
-                <DownloadButton />
+                { status == 'finished' && <DownloadButton uid={uid} mediaId={downloadItem.media_id}/>}
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 <Size>{bytesToHumanReadableFileSize(filesize)}</Size>
             </CardBox>

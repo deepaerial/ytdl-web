@@ -33,3 +33,15 @@ export const parametrizeUrl = (urlString, params) => {
     url.search = new URLSearchParams(params);
     return url;
 };
+
+export const getFilenameFromContentDisposition = (xhrResponse) => {
+    const disposition = xhrResponse.headers['Content-Disposition'];
+    if (disposition && disposition.indexOf('inline') !== -1) {
+        const filenameRegex = /filename\*?=([^']*'')?([^;]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) { 
+          return matches[1].replace(/['"]/g, '');
+        }
+    }
+
+}

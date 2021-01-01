@@ -9,7 +9,7 @@ import SearchBar from './SearchBar.jsx';
 
 import { API_URL, apiInfo } from '../api';
 import { parametrizeUrl } from '../utils';
-import { DOWNLOADS } from '../constants';
+import { DOWNLOADS, UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 
 import "../styles.css";
@@ -53,6 +53,7 @@ class App extends React.Component {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
         const { api_version, media_options, uid, downloads } = await apiInfo();
+        localStorage.setItem(UID_KEY, uid);
         this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
         const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
         eventSource.addEventListener("message", (event) => {

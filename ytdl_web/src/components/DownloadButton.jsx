@@ -4,6 +4,8 @@ import PropTypes from "prop-types";
 import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
+import { apiDownload } from '../api';
+
 const ripple = keyframes`
     to {
         transform: scale(4);
@@ -53,10 +55,11 @@ const DownloadButtonWrapper = styled.button`
 export default class DownloadButton extends Component {
 
     static propTypes = {
-        onClick: PropTypes.func
+        uid: PropTypes.string,
+        mediaId: PropTypes.string
     }
 
-    onClick(event) {
+    makeRippleEffect = (event) => {
         const button = event.currentTarget;
         const spanElement = document.createElement("span");
         const pos = button.getBoundingClientRect();
@@ -72,9 +75,17 @@ export default class DownloadButton extends Component {
         button.appendChild(spanElement);
     }
 
+    downloadMedia = (uid, mediaId) => {
+        apiDownload(uid, mediaId);
+    }
+
     render() {
+        const {uid, mediaId} = this.props;
         return (
-            <DownloadButtonWrapper onClick={this.onClick}>
+            <DownloadButtonWrapper onClick={(event) => {
+                this.makeRippleEffect(event);
+                this.downloadMedia(uid, mediaId);
+            }}>
                 <FontAwesomeIcon icon="download"></FontAwesomeIcon>
             </DownloadButtonWrapper>
         )

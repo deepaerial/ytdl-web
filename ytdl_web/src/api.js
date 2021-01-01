@@ -1,4 +1,4 @@
-import { parametrizeUrl } from './utils'
+import { getFilenameFromContentDisposition, parametrizeUrl } from './utils'
 
 import { UID_KEY } from './constants'
 
@@ -25,7 +25,7 @@ export const apiFetch = async (uid, videoUrl, media_format) => {
         url: videoUrl,
         media_format
     }
-    const url = parametrizeUrl(`${API_URL}/fetch`, { uid }); 
+    const url = parametrizeUrl(`${API_URL}/fetch`, { uid });
     const response = await fetch(url, {
         method: 'PUT',
         body: JSON.stringify(json_body)
@@ -35,4 +35,11 @@ export const apiFetch = async (uid, videoUrl, media_format) => {
     }
     const data = await response.json();
     return data.downloads;
-}
+};
+
+export const apiDownload = (uid, mediaId) => {
+    const url = parametrizeUrl(`${API_URL}/fetch`, { uid, media_id: mediaId })
+    var a = document.createElement('a');
+    a.href = url;
+    a.click();   
+};
