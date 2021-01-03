@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from pathlib import Path
 import typing
 import itertools
 
-from pydantic import AnyHttpUrl
+from deta import Deta
+from pydantic import AnyHttpUrl, parse_obj_as
 
 from .schemas import Download, MediaFormatOptions, DownloadProgress
 
@@ -83,7 +85,54 @@ class InMemoryDB(DAOInterface):
         return next(
             filter(
                 lambda d: d.video_url == url and d.media_format == media_format,
-                downloads
+                downloads,
             ),
             None,
         )
+
+
+class DetaDB(DAOInterface):
+    """
+    DAO interface implementation for Deta Bases: https://docs.deta.sh/docs/base/sdk
+    """
+
+    __base_name = "ytdl"
+
+    def __init__(self, deta_project_key: str, base_name: typing.Optional[str] = None):
+        deta = Deta(deta_project_key)
+        if base_name:
+            self.base = deta.Base(base_name)
+        else:
+            self.base = deta.Base(self.__base_name)
+
+    def fetch_downloads(self, client_id: str) -> typing.List[Download]:
+        downloads = next(self.base.fetch({"client_id": client_id}))
+        return parse_obj_as(typing.List[Download], downloads)
+
+    def put_download(self, client_id: str, download: Download):
+        data = download.dict()
+        data["client_id"] = client_id
+        data["_file_path"] = download._file_path.absolute().as_posix()
+        key = data["media_id"]
+
+        self.base.put(data, key)
+
+    def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
+        data = self.base.get(media_id)
+        download = Download(**data)
+        download._file_path = Path(data["_file_path"])
+        return download
+
+    def update_download_progress(self, progress_obj: DownloadProgress):
+        media_id = progress_obj.media_id
+        status = progress_obj.status
+        progress = progress_obj.progress
+        self.base.update({"status": status, "progress": progress}, media_id)
+
+    def get_download_if_exists(
+        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+    ) -> typing.Optional[Download]:
+        downloads_filtered = next(
+            self.base.fetch({"video_url": url, "media_format": media_format})
+        )
+        return parse_obj_as(typing.List[Download], downloads_filtered)

@@ -1,15 +1,21 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
+from enum import Enum
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseSettings
+from pydantic import BaseSettings, root_validator
 from starlette.middleware import Middleware
 from youtube_dl.version import __version__ as youtube_dl_version
 
 from . import __version__
 
 env_path = Path(__file__).parent / "config" / ".env"
+
+
+class DbTypes(str, Enum):
+    MEMORY = "memory"
+    DETA = "deta"
 
 
 class Settings(BaseSettings):
@@ -28,7 +34,23 @@ class Settings(BaseSettings):
     youtube_dl_version = youtube_dl_version
     disable_docs: bool = False
 
+    # Path to directory where downloaded medias will be stored
     media_path: Path
+    # Type of database to use
+    db_type: DbTypes
+    # Deta project key
+    deta_key: Optional[str]
+    # Deta base name
+    deta_base: Optional[str]
+
+    @root_validator
+    def validate_deta_db(cls, values):
+        db_type = values.get("db_type")
+        if db_type == DbTypes.DETA:
+            deta_key = values.get("deta_key")
+            if not deta_key:
+                raise ValueError("Deta key is required when using Deta Base service")
+        return values
 
     def init_app(__pydantic_self__) -> FastAPI:
         """
