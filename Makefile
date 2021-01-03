@@ -3,7 +3,7 @@ clean:
 	@find . -type d -name "*pytest_cache*" -exec rm -rf {} +
 
 run_server:
-	@poetry run python server.py
+	@poetry run python devserver.py
 
 test:
 	@poetry run pytest
