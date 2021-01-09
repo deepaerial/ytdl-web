@@ -13,7 +13,7 @@ import { DOWNLOADS, UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 
 import "../styles.css";
-import PendingList from './PendingList.jsx';
+import DownloadsList from './DownloadsList.jsx';
 
 const Content = styled.div`
     display: flex;
@@ -97,7 +97,7 @@ class App extends React.Component {
                 <Header version={version} />
                 <DownloadsContext.Provider value={{ downloads, setDownloads }}>
                     <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} />
-                    <PendingList isDesktop={isDesktop} />
+                    <DownloadsList isDesktop={isDesktop} />
                 </DownloadsContext.Provider>
             </Content>
         )
