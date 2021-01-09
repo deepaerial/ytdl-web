@@ -9,7 +9,7 @@ test:
 	@poetry run pytest
 
 run_frontend:
-	npm run --prefix ./ytdl_web/ dev
+	npm run --prefix ./ytdl_web/ devserver
 
 make_dev_certs:
 	mkdir certs && mkcert localhost 127.0.0.1

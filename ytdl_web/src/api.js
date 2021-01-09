@@ -1,8 +1,6 @@
 import { getFilenameFromContentDisposition, parametrizeUrl } from './utils'
 
-import { UID_KEY } from './constants'
-
-export const API_URL = 'https://127.0.0.1:8000/api'
+import { UID_KEY } from './constants';
 
 
 export const apiInfo = async () => {

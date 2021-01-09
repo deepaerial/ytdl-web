@@ -7,7 +7,7 @@ import { faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
-import { API_URL, apiInfo } from '../api';
+import { apiInfo } from '../api';
 import { parametrizeUrl } from '../utils';
 import { DOWNLOADS, UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
