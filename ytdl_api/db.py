@@ -132,7 +132,13 @@ class DetaDB(DAOInterface):
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
     ) -> typing.Optional[Download]:
-        downloads_filtered = next(
+        filtered_download = next(
             self.base.fetch({"video_url": url, "media_format": media_format})
         )
-        return parse_obj_as(typing.List[Download], downloads_filtered)
+        if isinstance(filtered_download, list):
+            if not filtered_download:
+                return None
+            filtered_download = filtered_download[0]
+        download: Download = parse_obj_as(Download, filtered_download)
+        download._file_path = Path(filtered_download['_file_path'])
+        return download
