@@ -71,7 +71,7 @@ const LoaderContainer = styled.div`
     width: 100px;
     height: 100px;
     left: 8.9em;
-    top: 3.5em;
+    top: 3.9em;
 `;
 export default class MediaItem extends Component {
     static propTypes = {
@@ -85,15 +85,15 @@ export default class MediaItem extends Component {
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
                 <Title><Url href={video_url}>{title}</Url></Title>
-                <LoaderContainer>
-                    {
-                        status === 'downloading' && <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
+                {
+                    status === 'downloading' && <LoaderContainer>
+                        <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
                             textColor: "#FFFFFF",
                             trailColor: "rgb(214, 214, 214, 0.6)",
                             pathColor: "#7953d2",
                         })} />
-                    }
-                </LoaderContainer>
+                        </LoaderContainer>
+                }
                 { status == 'finished' && <DownloadButton uid={uid} mediaId={downloadItem.media_id}/>}
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 <Size>{bytesToHumanReadableFileSize(filesize)}</Size>

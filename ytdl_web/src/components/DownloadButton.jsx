@@ -14,7 +14,7 @@ const ripple = keyframes`
 `;
 
 const DownloadButtonWrapper = styled.button`
-    position: relative;
+    position: absolute;
     appearance: none;
     border: none;
     outline: none;
@@ -30,7 +30,7 @@ const DownloadButtonWrapper = styled.button`
     border: 1px solid #ffffff;
     text-align: center;
     left: 4.3em;
-    top: 0.8em;
+    top: 1.9em;
 
     :hover {
         box-shadow: 0 0 10px #ffffff;
