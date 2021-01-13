@@ -12,7 +12,7 @@ import { parametrizeUrl } from '../utils';
 import { DOWNLOADS, UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 
-import "../styles.css";
+import "../../public/styles.css";
 import DownloadsList from './DownloadsList.jsx';
 
 const Content = styled.div`

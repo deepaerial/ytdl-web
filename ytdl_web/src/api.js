@@ -39,5 +39,5 @@ export const apiDownload = (uid, mediaId) => {
     const url = parametrizeUrl(`${API_URL}/fetch`, { uid, media_id: mediaId })
     var a = document.createElement('a');
     a.href = url;
-    a.click();   
+    a.click();
 };
