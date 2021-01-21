@@ -3,7 +3,13 @@ clean:
 	@find . -type d -name "*pytest_cache*" -exec rm -rf {} +
 
 run_server:
-	@poetry run python devserver.py
+	@poetry run uvicorn ytdl_api.asgi:app \
+		--host 127.0.0.1 \
+		--port 8000 \
+		--log-level debug \
+		--reload \
+		--ssl-keyfile ./certs/localhost+1-key.pem \
+		--ssl-certfile ./certs/localhost+1.pem
 
 test:
 	@poetry run pytest
