@@ -47,7 +47,10 @@ async def fetch_media(
     download = utils.video_info(json_params, datasource)
     datasource.put_download(uid, download)
     task_queue.add_task(
-        utils.download, json_params, download.media_id, event_queue.get_put(uid, download.media_id)
+        utils.download,
+        json_params,
+        download.media_id,
+        event_queue.get_put(uid, download.media_id),
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 

@@ -3,7 +3,7 @@ clean:
 	@find . -type d -name "*pytest_cache*" -exec rm -rf {} +
 
 run_server:
-	@poetry run uvicorn ytdl_api.asgi:app \
+	cd api && poetry run uvicorn ytdl_api.asgi:app \
 		--host 127.0.0.1 \
 		--port 8000 \
 		--log-level debug \
@@ -15,7 +15,7 @@ test:
 	@poetry run pytest
 
 run_frontend:
-	npm run --prefix ./ytdl_web/ devserver
+	npm run --prefix ./web/ devserver
 
 make_dev_certs:
-	mkdir certs && mkcert localhost 127.0.0.1
+	mkdir api/certs && mkcert localhost 127.0.0.1

@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "ytdl-api"
 version = "0.1.0"
-description = "API for webbased youtube-dl client"
-authors = ["nazarii.oleksiuk@gmail.com"]
+description = "API for web-based youtube-dl client"
+authors = ["Nazar Oleksiuk <nazarii.oleksiuk@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
