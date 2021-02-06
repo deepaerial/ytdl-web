@@ -4,7 +4,7 @@ from enum import Enum
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseSettings, root_validator
+from pydantic import BaseSettings, root_validator, validator
 from starlette.middleware import Middleware
 from youtube_dl.version import __version__ as youtube_dl_version
 
@@ -51,6 +51,15 @@ class Settings(BaseSettings):
             if not deta_key:
                 raise ValueError("Deta key is required when using Deta Base service")
         return values
+    
+    @validator('media_path')
+    def validate_media_path(cls, value):
+        media_path = Path(value)
+        if not media_path.exists():
+            print(f"Media path \"{value}\" does not exist...Creating...")
+            media_path.mkdir(parents=True)
+        return value
+
 
     def init_app(__pydantic_self__) -> FastAPI:
         """
@@ -71,8 +80,10 @@ class Settings(BaseSettings):
                     allow_origins=[
                         "http://localhost",
                         "http://localhost:8080",
+                        "http://localhost:8081",
                         "http://127.0.0.1",
                         "http://127.0.0.1:8080",
+                        "http://127.0.0.1:8081",
                     ],
                     allow_credentials=True,
                     allow_methods=["*"],
