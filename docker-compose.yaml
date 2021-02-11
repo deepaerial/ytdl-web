@@ -1,0 +1,53 @@
+version: '3.7'
+services: 
+    ytdl-api:
+        container_name: "ytdl-api"
+        build: 
+            context: ./api/
+            target: dev
+        ports: 
+          - 8000:80
+        env_file: 
+          - .api.env
+        volumes: 
+          - "./api/ytdl_api/:/app/ytdl_api"
+          - "./media/:/app/media"
+        restart: always
+        stdin_open: true
+        tty: true
+    ytdl-api-pytest:
+        container_name: "ytdl-api-pytest"
+        build: 
+            context: ./api/
+            target: test
+        ports: 
+          - 5678:5678
+        volumes: 
+          - "./api/ytdl_api/:/app/ytdl_api"
+        restart: "no"
+        stdin_open: true
+        tty: true
+    ytdl-web:
+        container_name: "ytdl-web"
+        build:
+          context: ./web/
+          dockerfile: Dockerfile
+          target: dev
+        ports: 
+          - 8080:8080
+        volumes:
+          - "./web/:/app"
+        environment: 
+          - API_URL="https://ytdl_api:8000/api"
+        depends_on: 
+          - ytdl-api
+    ytdl-web-nginx:
+        container_name: "ytdl-web-nginx"
+        build:
+          context: ./web/
+          target: prod
+        ports:
+          - 80:80
+        depends_on: 
+          - ytdl-api
+        

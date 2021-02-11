@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+certs
+.pytest_cache/
+.flake8
+dist/
+.tox/
+.env
+Dockerfile
+.dockerignore
