@@ -1,5 +1,3 @@
-from . import endpoints
-from .config import settings
+from .config import Settings
 
-app = settings.init_app()
-app.include_router(endpoints.router, prefix="/api")
+app = Settings().init_app()

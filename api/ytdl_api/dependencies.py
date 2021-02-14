@@ -1,11 +1,12 @@
-from fastapi import Depends
+from fastapi import Depends, BackgroundTasks
 from functools import lru_cache
-from . import queue, db
-from .config import Settings, DbTypes, settings
+from . import queue, db, downloaders, queue
+from .config import Settings, DbTypes
 
 
+@lru_cache
 def get_settings() -> Settings:
-    return settings
+    return Settings()
 
 
 @lru_cache
@@ -13,6 +14,7 @@ def get_notification_queue() -> queue.NotificationQueue:
     return queue.NotificationQueue()
 
 
+@lru_cache
 def get_database(settings: Settings = Depends(get_settings)) -> db.DAOInterface:
     db_type = settings.db_type
     if db_type == DbTypes.MEMORY:
@@ -21,3 +23,16 @@ def get_database(settings: Settings = Depends(get_settings)) -> db.DAOInterface:
         deta_project_key = settings.deta_key
         deta_base_name = settings.deta_base
         return db.DetaDB(deta_project_key, deta_base_name)
+
+
+@lru_cache
+def get_downloader(
+    task_queue: BackgroundTasks,
+    settings: Settings = Depends(get_settings),
+    datasource: db.DAOInterface = Depends(get_database),
+    event_queue: queue.NotificationQueue = Depends(get_notification_queue),
+):
+    return downloaders.YoutubeDLDoownloader(
+        settings.media_path, datasource, event_queue, task_queue
+    )
+

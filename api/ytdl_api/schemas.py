@@ -1,10 +1,10 @@
+import re
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, TypedDict, Union
 
-from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr
+from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr, validator
 
-from .config import settings
 from .logger import YDLLogger
 
 
@@ -176,33 +176,14 @@ class YTDLParams(BaseModel):
     class Config:
         validate_all = True
 
-    def get_youtube_dl_params(self, media_id: str) -> dict:
-        outtmpl = f"{media_id}.%(ext)s"
-        ytdl_params = {
-            "verbose": True,
-            "rm_cachedir": True,
-            "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
-            "outtmpl": (settings.media_path / outtmpl).absolute().as_posix(),
-            "logger": YDLLogger(),
-            "updatetime": self.use_last_modified,
-            "noplaylist": False,  # download only video if URL refers to playlist and video
-        }
-        if self.media_format.is_audio:
-            ytdl_params["postprocessors"] = [
-                {
-                    "key": "FFmpegExtractAudio",
-                    "preferredcodec": self.media_format.value,
-                    "preferredquality": "192",
-                }
-            ]
-        else:
-            ytdl_params["postprocessors"] = [
-                {
-                    "key": "FFmpegVideoConvertor",
-                    "preferedformat": self.media_format.value,
-                }
-            ]
-        return ytdl_params
+    @validator("url")
+    def is_url_allowed(cls, url):
+        url_patterns = (
+            r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$",
+        )
+        if not any(re.compile(p).match(url) for p in url_patterns):
+            raise ValueError("Media URL is not allowed")
+        return url
 
 
 class DownloadDataInfo(TypedDict):

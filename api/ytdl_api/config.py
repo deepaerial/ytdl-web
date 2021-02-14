@@ -10,8 +10,6 @@ from youtube_dl.version import __version__ as youtube_dl_version
 
 from . import __version__
 
-env_path = Path(__file__).parent / "config" / ".env"
-
 
 class DbTypes(str, Enum):
     MEMORY = "memory"
@@ -80,10 +78,12 @@ class Settings(BaseSettings):
                     allow_origins=[
                         "http://localhost",
                         "http://localhost:8080",
-                        "http://localhost:8081",
+                        "https://localhost",
+                        "https://localhost:8080",
                         "http://127.0.0.1",
                         "http://127.0.0.1:8080",
-                        "http://127.0.0.1:8081",
+                        "https://127.0.0.1",
+                        "https://127.0.0.1:8080",
                     ],
                     allow_credentials=True,
                     allow_methods=["*"],
@@ -95,12 +95,18 @@ class Settings(BaseSettings):
             kwargs.update({"docs_url": None, "openapi_url": None, "redoc_url": None})
         app = FastAPI(**kwargs)
         app.config = __pydantic_self__
+        __pydantic_self__.__setup_endpoints(app)
         return app
 
+    def __setup_endpoints(__pydantic_self__, app: FastAPI):
+        from .endpoints import router
+        app.include_router(router, prefix="/api")
+    
+    # In order to avoid TypeError: unhashable type: 'Settings' when overidding
+    # dependencies.get_settings in tests.py __hash__ should be implemented
+    def __hash__(self):  # make hashable BaseModel subclass
+        return hash((type(self),) + tuple(self.__dict__.values()))
+
     class Config:
-        env_file = env_path
         allow_mutation = True
         case_sensitive = False
-
-
-settings = Settings()

@@ -10,8 +10,6 @@ python = "^3.8"
 youtube-dl = "^2020.3.6"
 fastapi = "*"
 uvicorn = "^0.11.3"
-pyyaml = "^5.3"
-pydantic = {extras = ["dotenv"], version = "^1.4"}
 sse-starlette = "^0.6.1"
 aiofiles = "^0.6.0"
 deta = "^0.7"
