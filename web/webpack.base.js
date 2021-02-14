@@ -56,7 +56,7 @@ module.exports = {
             skipWaiting: true,
             runtimeCaching: [{
                 // Match any request that ends with .png, .jpg, .jpeg or .svg.
-                urlPattern: /\.(?:png|jpg|jpeg|svg)$/,
+                urlPattern: /\.(?:png|jpg|jpeg|svg|js)$/,
                 // Apply a cache-first strategy.
                 handler: 'NetworkFirst',
                 options: {
