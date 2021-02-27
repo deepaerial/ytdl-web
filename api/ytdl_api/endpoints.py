@@ -1,15 +1,20 @@
-import typing
 import asyncio
+import typing
+import re
 
 from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
+from youtube_dl.utils import DownloadError
 
 from . import dependencies, schemas, config, queue, db
 from .downloaders import DownloaderInterface, get_unique_id
 
 router = APIRouter()
 
+async def on_youtube_dl_download_error(request, exc: DownloadError):
+    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
+    return JSONResponse({"detail": ansi_escape.sub('', str(exc))}, status_code=500)
 
 @router.get("/info", response_model=schemas.VersionResponse, status_code=200)
 async def info(

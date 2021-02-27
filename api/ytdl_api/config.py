@@ -96,11 +96,17 @@ class Settings(BaseSettings):
         app = FastAPI(**kwargs)
         app.config = __pydantic_self__
         __pydantic_self__.__setup_endpoints(app)
+        __pydantic_self__.__setup_exception_handlers(app)
         return app
 
     def __setup_endpoints(__pydantic_self__, app: FastAPI):
         from .endpoints import router
         app.include_router(router, prefix="/api")
+
+    def __setup_exception_handlers(__pydantic_self__, app: FastAPI):
+        from youtube_dl.utils import DownloadError
+        from .endpoints import on_youtube_dl_download_error
+        app.add_exception_handler(DownloadError, on_youtube_dl_download_error)
     
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented
