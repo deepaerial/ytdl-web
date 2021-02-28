@@ -107,7 +107,7 @@ class YoutubeDLDoownloader(DownloaderInterface):
             download_params.url, download_params.media_format
         )
         if existing_download:
-            download = existing_download.copy(exclude={"media_id"}, deep=True)
+            download = existing_download.copy(exclude={"media_id", "status"}, deep=True)
             download.media_id = get_unique_id()
             return download
         media_id = get_unique_id()

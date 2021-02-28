@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y ffmpeg
 
 WORKDIR /app
 # Install poetry
-RUN pip install "poetry==$POETRY_VERSION" && poetry config virtualenvs.create false
+RUN pip install --no-cache-dir "poetry==$POETRY_VERSION" && poetry config virtualenvs.create false
 # Copy project files
 COPY pyproject.toml poetry.lock /app/
 # Project initialization: installing project's Python dependencies
