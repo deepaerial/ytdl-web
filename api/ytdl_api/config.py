@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 from enum import Enum
 
 from fastapi import FastAPI
@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     version: str = __version__
     youtube_dl_version = youtube_dl_version
     disable_docs: bool = False
+    allow_origins: List[str] 
 
     # Path to directory where downloaded medias will be stored
     media_path: Path
@@ -75,16 +76,7 @@ class Settings(BaseSettings):
             "middleware": [
                 Middleware(
                     CORSMiddleware,
-                    allow_origins=[
-                        "http://localhost",
-                        "http://localhost:8080",
-                        "https://localhost",
-                        "https://localhost:8080",
-                        "http://127.0.0.1",
-                        "http://127.0.0.1:8080",
-                        "https://127.0.0.1",
-                        "https://127.0.0.1:8080",
-                    ],
+                    allow_origins=__pydantic_self__.allow_origins,
                     allow_credentials=True,
                     allow_methods=["*"],
                     allow_headers=["*"],
@@ -111,7 +103,12 @@ class Settings(BaseSettings):
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented
     def __hash__(self):  # make hashable BaseModel subclass
-        return hash((type(self),) + tuple(self.__dict__.values()))
+        attrs = tuple()
+        attrs = tuple(
+            attr if not isinstance(attr, list) else ",".join(attr)
+            for attr in self.__dict__.values()
+        )
+        return hash((type(self),) + attrs)
 
     class Config:
         allow_mutation = True

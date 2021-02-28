@@ -5,7 +5,7 @@ from .downloaders import get_unique_id
 from .config import Settings, DbTypes
 
 settings = Settings(
-    media_path=Path(__file__).parent.parent / "media", db_type=DbTypes.MEMORY
+    media_path=Path(__file__).parent.parent / "media", db_type=DbTypes.MEMORY, allow_origins=[]
 )
 
 app = settings.init_app()
@@ -43,7 +43,7 @@ def test_download_endpoint_bad_url():
     """
     Test endpoint for starting video download task.
 
-    Verify that error raised when no format is passed in POST body.
+    Verify that error raised when unsupported url is passed in POST body.
     """
     response = client.put(
         "/api/fetch",
