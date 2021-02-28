@@ -15,6 +15,8 @@ services:
         restart: always
         stdin_open: true
         tty: true
+        networks: 
+          - default
     ytdl-api-pytest:
         container_name: "ytdl-api-pytest"
         build: 
@@ -36,10 +38,12 @@ services:
           - 8080:8080
         volumes:
           - "./web/:/app"
-        env_file: 
-          - .env
+        environment: 
+          - API_URL=http://127.0.0.1:8000/api
         depends_on: 
           - ytdl-api
+        networks: 
+          - default
     ytdl-web-nginx:
         container_name: "ytdl-web-nginx"
         build:
@@ -47,6 +51,11 @@ services:
           target: prod
         ports:
           - 80:80
-        depends_on: 
-          - ytdl-api
-        
+        environment: 
+          - API_URL=http://127.0.0.1:8000/api
+        networks: 
+          - default
+
+networks:
+  default:
+    name: "ytdl-network"

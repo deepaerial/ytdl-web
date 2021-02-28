@@ -10,8 +10,12 @@ FROM base as dev
 WORKDIR /app
 EXPOSE 8080
 CMD ["webpack-dev-server", "--config", "webpack.dev.js", "--host", "0.0.0.0"]
+########### stage ########################
+FROM dev as stage
+WORKDIR /app
+CMD ["webpack",  "--config", "webpack.prod.js"]
 ########### production ###################
-FROM dev as prod
-RUN npm run build
-COPY /app/build /usr/share/nginx/html
+FROM nginx:stable-alpine as prod
+COPY --from=stage /app/dist /usr/share/nginx/html
+EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
