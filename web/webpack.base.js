@@ -1,12 +1,9 @@
 const path = require('path');
-const dotenv = require('dotenv');
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
 const WebpackPwaManifest = require('webpack-pwa-manifest')
 
-
-dotenv_parsed = dotenv.config().parsed
 
 module.exports = {
     entry: path.resolve(__dirname, './src/index.js'),
@@ -36,7 +33,7 @@ module.exports = {
             favicon: './public/favicon.ico'
         }),
         new webpack.DefinePlugin({
-            API_URL: JSON.stringify(dotenv_parsed.API_URL)
+            API_URL: JSON.stringify(process.env.API_URL)
         }),
         new WebpackPwaManifest({
             name: 'YTDL - Web video downloader',
