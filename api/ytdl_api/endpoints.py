@@ -1,7 +1,7 @@
 import asyncio
 import typing
 import re
-
+from http.client import RemoteDisconnected
 from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
 from starlette.responses import FileResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
@@ -12,9 +12,18 @@ from .downloaders import DownloaderInterface, get_unique_id
 
 router = APIRouter()
 
+
 async def on_youtube_dl_download_error(request, exc: DownloadError):
-    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
-    return JSONResponse({"detail": ansi_escape.sub('', str(exc))}, status_code=500)
+    ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
+    return JSONResponse({"detail": ansi_escape.sub("", str(exc))}, status_code=500)
+
+
+async def on_remote_disconnected(request, exc: RemoteDisconnected):
+    return JSONResponse(
+        {"detail": "Remote server encountered problem, please try again..."},
+        status_code=500,
+    )
+
 
 @router.get("/info", response_model=schemas.VersionResponse, status_code=200)
 async def info(
@@ -43,7 +52,7 @@ async def fetch_media(
     uid: str,
     json_params: schemas.YTDLParams,
     datasource: db.DAOInterface = Depends(dependencies.get_database),
-    downloader: DownloaderInterface = Depends(dependencies.get_downloader)
+    downloader: DownloaderInterface = Depends(dependencies.get_downloader),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
@@ -52,9 +61,7 @@ async def fetch_media(
     download = downloader.get_video_info(json_params)
     datasource.put_download(uid, download)
     downloader.submit_download_task(
-        uid,
-        download.media_id,
-        json_params,
+        uid, download.media_id, json_params,
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 

@@ -2,6 +2,8 @@ from pathlib import Path
 from typing import Any, Dict, Optional, List
 from enum import Enum
 
+from http.client import RemoteDisconnected
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseSettings, root_validator, validator
@@ -97,8 +99,10 @@ class Settings(BaseSettings):
 
     def __setup_exception_handlers(__pydantic_self__, app: FastAPI):
         from youtube_dl.utils import DownloadError
-        from .endpoints import on_youtube_dl_download_error
+        from http.client import RemoteDisconnected
+        from .endpoints import on_youtube_dl_download_error, on_remote_disconnected
         app.add_exception_handler(DownloadError, on_youtube_dl_download_error)
+        app.add_exception_handler(RemoteDisconnected, on_remote_disconnected)
     
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented
