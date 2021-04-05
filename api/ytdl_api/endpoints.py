@@ -5,7 +5,7 @@ from http.client import RemoteDisconnected
 from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
 from starlette.responses import FileResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
-from youtube_dl.utils import DownloadError
+from youtube_dl.utils import YoutubeDLError
 
 from . import dependencies, schemas, config, queue, db
 from .downloaders import DownloaderInterface, get_unique_id
@@ -16,7 +16,7 @@ router = APIRouter()
 _ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
 
-async def on_youtube_dl_download_error(request, exc: DownloadError):
+async def on_youtube_dl_error(request, exc: YoutubeDLError):
     return JSONResponse({"detail": _ansi_escape.sub("", str(exc))}, status_code=500)
 
 

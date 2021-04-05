@@ -100,8 +100,8 @@ class Settings(BaseSettings):
     def __setup_exception_handlers(__pydantic_self__, app: FastAPI):
         from youtube_dl.utils import DownloadError
         from http.client import RemoteDisconnected
-        from .endpoints import on_youtube_dl_download_error, on_remote_disconnected
-        app.add_exception_handler(DownloadError, on_youtube_dl_download_error)
+        from .endpoints import on_youtube_dl_error, on_remote_disconnected
+        app.add_exception_handler(DownloadError, on_youtube_dl_error)
         app.add_exception_handler(RemoteDisconnected, on_remote_disconnected)
     
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
