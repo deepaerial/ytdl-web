@@ -2,6 +2,7 @@ import re
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, TypedDict, Union
+from starlette.responses import FileResponse
 
 from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr, validator
 
@@ -98,6 +99,12 @@ class Download(BaseModel):
     _file_path: Optional[Path] = PrivateAttr(None)
     progress: int = Field(0, description="Download progress in ", example=20)
 
+    def prepare_file_response(self) -> FileResponse:
+        return FileResponse(
+            self._file_path.absolute().as_posix(),
+            media_type="application/octet-stream",
+            filename=f"{self.title}.{self.media_format}"
+        )
 
 class FetchedListResponse(BaseModel):
     downloads: List[Download] = Field(

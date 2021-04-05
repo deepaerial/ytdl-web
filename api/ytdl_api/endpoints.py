@@ -13,9 +13,11 @@ from .downloaders import DownloaderInterface, get_unique_id
 router = APIRouter()
 
 
+_ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
+
+
 async def on_youtube_dl_download_error(request, exc: DownloadError):
-    ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
-    return JSONResponse({"detail": ansi_escape.sub("", str(exc))}, status_code=500)
+    return JSONResponse({"detail": _ansi_escape.sub("", str(exc))}, status_code=500)
 
 
 async def on_remote_disconnected(request, exc: RemoteDisconnected):
@@ -78,12 +80,7 @@ def download_media(
     media_file = datasource.get_download(uid, media_id)
     if not media_file:
         raise HTTPException(status_code=404, detail="Download not found")
-    title = media_file.title
-    file_name = f"{title}.{media_file.media_format}"
-    file_path = media_file._file_path.absolute().as_posix()
-    return FileResponse(
-        file_path, media_type="application/octet-stream", filename=file_name
-    )
+    return media_file.prepare_file_response()
 
 
 @router.get("/fetch/stream")
