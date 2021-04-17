@@ -171,7 +171,6 @@ class YoutubeDLDownloader(DownloaderInterface):
                 media_id=media_id,
                 media_format=media_format,
                 duration=info_dict["duration"] * 1000,  # Duration in milliseconds
-                filesize=filesize,  # size in bytes,
                 title=title,
                 status=ProgressStatusEnum.STARTED,
                 video_url=download_params.url,
