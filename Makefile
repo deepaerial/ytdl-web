@@ -1,6 +1,7 @@
 clean:
 	@find . -type f -name "*.py[co]" -delete -or -type d -name "__pycache__" -delete
 	@find . -type d -name "*pytest_cache*" -exec rm -rf {} +
+	@find . -type d -name "htmlcov" -exec rm -rf {} + -or -name ".coverage" -delete
 
 run_server:
 	cd api && poetry run uvicorn ytdl_api.asgi:app \

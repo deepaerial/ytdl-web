@@ -1,5 +1,6 @@
 import asyncio
 import uuid
+import time
 from typing import Optional, Callable
 from pathlib import Path
 from abc import ABC, abstractmethod
@@ -9,7 +10,7 @@ from fastapi import BackgroundTasks
 
 from .db import DAOInterface
 from .queue import NotificationQueue
-from .schemas import YTDLParams, Download, ThumbnailInfo, ProgressStatusEnum
+from .schemas import YTDLParams, Download, ThumbnailInfo, ProgressStatusEnum, MediaFormatOptions
 from .logger import YDLLogger
 
 
@@ -35,7 +36,7 @@ class DownloaderInterface(ABC):
         self.task_queue = task_queue
 
     @abstractmethod
-    def get_video_info(self, download_params: YTDLParams) -> Download:
+    def get_video_info(self, download_params: YTDLParams) -> Download: # pragma: no cover
         """
         Abstract methid for retrieving information about media resource.
         """
@@ -46,8 +47,8 @@ class DownloaderInterface(ABC):
         self,
         download_params: YTDLParams,
         media_id: str,
-        progress_hook: Optional[Callable[[dict], None]],
-    ):
+        progress_hook: Optional[Callable[[dict], None]] = None,
+    ): # pragma: no cover
         """
         Abstract method for downloading media given download parameters.
         """
@@ -58,7 +59,7 @@ class DownloaderInterface(ABC):
         uid: str,
         media_id: str,
         download_params: YTDLParams,
-    ):
+    ): # pragma: no cover
         """
         Method for executing media_download in background.
         """
@@ -70,7 +71,46 @@ class DownloaderInterface(ABC):
         )
 
 
-class YoutubeDLDoownloader(DownloaderInterface):
+class MockDownloader(DownloaderInterface):
+    """
+    Mock downloader made primarly for endpoint testing purposes.
+    """
+
+    def get_video_info(self, download_params: YTDLParams) -> Download:
+        media_id, media_format =  get_unique_id(), MediaFormatOptions.MP3
+        data = {
+            "media_id": media_id,
+            "media_format": media_format,
+            "duration": 479000,
+            "filesize": 5696217,
+            "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+            "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+            "status": ProgressStatusEnum.STARTED, 
+            "thumbnail": ThumbnailInfo(
+                url="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
+                width=246,
+                height=138,
+            ),
+        }
+        download = Download(**data)
+        download._file_path = self.media_path / f"{media_id}.{media_format}"
+        return download
+
+    def download(
+        self,
+        download_params: YTDLParams,
+        media_id: str,
+        progress_hook: Optional[Callable[[dict], None]] = None,
+    ):
+        """
+        Simulating download process
+        """
+        file_path = self.media_path / f"{media_id}.{download_params.media_format}"
+        file_path.touch()
+        return 0
+
+
+class YoutubeDLDownloader(DownloaderInterface):
     """
     Downloader that uses youtube-dl for media extraction
     """
@@ -133,7 +173,7 @@ class YoutubeDLDoownloader(DownloaderInterface):
                 duration=info_dict["duration"] * 1000,  # Duration in milliseconds
                 filesize=filesize,  # size in bytes,
                 title=title,
-                status=ProgressStatusEnum.STARTED.value,
+                status=ProgressStatusEnum.STARTED,
                 video_url=download_params.url,
                 thumbnail=ThumbnailInfo(
                     url=thumbnail_data["url"],
@@ -149,7 +189,7 @@ class YoutubeDLDoownloader(DownloaderInterface):
         self,
         download_params: YTDLParams,
         media_id: str,
-        progress_hook: Optional[Callable[[dict], None]],
+        progress_hook: Optional[Callable[[dict], None]] = None,
     ):
         """
         Options for youtube-dl:

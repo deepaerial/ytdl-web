@@ -11,12 +11,17 @@ from starlette.middleware import Middleware
 from youtube_dl.version import __version__ as youtube_dl_version
 
 from . import __version__
+from .logger import log
 
 
 class DbTypes(str, Enum):
     MEMORY = "memory"
     DETA = "deta"
 
+
+class DownloadersTypes(str, Enum):
+    YOUTUBE_DL = "youtube_dl"
+    MOCK = "mock" 
 
 class Settings(BaseSettings):
     """
@@ -39,6 +44,8 @@ class Settings(BaseSettings):
     media_path: Path
     # Type of database to use
     db_type: DbTypes
+    # Type of downloader
+    downloader_type: DownloadersTypes = DownloadersTypes.YOUTUBE_DL
     # Deta project key
     deta_key: Optional[str]
     # Deta base name
@@ -56,7 +63,7 @@ class Settings(BaseSettings):
     @validator('media_path')
     def validate_media_path(cls, value):
         media_path = Path(value)
-        if not media_path.exists():
+        if not media_path.exists(): # pragma: no cover
             print(f"Media path \"{value}\" does not exist...Creating...")
             media_path.mkdir(parents=True)
         return value
@@ -82,6 +89,7 @@ class Settings(BaseSettings):
                     allow_credentials=True,
                     allow_methods=["*"],
                     allow_headers=["*"],
+                    expose_headers=['Content-Disposition']
                 ),
             ],
         }
@@ -89,6 +97,8 @@ class Settings(BaseSettings):
             kwargs.update({"docs_url": None, "openapi_url": None, "redoc_url": None})
         app = FastAPI(**kwargs)
         app.config = __pydantic_self__
+        log.info(f"Using database: {__pydantic_self__.db_type}")
+        log.info(f"Using downloader: {__pydantic_self__.downloader_type}")
         __pydantic_self__.__setup_endpoints(app)
         __pydantic_self__.__setup_exception_handlers(app)
         return app
@@ -107,7 +117,6 @@ class Settings(BaseSettings):
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented
     def __hash__(self):  # make hashable BaseModel subclass
-        attrs = tuple()
         attrs = tuple(
             attr if not isinstance(attr, list) else ",".join(attr)
             for attr in self.__dict__.values()

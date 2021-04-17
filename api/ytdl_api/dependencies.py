@@ -1,7 +1,7 @@
 from fastapi import Depends, BackgroundTasks
 from functools import lru_cache
 from . import queue, db, downloaders, queue
-from .config import Settings, DbTypes
+from .config import Settings, DbTypes, DownloadersTypes
 
 
 @lru_cache
@@ -32,7 +32,13 @@ def get_downloader(
     datasource: db.DAOInterface = Depends(get_database),
     event_queue: queue.NotificationQueue = Depends(get_notification_queue),
 ):
-    return downloaders.YoutubeDLDoownloader(
-        settings.media_path, datasource, event_queue, task_queue
-    )
+    downloader_type = settings.downloader_type
+    if downloader_type == DownloadersTypes.YOUTUBE_DL:
+        return downloaders.YoutubeDLDownloader(
+            settings.media_path, datasource, event_queue, task_queue
+        )
+    elif downloader_type == DownloadersTypes.MOCK:
+        return downloaders.MockDownloader(
+            settings.media_path, datasource, event_queue, task_queue
+        )
 

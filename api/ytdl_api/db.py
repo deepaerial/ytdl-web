@@ -17,28 +17,28 @@ class DAOInterface(ABC):
     """
 
     @abstractmethod
-    def fetch_downloads(self, client_id: str) -> typing.List[Download]:
+    def fetch_downloads(self, client_id: str) -> typing.List[Download]: # pragma: no cover
         """
         Abstract method that returns list of clients downloads from data source.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def put_download(self, client_id: str, download: Download):
+    def put_download(self, client_id: str, download: Download): # pragma: no cover
         """
         Abstract method for inserting download instance to data source.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
+    def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]: # pragma: no cover
         """
         Abstract method for fetching download instance from data source
         """
         raise NotImplementedError
 
     @abstractmethod
-    def update_download_progress(self, progress_obj: DownloadProgress):
+    def update_download_progress(self, progress_obj: DownloadProgress): # pragma: no cover
         """
         Abstract method that updates progress for media item of specific user/client.
         """
@@ -47,7 +47,7 @@ class DAOInterface(ABC):
     @abstractmethod
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
-    ) -> typing.Optional[Download]:
+    ) -> typing.Optional[Download]: # pragma: no cover
         """
         Abstract method that returns True if media with given url and media format exists
         in downloaded media database.
@@ -114,7 +114,6 @@ class DetaDB(DAOInterface):
         data["client_id"] = client_id
         data["_file_path"] = download._file_path.absolute().as_posix()
         key = data["media_id"]
-
         self.base.put(data, key)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
