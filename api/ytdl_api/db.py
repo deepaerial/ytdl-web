@@ -119,6 +119,8 @@ class DetaDB(DAOInterface):
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
         data = self.base.get(media_id)
+        if data is None:
+            return data
         download = Download(**data)
         download._file_path = Path(data["_file_path"])
         return download

@@ -27,7 +27,12 @@ async def on_remote_disconnected(request, exc: RemoteDisconnected):
     )
 
 
-@router.get("/info", response_model=schemas.VersionResponse, status_code=200)
+@router.get(
+    "/info",
+    response_model=schemas.VersionResponse,
+    status_code=200,
+    responses={500: {"model": schemas.DetailMessage,}},
+)
 async def info(
     uid: typing.Optional[str] = None,
     settings: config.Settings = Depends(dependencies.get_settings),
@@ -49,7 +54,12 @@ async def info(
     }
 
 
-@router.put("/fetch", response_model=schemas.FetchedListResponse, status_code=201)
+@router.put(
+    "/fetch",
+    response_model=schemas.FetchedListResponse,
+    status_code=201,
+    responses={500: {"model": schemas.DetailMessage,}},
+)
 async def fetch_media(
     uid: str,
     json_params: schemas.YTDLParams,
@@ -68,7 +78,21 @@ async def fetch_media(
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
-@router.get("/fetch")
+@router.get(
+    "/fetch",
+    responses={
+        200: {
+            "content": {"application/octet-stream": {}},
+            "description": "Downloaded media file",
+        },
+        404: {
+            "content": {"application/json": {}},
+            "model": schemas.DetailMessage,
+            "description": "Download not found",
+            "example": {"detail": "Download not found"},
+        },
+    },
+)
 def download_media(
     uid: str,
     media_id: str,

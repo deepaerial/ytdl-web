@@ -9,6 +9,12 @@ from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr, validator
 from .logger import YDLLogger
 
 
+class DetailMessage(BaseModel):
+    detail: str = Field(
+        ..., description="Message detail", example="Internal server error"
+    )
+
+
 class MediaFormatOptions(str, Enum):
     # Video formats
     MP4 = "mp4"
@@ -103,8 +109,9 @@ class Download(BaseModel):
         return FileResponse(
             self._file_path.absolute().as_posix(),
             media_type="application/octet-stream",
-            filename=f"{self.title}.{self.media_format}"
+            filename=f"{self.title}.{self.media_format}",
         )
+
 
 class FetchedListResponse(BaseModel):
     downloads: List[Download] = Field(
