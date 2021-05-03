@@ -14,7 +14,7 @@ def get_notification_queue() -> queue.NotificationQueue:
     return queue.NotificationQueue()
 
 
-@lru_cache
+
 def get_database(settings: Settings = Depends(get_settings)) -> db.DAOInterface:
     db_type = settings.db_type
     if db_type == DbTypes.MEMORY:
