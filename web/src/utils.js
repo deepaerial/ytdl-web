@@ -35,13 +35,13 @@ export const parametrizeUrl = (urlString, params) => {
 };
 
 export const getFilenameFromContentDisposition = (xhrResponse) => {
-    const disposition = xhrResponse.headers['Content-Disposition'];
-    if (disposition && disposition.indexOf('inline') !== -1) {
-        const filenameRegex = /filename\*?=([^']*'')?([^;]*)/;
+    const disposition = xhrResponse.headers['content-disposition'];
+    if (disposition) {
+        const filenameRegex = /filename[^;=\n]*=utf-8''((['"]).*?\2|[^;\n]*)/;
         const matches = filenameRegex.exec(disposition);
         if (matches != null && matches[1]) { 
-          return matches[1].replace(/['"]/g, '');
+          return decodeURIComponent(matches[1]);
         }
     }
-
+    throw `Failed to get filename from ${disposition}`;
 }

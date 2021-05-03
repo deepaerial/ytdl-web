@@ -5,8 +5,7 @@ import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DownloadsContext from '../context/DownloadsContext';
 
-import { UID_KEY } from '../constants';
-import { apiFetch } from '../api';
+import API from '../api';
 
 const SearchBarWrapper = styled.div`
     margin-top: 3rem;
@@ -101,10 +100,11 @@ export default class SearchBar extends Component {
 
     onSearch = async (event) => {
         event.preventDefault();
-        const uid = localStorage.getItem(UID_KEY);
-        const downloads = await apiFetch(uid, this.state.url, this.state.selectedMediaOption);
-        const { setDownloads } = this.context;
-        setDownloads(downloads);
+        const downloads = await API.fetchMediaInfo(this.state.url, this.state.selectedMediaOption);
+        if (downloads.length) {
+            const { setDownloads } = this.context;
+            setDownloads(downloads);
+        }
         this.setState({ url: '' });
     };
 

@@ -1,43 +1,87 @@
-import { getFilenameFromContentDisposition, parametrizeUrl } from './utils'
-
+import { getFilenameFromContentDisposition } from './utils'
+import axios from 'axios';
 import { UID_KEY } from './constants';
 
+const api = axios.create({ baseURL: API_URL });
 
-export const apiInfo = async () => {
-    let url = `${API_URL}/info`;
-    const uid = localStorage.getItem(UID_KEY);
-    if (uid) {
-        url = parametrizeUrl(url, { uid });
-    }
-    const response = await fetch(url, { credentials: 'include' });
-    if (!response.ok) {
-        alert(`Error ${response.status}`);
-    }
-    const json_response = await response.json();
-    localStorage.setItem(UID_KEY, json_response.uid);
-    return json_response;
-};
+class API {
 
-export const apiFetch = async (uid, videoUrl, media_format) => {
-    let json_body = {
-        url: videoUrl,
-        media_format
+    static async getClientInfo(errorCallback = null) {
+        try {
+            const uid = localStorage.getItem(UID_KEY);
+            const response = await api.get('info', { params: uid ? { uid } : {} });
+            localStorage.setItem(UID_KEY, response.data.uid);
+            return response.data;
+        } catch (exc) {
+            if (errorCallback) {
+                errorCallback(exc);
+                return;
+            }
+            if (exc.response) {
+                alert(exc.response.data.detail);
+            } else {
+                alert(exc.message)
+            }
+            return {};
+        }
     }
-    const url = parametrizeUrl(`${API_URL}/fetch`, { uid });
-    const response = await fetch(url, {
-        method: 'PUT',
-        body: JSON.stringify(json_body)
-    });
-    if (!response.ok) {
-        throw Error(`Error ${response.status}`);
-    }
-    const data = await response.json();
-    return data.downloads;
-};
 
-export const apiDownload = (uid, mediaId) => {
-    const url = parametrizeUrl(`${API_URL}/fetch`, { uid, media_id: mediaId })
-    var a = document.createElement('a');
-    a.href = url;
-    a.click();
-};
+    static async fetchMediaInfo(videoUrl, mediaFormat, errorCallback = null) {
+        try {
+            const uid = localStorage.getItem(UID_KEY);
+            const response = await api.put('fetch', {
+                url: videoUrl,
+                media_format: mediaFormat
+            }, { params: (uid) ? { uid } : {} });
+            return response.data.downloads;
+        } catch (exc) {
+            if (errorCallback) {
+                errorCallback(exc);
+                return;
+            }
+            if (exc.response) {
+                const detail = exc.response.data.detail;
+                if (typeof detail === 'string') {
+                    alert(detail);
+                }
+                else {
+                    alert(detail[0].msg);
+                }
+            } else {
+                alert(exc.message)
+            }
+            return [];
+        }
+    }
+
+    static async downloadMediaFile(mediaId, errorCallback = null) {
+        try {
+            const uid = localStorage.getItem(UID_KEY);
+            const params = { media_id: mediaId }
+            if (uid) {
+                params.uid = uid;
+            }
+            const response = await api.get('fetch', { params, responseType: 'blob' });
+            const filename = getFilenameFromContentDisposition(response);
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(response.data);
+            link.download = filename;
+            link.click();
+        } catch (exc) {
+            if (errorCallback) {
+                errorCallback(exc);
+                return;
+            }
+            const data = exc.response.data;
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                const data = JSON.parse(e.target.result);
+                alert(data.detail);
+            };
+            fileReader.readAsText(data);
+        }
+    }
+
+}
+
+export default API;

@@ -39,15 +39,12 @@ export default class Header extends React.Component {
     }
 
     render() {
-        let version = "";
-        if (this.props.version){
-            version = <Version>ver. {this.props.version}</Version>;
-        }
+        const {version} = this.props;
         return (
             <header>
                 <HeaderTitle>
                     <AppTitle>YTDL</AppTitle>
-                    {version}
+                    {version && <Version>ver. {this.props.version}</Version>}
                 </HeaderTitle>
                 <Description>Web video downloader</Description>
             </header>

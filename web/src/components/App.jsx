@@ -7,7 +7,7 @@ import { faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
-import { apiInfo } from '../api';
+import API from '../api';
 import { parametrizeUrl } from '../utils';
 import { DOWNLOADS, UID_KEY } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
@@ -45,23 +45,24 @@ class App extends React.Component {
 
     setIsDektop = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        this.setState({ isDesktop: viewportWidth >= 1024 });
+        this.setState({ isDesktop: viewportWidth > 1024 });
     }
 
 
     async componentDidMount() {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
-        const { api_version, media_options, uid, downloads } = await apiInfo();
-        localStorage.setItem(UID_KEY, uid);
-        this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
-        const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
-        eventSource.addEventListener("message", (event) => {
-            this.onProgressUpdate(JSON.parse(event.data));
-        });
-        eventSource.addEventListener("end", (event) => {
-            eventSource.close();
-        });
+        const { api_version, media_options, uid, downloads } = await API.getClientInfo();
+        this.setState({ version: api_version, mediaOptions: media_options || [], downloads: mapDownloads(downloads || []) });
+        if (uid){
+            const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
+            eventSource.addEventListener("message", (event) => {
+                this.onProgressUpdate(JSON.parse(event.data));
+            });
+            eventSource.addEventListener("end", (event) => {
+                eventSource.close();
+            });
+        }
     }
 
     setDownloads = (downloads) => {
