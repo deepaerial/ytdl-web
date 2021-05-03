@@ -13,6 +13,7 @@ class DetailMessage(BaseModel):
     detail: str = Field(
         ..., description="Message detail", example="Internal server error"
     )
+    code: str = Field(description="Custom error identifying code")
 
 
 class MediaFormatOptions(str, Enum):

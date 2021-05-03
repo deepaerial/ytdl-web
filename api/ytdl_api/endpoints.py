@@ -17,12 +17,12 @@ _ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
 
 async def on_youtube_dl_error(request, exc: YoutubeDLError):
-    return JSONResponse({"detail": _ansi_escape.sub("", str(exc))}, status_code=500)
+    return JSONResponse({"detail": _ansi_escape.sub("", str(exc)), "code": "downloader-error"}, status_code=500)
 
 
 async def on_remote_disconnected(request, exc: RemoteDisconnected):
     return JSONResponse(
-        {"detail": "Remote server encountered problem, please try again..."},
+        {"detail": "Remote server encountered problem, please try again...", "code": "external-service-network-error"},
         status_code=500,
     )
 
