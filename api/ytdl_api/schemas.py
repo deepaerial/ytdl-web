@@ -106,12 +106,20 @@ class Download(BaseModel):
     _file_path: Optional[Path] = PrivateAttr(None)
     progress: int = Field(0, description="Download progress in ", example=20)
 
-    def prepare_file_response(self) -> FileResponse:
-        return FileResponse(
-            self._file_path.absolute().as_posix(),
-            media_type="application/octet-stream",
-            filename=f"{self.title}.{self.media_format}",
-        )
+
+    @property
+    def filename(self) -> str:
+        '''
+        File name with extension
+        '''
+        return f"{self.title}.{self.media_format}"
+
+    @property
+    def file_path(self) -> str:
+        '''
+        POSIX File path
+        '''
+        return self._file_path.absolute().as_posix()
 
 
 class FetchedListResponse(BaseModel):
@@ -197,7 +205,7 @@ class YTDLParams(BaseModel):
             r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$",
         )
         if not any(re.compile(p).match(url) for p in url_patterns):
-            raise ValueError("Media URL is not allowed")
+            raise ValueError("Domain is not allowed")
         return url
 
 

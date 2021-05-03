@@ -112,7 +112,7 @@ class DetaDB(DAOInterface):
     def put_download(self, client_id: str, download: Download):
         data = download.dict()
         data["client_id"] = client_id
-        data["_file_path"] = download._file_path.absolute().as_posix()
+        data["_file_path"] = download.file_path
         key = data["media_id"]
         self.base.put(data, key)
 
@@ -120,8 +120,9 @@ class DetaDB(DAOInterface):
         data = self.base.get(media_id)
         if data is None:
             return data
+        file_path = data.pop("_file_path")
         download = Download(**data)
-        download._file_path = Path(data["_file_path"])
+        download._file_path = Path(file_path)
         return download
 
     def update_download_progress(self, progress_obj: DownloadProgress):

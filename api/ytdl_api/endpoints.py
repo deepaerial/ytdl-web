@@ -1,5 +1,6 @@
 import asyncio
 import typing
+import socket
 import re
 from http.client import RemoteDisconnected
 from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
@@ -23,6 +24,20 @@ async def on_youtube_dl_error(request, exc: YoutubeDLError):
 async def on_remote_disconnected(request, exc: RemoteDisconnected):
     return JSONResponse(
         {"detail": "Remote server encountered problem, please try again...", "code": "external-service-network-error"},
+        status_code=500,
+    )
+
+
+async def on_socket_timeout(request, exc: socket.timeout):
+    return JSONResponse(
+        {"detail": "Remote server encountered problem, please try again...", "code": "external-service-timeout-error"},
+        status_code=500,
+    )
+
+
+async def on_runtimeerror(request, exc: RuntimeError):
+    return JSONResponse(
+        {"detail": "Remote server encountered problem, please try again...", "code": "internal-server-error"},
         status_code=500,
     )
 
@@ -104,7 +119,13 @@ def download_media(
     media_file = datasource.get_download(uid, media_id)
     if not media_file:
         raise HTTPException(status_code=404, detail="Download not found")
-    return media_file.prepare_file_response()
+    if not media_file._file_path.exists():
+        raise HTTPException(status_code=404, detail="Downloaded file not found")
+    return FileResponse(
+        media_file.file_path,
+        media_type="application/octet-stream",
+        filename=media_file.filename,
+    )
 
 
 @router.get("/fetch/stream")
