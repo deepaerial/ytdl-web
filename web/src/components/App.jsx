@@ -3,17 +3,20 @@ import React from 'react';
 import styled from 'styled-components';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { toast, ToastContainer } from 'react-toastify';
+import { Slide } from 'react-toastify';
 
 import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
 import API from '../api';
 import { parametrizeUrl } from '../utils';
-import { DOWNLOADS, UID_KEY } from '../constants';
+import { DOWNLOADS} from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
+import DownloadsList from './DownloadsList.jsx';
 
 import "../../public/styles.css";
-import DownloadsList from './DownloadsList.jsx';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Content = styled.div`
     display: flex;
@@ -52,16 +55,20 @@ class App extends React.Component {
     async componentDidMount() {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
-        const { api_version, media_options, uid, downloads } = await API.getClientInfo();
-        this.setState({ version: api_version, mediaOptions: media_options || [], downloads: mapDownloads(downloads || []) });
-        if (uid){
-            const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
-            eventSource.addEventListener("message", (event) => {
-                this.onProgressUpdate(JSON.parse(event.data));
-            });
-            eventSource.addEventListener("end", (event) => {
-                eventSource.close();
-            });
+        try {
+            const { api_version, media_options, uid, downloads } = await API.getClientInfo();
+            this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
+            if (uid){
+                const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
+                eventSource.addEventListener("message", (event) => {
+                    this.onProgressUpdate(JSON.parse(event.data));
+                });
+                eventSource.addEventListener("end", (event) => {
+                    eventSource.close();
+                });
+            }
+        } catch (error) {
+            toast.error(error.message);
         }
     }
 
@@ -95,6 +102,15 @@ class App extends React.Component {
         }
         return (
             <Content>
+                <ToastContainer
+                position={isDesktop ? "top-right" : "top-center"}
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                transition={Slide}
+                draggable
+                pauseOnHover
+                />
                 <Header version={version} />
                 <DownloadsContext.Provider value={{ downloads, setDownloads }}>
                     <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} />

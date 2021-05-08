@@ -5,6 +5,7 @@ import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import API from '../api';
+import { toast } from 'react-toastify';
 
 const ripple = keyframes`
     to {
@@ -64,9 +65,9 @@ export default class DownloadButton extends Component {
         const pos = button.getBoundingClientRect();
         const size = button.offsetWidth;
         spanElement.style.width = spanElement.style.height = `${button.offsetWidth}px`;
-        spanElement.style.left = `${event.clientX - pos.x - size/2}px`;
-        spanElement.style.top = `${event.clientY-pos.y-size/2}px`;
-        spanElement.classList.add("ripple"); 
+        spanElement.style.left = `${event.clientX - pos.x - size / 2}px`;
+        spanElement.style.top = `${event.clientY - pos.y - size / 2}px`;
+        spanElement.classList.add("ripple");
         const ripple = button.getElementsByClassName("ripple")[0];
         if (ripple) {
             ripple.remove();
@@ -75,11 +76,11 @@ export default class DownloadButton extends Component {
     }
 
     downloadMedia = (mediaId) => {
-        API.downloadMediaFile(mediaId);
+        API.downloadMediaFile(mediaId).catch(e => toast.error(e.message));
     }
 
     render() {
-        const {mediaId} = this.props;
+        const { mediaId } = this.props;
         return (
             <DownloadButtonWrapper onClick={(event) => {
                 this.makeRippleEffect(event);

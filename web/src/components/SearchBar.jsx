@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DownloadsContext from '../context/DownloadsContext';
+import { toast } from 'react-toastify';
 
 import API from '../api';
 
@@ -11,12 +12,11 @@ const SearchBarWrapper = styled.div`
     margin-top: 3rem;
     min-width: ${props => props.isDesktop ? 60 : 90}%;
     display: flex;
-    align-items: flex-start;
-    padding: 0.5rem;
-    border-radius: 0.4rem;
+    align-items: center;
+    padding: 0.5em 0.7em;
+    border-radius: 2.9rem;
     background-color: #fff;
     border: none;
-    line-height: 1.0rem;
     transition: box-shadow 300;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -25,8 +25,8 @@ const SearchBarWrapper = styled.div`
 `;
 
 const SearchBarInput = styled.input`
+    margin-left: 10px;
     width: 100%;
-    margin: auto 0;
     border: none;
     font-size: 1.2rem;
 
@@ -54,14 +54,14 @@ const SearchBarMediaSelect = styled.select`
 `;
 
 const SearchBarButton = styled.button`
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 20px;
     font-size: 1rem;
     appearance: none;
     border: none;
     outline: none;
     background: none;
-    border-radius: 50%;
+    border-radius: 10%;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 
@@ -100,12 +100,16 @@ export default class SearchBar extends Component {
 
     onSearch = async (event) => {
         event.preventDefault();
-        const downloads = await API.fetchMediaInfo(this.state.url, this.state.selectedMediaOption);
-        if (downloads.length) {
-            const { setDownloads } = this.context;
-            setDownloads(downloads);
+        try {
+            const downloads = await API.fetchMediaInfo(this.state.url, this.state.selectedMediaOption, (message) => toast(message));
+            if (downloads.length) {
+                const { setDownloads } = this.context;
+                setDownloads(downloads);
+                this.setState({ url: '' });
+            }
+        } catch (error) {
+            toast.error(error.message)
         }
-        this.setState({ url: '' });
     };
 
     onChange = (event) => {
@@ -130,11 +134,12 @@ export default class SearchBar extends Component {
         }
         return (
             <SearchBarWrapper isDesktop={isDesktop}>
-                <SearchBarInput name='search' type="text" placeholder="Video URL..." value={this.state.url} onChange={this.onChange} />
+                <FontAwesomeIcon icon="search" />
+                <SearchBarInput name='search' type="text" placeholder="https://www.youtube.com/watch?v=..." value={this.state.url} onChange={this.onChange} />
                 <SearchBarMediaSelect {...selectProps}>
                     {mediaOptions.map((option, index) => <option key={option} value={option}>{option}</option>)}
                 </SearchBarMediaSelect>
-                <SearchBarButton onClick={this.onSearch}><FontAwesomeIcon icon="search" /></SearchBarButton>
+                <SearchBarButton onClick={this.onSearch}>Search</SearchBarButton>
             </SearchBarWrapper>
         )
     }

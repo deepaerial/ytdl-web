@@ -6,27 +6,24 @@ const api = axios.create({ baseURL: API_URL });
 
 class API {
 
-    static async getClientInfo(errorCallback = null) {
+    static async getClientInfo() {
         try {
             const uid = localStorage.getItem(UID_KEY);
             const response = await api.get('info', { params: uid ? { uid } : {} });
             localStorage.setItem(UID_KEY, response.data.uid);
             return response.data;
         } catch (exc) {
-            if (errorCallback) {
-                errorCallback(exc);
-                return;
-            }
+            let error_message = null;
             if (exc.response) {
-                alert(exc.response.data.detail);
+                error_message = exc.response.data.detail;
             } else {
-                alert(exc.message)
+                error_message = exc.message;
             }
-            return {};
+            throw Error(error_message);
         }
     }
 
-    static async fetchMediaInfo(videoUrl, mediaFormat, errorCallback = null) {
+    static async fetchMediaInfo(videoUrl, mediaFormat) {
         try {
             const uid = localStorage.getItem(UID_KEY);
             const response = await api.put('fetch', {
@@ -35,26 +32,23 @@ class API {
             }, { params: (uid) ? { uid } : {} });
             return response.data.downloads;
         } catch (exc) {
-            if (errorCallback) {
-                errorCallback(exc);
-                return;
-            }
+            let error_message = null;
             if (exc.response) {
                 const detail = exc.response.data.detail;
                 if (typeof detail === 'string') {
-                    alert(detail);
+                    error_message = detail;
                 }
                 else {
-                    alert(detail[0].msg);
+                    error_message = detail[0].msg;
                 }
             } else {
-                alert(exc.message)
+                error_message = exc.message;
             }
-            return [];
+            throw Error(error_message);
         }
     }
 
-    static async downloadMediaFile(mediaId, errorCallback = null) {
+    static async downloadMediaFile(mediaId) {
         try {
             const uid = localStorage.getItem(UID_KEY);
             const params = { media_id: mediaId }
@@ -68,17 +62,21 @@ class API {
             link.download = filename;
             link.click();
         } catch (exc) {
-            if (errorCallback) {
-                errorCallback(exc);
-                return;
-            }
-            const data = exc.response.data;
-            const fileReader = new FileReader();
-            fileReader.onload = (e) => {
-                const data = JSON.parse(e.target.result);
-                alert(data.detail);
-            };
-            fileReader.readAsText(data);
+            let error_message = null;
+            if (exc.response) {
+                const data = exc.response.data;
+                error_message = await new Promise((resolve, reject) => {
+                    const fileReader = new FileReader();
+                    fileReader.onload = (e) => {
+                        const error = JSON.parse(e.target.result);
+                        resolve(error.detail);
+                    };
+                    fileReader.onerror = reject
+                    fileReader.readAsText(data);
+                });
+            } else
+                error_message = exc.message;
+            throw Error(error_message);
         }
     }
 
