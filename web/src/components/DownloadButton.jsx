@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import API from '../api';
 import { toast } from 'react-toastify';
+import LoadingContext from '../context/LoadingContext';
 
 const ripple = keyframes`
     to {
@@ -55,6 +56,8 @@ const DownloadButtonWrapper = styled.button`
 
 export default class DownloadButton extends Component {
 
+    static contextType = LoadingContext
+
     static propTypes = {
         mediaId: PropTypes.string
     }
@@ -76,7 +79,9 @@ export default class DownloadButton extends Component {
     }
 
     downloadMedia = (mediaId) => {
-        API.downloadMediaFile(mediaId).catch(e => toast.error(e.message));
+        const { setIsLoading } = this.context;
+        setIsLoading(true);
+        API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
     }
 
     render() {

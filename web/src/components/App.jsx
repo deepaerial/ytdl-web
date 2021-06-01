@@ -11,9 +11,11 @@ import SearchBar from './SearchBar.jsx';
 
 import API from '../api';
 import { parametrizeUrl } from '../utils';
-import { DOWNLOADS} from '../constants';
+import { DOWNLOADS } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
+import LoadingContext from '../context/LoadingContext.js';
 import DownloadsList from './DownloadsList.jsx';
+import Loader from './Loader.jsx';
 
 import "../../public/styles.css";
 import 'react-toastify/dist/ReactToastify.css';
@@ -25,6 +27,17 @@ const Content = styled.div`
 	justify-content: center;
 	align-items: center;
     align-content: center;
+`;
+
+const LoaderContainer = styled.div`
+    width: ${props => props.size}px;
+    height: ${props => props.size}px;
+    position: fixed;
+    top: 1rem;
+    z-index: 1000;
+    box-shadow: 0.2rem 0.2rem 0.9rem #000000;
+    border-radius: 50%;
+    background-color: #ffffff;
 `;
 
 
@@ -43,7 +56,8 @@ class App extends React.Component {
         version: null,
         downloads: {},
         mediaOptions: [],
-        isDesktop: false
+        isDesktop: false,
+        isLoading: true,
     }
 
     setIsDektop = () => {
@@ -56,9 +70,10 @@ class App extends React.Component {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
         try {
+            this.setIsLoading(true);
             const { api_version, media_options, uid, downloads } = await API.getClientInfo();
             this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
-            if (uid){
+            if (uid) {
                 const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
                 eventSource.addEventListener("message", (event) => {
                     this.onProgressUpdate(JSON.parse(event.data));
@@ -69,12 +84,18 @@ class App extends React.Component {
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            this.setIsLoading(false);
         }
     }
 
     setDownloads = (downloads) => {
         downloads = mapDownloads(downloads);
         this.setState({ downloads });
+    }
+
+    setIsLoading = (isLoading) => {
+        this.setState({ isLoading })
     }
 
     onProgressUpdate = (download) => {
@@ -92,30 +113,42 @@ class App extends React.Component {
     }
 
     render() {
-        const { version, mediaOptions, isDesktop } = this.state;
+        const { version, mediaOptions, isDesktop, isLoading } = this.state;
         let downloads = this.state.downloads;
-        const { setDownloads } = this;
+        const { setDownloads, setIsLoading } = this;
         if (!Object.keys(downloads).length) {
             downloads = localStorage.getItem(DOWNLOADS);
             if (downloads) downloads = JSON.parse(downloads);
             else downloads = {}
         }
+        const loaderSize = 50;
         return (
             <Content>
                 <ToastContainer
-                position={isDesktop ? "top-right" : "top-center"}
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                transition={Slide}
-                draggable
-                pauseOnHover
+                    position={isDesktop ? "top-right" : "top-center"}
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={true}
+                    transition={Slide}
+                    draggable
+                    pauseOnHover
                 />
+                {isLoading && <LoaderContainer size={loaderSize}><Loader heightAndWidth={loaderSize} /> </LoaderContainer>}
                 <Header version={version} />
-                <DownloadsContext.Provider value={{ downloads, setDownloads }}>
-                    <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} />
-                    <DownloadsList isDesktop={isDesktop} />
-                </DownloadsContext.Provider>
+                <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
+                    <DownloadsContext.Provider value={{ downloads, setDownloads }}>
+                        <LoadingContext.Consumer>
+                            {({isLoading, setIsLoading}) => <React.Fragment>
+                                <DownloadsContext.Consumer>
+                                    {({downloads, setDownloads}) => <React.Fragment>
+                                        <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} setDownloads={setDownloads} setIsLoading={setIsLoading} />
+                                        <DownloadsList isDesktop={isDesktop} downloads={downloads} />
+                                    </React.Fragment>}
+                                </DownloadsContext.Consumer>
+                            </React.Fragment>}
+                        </LoadingContext.Consumer>
+                    </DownloadsContext.Provider>
+                </LoadingContext.Provider>
             </Content>
         )
     }

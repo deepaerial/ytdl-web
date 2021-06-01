@@ -5,7 +5,6 @@ import styled, { keyframes } from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import DownloadsContext from '../context/DownloadsContext';
 import { toast } from 'react-toastify';
-
 import API from '../api';
 
 const SearchBarWrapper = styled.div`
@@ -18,8 +17,6 @@ const SearchBarWrapper = styled.div`
     background-color: #fff;
     border: none;
     transition: box-shadow 300;
-    -webkit-appearance: none;
-    -moz-appearance: none;
     appearance: none;
     box-shadow: 0.2rem 0.2rem 0.9rem #000000;
 `;
@@ -76,11 +73,11 @@ const SearchBarButton = styled.button`
 
 export default class SearchBar extends Component {
 
-    static contextType = DownloadsContext;
-
     static propTypes = {
         mediaOptions: PropTypes.arrayOf(PropTypes.string),
         isDesktop: PropTypes.bool,
+        setDownloads: PropTypes.func,
+        setIsLoading: PropTypes.func
     }
 
     state = {
@@ -100,15 +97,18 @@ export default class SearchBar extends Component {
 
     onSearch = async (event) => {
         event.preventDefault();
+        const {setDownloads, setIsLoading} = this.props;
         try {
+            setIsLoading(true);
             const downloads = await API.fetchMediaInfo(this.state.url, this.state.selectedMediaOption, (message) => toast(message));
             if (downloads.length) {
-                const { setDownloads } = this.context;
                 setDownloads(downloads);
                 this.setState({ url: '' });
             }
         } catch (error) {
             toast.error(error.message)
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -123,7 +123,7 @@ export default class SearchBar extends Component {
 
 
     render() {
-        const { mediaOptions, isDesktop } = this.props;
+        const { mediaOptions, isDesktop, setDownloads, setIsLoading } = this.props;
         const { selectedMediaOption } = this.state;
         const selectProps = {
             name: mediaOptions,
