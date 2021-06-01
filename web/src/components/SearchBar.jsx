@@ -51,14 +51,15 @@ const SearchBarMediaSelect = styled.select`
 `;
 
 const SearchBarButton = styled.button`
-    width: 60px;
-    height: 20px;
+    width: 100px;
+    height: 40px;
     font-size: 1rem;
     appearance: none;
     border: none;
     outline: none;
-    background: none;
-    border-radius: 10%;
+    background: linear-gradient(to right, #b8cbb8 0%, #b8cbb8 0%, #b465da 0%, #cf6cc9 33%, #ee609c 66%, #ee609c 100%);
+    border-radius: 20px;
+    color: #ffffff;
     box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 
