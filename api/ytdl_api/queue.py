@@ -2,8 +2,10 @@ import typing
 import asyncio
 from collections import defaultdict
 
+from youtube_dl.utils import clean_html
 
-from .schemas import DownloadProgress, DownloadDataInfo
+
+from .schemas import Download, DownloadProgress, DownloadDataInfo
 
 
 class NotificationQueue:
@@ -21,3 +23,7 @@ class NotificationQueue:
             return await queue.put(DownloadProgress.from_data(client_id, media_id, data))
 
         return inner_put
+
+    async def put(self, client_id: str, download: Download):
+        queue = self.queues[client_id]
+        return await queue.put(DownloadProgress.from_download(client_id, download))

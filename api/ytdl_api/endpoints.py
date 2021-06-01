@@ -3,7 +3,7 @@ import typing
 import socket
 import re
 from http.client import RemoteDisconnected
-from fastapi import APIRouter, BackgroundTasks, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException
 from starlette.responses import FileResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from youtube_dl.utils import YoutubeDLError
@@ -16,30 +16,27 @@ router = APIRouter()
 
 _ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
+def make_internal_error(error_code: str = "internal-server-error") -> JSONResponse:
+    return JSONResponse(
+        {"detail": "Remote server encountered problem, please try again...", "code": error_code},
+        status_code=500,
+    )
+
 
 async def on_youtube_dl_error(request, exc: YoutubeDLError):
     return JSONResponse({"detail": _ansi_escape.sub("", str(exc)), "code": "downloader-error"}, status_code=500)
 
 
 async def on_remote_disconnected(request, exc: RemoteDisconnected):
-    return JSONResponse(
-        {"detail": "Remote server encountered problem, please try again...", "code": "external-service-network-error"},
-        status_code=500,
-    )
+    return make_internal_error("external-service-network-error")
 
 
 async def on_socket_timeout(request, exc: socket.timeout):
-    return JSONResponse(
-        {"detail": "Remote server encountered problem, please try again...", "code": "external-service-timeout-error"},
-        status_code=500,
-    )
+    return make_internal_error("external-service-timeout-error")
 
 
 async def on_runtimeerror(request, exc: RuntimeError):
-    return JSONResponse(
-        {"detail": "Remote server encountered problem, please try again...", "code": "internal-server-error"},
-        status_code=500,
-    )
+    return make_internal_error()
 
 
 @router.get(
@@ -108,10 +105,11 @@ async def fetch_media(
         },
     },
 )
-def download_media(
+async def download_media(
     uid: str,
     media_id: str,
     datasource: db.DAOInterface = Depends(dependencies.get_database),
+    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
     Endpoint for downloading fetched video from Youtube.
@@ -121,6 +119,9 @@ def download_media(
         raise HTTPException(status_code=404, detail="Download not found")
     if not media_file._file_path.exists():
         raise HTTPException(status_code=404, detail="Downloaded file not found")
+    media_file.status = schemas.ProgressStatusEnum.DOWNLOADED
+    datasource.put_download(uid, media_file)
+    await event_queue.put(uid, media_file)
     return FileResponse(
         media_file.file_path,
         media_type="application/octet-stream",

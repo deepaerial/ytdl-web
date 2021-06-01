@@ -52,6 +52,8 @@ class ProgressStatusEnum(str, Enum):
     STARTED = "stated"
     DOWNLOADING = "downloading"
     FINISHED = "finished"
+    DOWNLOADED = "downloaded"  # by client
+    DELETED = "deleted"
 
 
 class ThumbnailInfo(BaseModel):
@@ -253,3 +255,11 @@ class DownloadProgress(BaseModel):
             progress=int(progress),
         )
 
+    @classmethod
+    def from_download(cls, client_id: str, download: Download):
+        return cls(
+            client_id=client_id,
+            media_id=download.media_id,
+            status=download.status,
+            progress=download.progress
+        )

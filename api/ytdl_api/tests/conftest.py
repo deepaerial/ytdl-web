@@ -5,10 +5,10 @@ from fastapi.testclient import TestClient
 from fastapi import BackgroundTasks
 
 from ..dependencies import get_settings
-from ..db import DAOInterface, InMemoryDB
+from ..db import InMemoryDB
 from ..config import Settings, DbTypes, DownloadersTypes
 from ..queue import NotificationQueue
-from ..downloaders import DownloaderInterface, YoutubeDLDownloader
+from ..downloaders import YoutubeDLDownloader
 
 
 @pytest.fixture
@@ -19,29 +19,29 @@ def temp_directory():
 
 
 @pytest.fixture
-def fake_media_path(temp_directory) -> Path:
+def fake_media_path(temp_directory):
     return Path(temp_directory.name)
 
 
 @pytest.fixture
-def fake_db() -> DAOInterface:
+def fake_db():
     return InMemoryDB()
 
 
 @pytest.fixture
-def event_queue() -> NotificationQueue:
+def event_queue():
     return NotificationQueue()
 
 
 @pytest.fixture
-def task_queue() -> BackgroundTasks:
+def task_queue():
     return BackgroundTasks()
 
 
 @pytest.fixture
 def youtube_dl_downloader(
     fake_media_path, fake_db, event_queue, task_queue
-) -> DownloaderInterface:
+):
     return YoutubeDLDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
@@ -51,7 +51,7 @@ def youtube_dl_downloader(
 
 
 @pytest.fixture
-def app_client(fake_media_path) -> TestClient:
+def app_client(fake_media_path):
     settings = Settings(
         media_path=fake_media_path,
         db_type=DbTypes.MEMORY,
