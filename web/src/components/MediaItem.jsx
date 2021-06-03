@@ -92,7 +92,7 @@ export default class MediaItem extends Component {
                         })} />
                     </LoaderContainer>
                 }
-                {status == 'finished' && <DownloadButton mediaId={downloadItem.media_id} />}
+                {['finished', 'downloaded'].includes(status) && <DownloadButton mediaId={downloadItem.media_id} />}
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 {filesize && <Size>{bytesToHumanReadableFileSize(filesize)}</Size>}
             </CardBox>
