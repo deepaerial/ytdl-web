@@ -26,6 +26,7 @@ services:
           - 5678:5678
         volumes: 
           - "./api/ytdl_api/:/app/ytdl_api"
+          - "./htmlcov:/app/htmlcov"
         restart: "no"
         stdin_open: true
         tty: true

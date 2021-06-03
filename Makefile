@@ -13,7 +13,7 @@ run_server:
 		--ssl-certfile ./certs/localhost+1.pem
 
 test:
-	@poetry run pytest
+	docker-compose up -d --build ytdl-api-pytest
 
 run_frontend:
 	npm run --prefix ./web/ devserver
