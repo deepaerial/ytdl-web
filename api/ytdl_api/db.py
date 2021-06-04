@@ -7,7 +7,7 @@ import itertools
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
-from .schemas import Download, MediaFormatOptions, DownloadProgress
+from .schemas import Download, MediaFormatOptions, DownloadProgress, ProgressStatusEnum
 
 
 class DAOInterface(ABC):
@@ -38,6 +38,13 @@ class DAOInterface(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def update_download(self, client_id: str, download: Download): # pragma: no cover
+        """
+        Abstract method for updating download instance from data source
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def update_download_progress(self, progress_obj: DownloadProgress): # pragma: no cover
         """
         Abstract method that updates progress for media item of specific user/client.
@@ -63,7 +70,7 @@ class InMemoryDB(DAOInterface):
     storage: typing.DefaultDict[str, typing.List[Download]] = defaultdict(list)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        return self.storage[client_id] or []
+        return list(filter(lambda d: d.status != ProgressStatusEnum.DELETED, self.storage[client_id])) or []
 
     def put_download(self, client_id: str, download: Download):
         self.storage[client_id].append(download)
@@ -72,6 +79,14 @@ class InMemoryDB(DAOInterface):
         return next(
             filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
         )
+    
+    def update_download(self, client_id: str, download: Download):
+        donwloads = self.storage[client_id]
+        index = next((idx for idx, d in enumerate(donwloads) if d.media_id == download.media_id), None)
+        if index is None:
+            self.storage[client_id].append(download)
+        else:
+            self.storage[client_id][index] = download
 
     def update_download_progress(self, progress_obj: DownloadProgress):
         download = self.get_download(progress_obj.client_id, progress_obj.media_id)
@@ -106,7 +121,7 @@ class DetaDB(DAOInterface):
             self.base = deta.Base(self.__base_name)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        downloads = next(self.base.fetch({"client_id": client_id}))
+        downloads = next(self.base.fetch({"client_id": client_id, "status?ne": ProgressStatusEnum.DELETED}))
         return parse_obj_as(typing.List[Download], downloads)
 
     def put_download(self, client_id: str, download: Download):
@@ -117,13 +132,19 @@ class DetaDB(DAOInterface):
         self.base.put(data, key)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
-        data = self.base.get(media_id)
+        data = next(iter(next(self.base.fetch({"client_id": client_id, "media_id": media_id}), [])), None)
         if data is None:
             return data
         file_path = data.pop("_file_path")
         download = Download(**data)
         download._file_path = Path(file_path)
         return download
+
+    def update_download(self, download: Download):
+        data = download.dict()
+        data["_file_path"] = download.file_path
+        key = data.pop("media_id")
+        self.base.update(data, key)
 
     def update_download_progress(self, progress_obj: DownloadProgress):
         media_id = progress_obj.media_id

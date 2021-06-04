@@ -49,7 +49,7 @@ class MediaFormatOptions(str, Enum):
 
 
 class ProgressStatusEnum(str, Enum):
-    STARTED = "stated"
+    STARTED = "started"
     DOWNLOADING = "downloading"
     FINISHED = "finished"
     DOWNLOADED = "downloaded"  # by client
@@ -263,3 +263,10 @@ class DownloadProgress(BaseModel):
             status=download.status,
             progress=download.progress
         )
+
+
+class DeleteResponse(BaseModel):
+    media_id: str = Field(..., description="Id of downloaded media")
+    status: ProgressStatusEnum = Field(
+        ..., description="Download status", example=ProgressStatusEnum.DELETED
+    )

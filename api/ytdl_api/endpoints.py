@@ -16,15 +16,22 @@ router = APIRouter()
 
 _ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
+
 def make_internal_error(error_code: str = "internal-server-error") -> JSONResponse:
     return JSONResponse(
-        {"detail": "Remote server encountered problem, please try again...", "code": error_code},
+        {
+            "detail": "Remote server encountered problem, please try again...",
+            "code": error_code,
+        },
         status_code=500,
     )
 
 
 async def on_youtube_dl_error(request, exc: YoutubeDLError):
-    return JSONResponse({"detail": _ansi_escape.sub("", str(exc)), "code": "downloader-error"}, status_code=500)
+    return JSONResponse(
+        {"detail": _ansi_escape.sub("", str(exc)), "code": "downloader-error"},
+        status_code=500,
+    )
 
 
 async def on_remote_disconnected(request, exc: RemoteDisconnected):
@@ -153,3 +160,36 @@ async def fetch_stream(
                 yield data.json()
 
     return EventSourceResponse(_stream())
+
+
+@router.delete(
+    "/delete",
+    response_model=schemas.DeleteResponse,
+    status_code=200,
+    responses={
+        404: {
+            "content": {"application/json": {}},
+            "model": schemas.DetailMessage,
+            "description": "Download not found",
+            "example": {"detail": "Download not found"},
+        },
+        500: {"model": schemas.DetailMessage}
+    },
+)
+async def delete_media(
+    uid: str,
+    media_id: str,
+    datasource: db.DAOInterface = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for deleting downloaded media.
+    """
+    media_file = datasource.get_download(uid, media_id)
+    if not media_file:
+        raise HTTPException(status_code=404, detail="Download not found")
+    if media_file._file_path.exists():
+        media_file._file_path.unlink()
+    media_file.status = schemas.ProgressStatusEnum.DELETED
+    datasource.update_download(media_file)
+    return {"media_id": media_file.media_id, "status": media_file.status}
+    
