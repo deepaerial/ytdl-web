@@ -1,6 +1,6 @@
 import { getFilenameFromContentDisposition } from './utils'
 import axios from 'axios';
-import { UID_KEY } from './constants';
+import { UID_KEY, Statuses } from './constants';
 
 const api = axios.create({ baseURL: API_URL });
 
@@ -76,6 +76,32 @@ class API {
                 });
             } else
                 error_message = exc.message;
+            throw Error(error_message);
+        }
+    }
+
+    static async deleteMediaFile(mediaId) {
+        try {
+            const uid = localStorage.getItem(UID_KEY);
+            const params = { media_id: mediaId }
+            if (uid) {
+                params.uid = uid;
+            }
+            const response = await api.delete('delete', { params });
+            return response.data
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                const detail = exc.response.data.detail;
+                if (typeof detail === 'string') {
+                    error_message = detail;
+                }
+                else {
+                    error_message = detail[0].msg;
+                }
+            } else {
+                error_message = exc.message;
+            }
             throw Error(error_message);
         }
     }

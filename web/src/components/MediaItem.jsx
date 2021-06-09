@@ -7,6 +7,7 @@ import 'react-circular-progressbar/dist/styles.css';
 
 import IconButton from './IconButton.jsx';
 import { millisecToHumanReadable, wrapFunc } from '../utils';
+import { Statuses } from '../constants.js';
 
 import API from '../api';
 import { toast } from 'react-toastify';
@@ -61,7 +62,9 @@ const Duration = styled.span`
 
 const ButtonsBox = styled.div`
     position: absolute;
+    width: 50px;
     display: flex;
+    justify-content: space-between;
     flex-grow: 1;
     right: 5px;
     bottom: 10px;
@@ -92,10 +95,29 @@ export default class MediaItem extends Component {
         API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
     }
 
+    deleteMedia = async (mediaId) => {
+        const { downloadsContext } = this.props;
+        const { downloads, setDownloads } = downloadsContext;
+        const { setIsLoading } = this.context;
+        try {
+            setIsLoading(true);
+            const {media_id, status} = await API.deleteMediaFile(mediaId);
+            if (status === Statuses.DELETED) {
+                delete downloads[media_id];
+            }
+            setDownloads(downloads);
+        } catch (error) {
+            toast.error(error.message)
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     render() {
         const { downloadItem, isDesktop, downloadsContext } = this.props;
         const { media_id, title, thumbnail, video_url, duration, progress, status } = downloadItem;
-        const { downloadMedia } = this;
+        const { downloadMedia, deleteMedia } = this;
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
                 <Title><Url href={video_url}>{title}</Url></Title>
@@ -110,7 +132,8 @@ export default class MediaItem extends Component {
                 }
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
                 <ButtonsBox>
-                    {['finished', 'downloaded'].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)}/>}
+                    {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)}/>}
+                    {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, media_id)}/>}
                 </ButtonsBox>
             </CardBox>
         )

@@ -2,7 +2,7 @@ import React from 'react';
 
 import styled from 'styled-components';
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faSearch, faDownload } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faDownload, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast, ToastContainer } from 'react-toastify';
 import { Slide } from 'react-toastify';
 
@@ -19,6 +19,7 @@ import Loader from './Loader.jsx';
 
 import "../../public/styles.css";
 import 'react-toastify/dist/ReactToastify.css';
+import { object } from 'prop-types';
 
 const Content = styled.div`
     display: flex;
@@ -42,10 +43,12 @@ const LoaderContainer = styled.div`
 
 
 const mapDownloads = (downloads) => {
-    downloads = Object.assign({}, ...downloads.map(d => {
-        const { media_id } = d;
-        return { [media_id]: d }
-    }));
+    if (downloads instanceof Array){
+        downloads = Object.assign({}, ...downloads.map(d => {
+            const { media_id } = d;
+            return { [media_id]: d }
+        }));
+    }
     localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
     return downloads;
 };
@@ -154,6 +157,6 @@ class App extends React.Component {
     }
 }
 
-library.add(faSearch, faDownload);
+library.add(faSearch, faDownload, faTrashAlt);
 
 export default App;
