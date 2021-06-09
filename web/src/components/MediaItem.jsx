@@ -5,9 +5,12 @@ import styled from 'styled-components';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-import DownloadButton from './DownloadButton.jsx'
-import { bytesToHumanReadableFileSize, millisecToHumanReadable } from '../utils';
+import IconButton from './IconButton.jsx';
+import { millisecToHumanReadable, wrapFunc } from '../utils';
 
+import API from '../api';
+import { toast } from 'react-toastify';
+import LoadingContext from '../context/LoadingContext';
 
 const CardBox = styled.div`
     position: relative;
@@ -56,13 +59,14 @@ const Duration = styled.span`
     bottom: 10px;
 `;
 
-const Size = styled.span`
+const ButtonsBox = styled.div`
     position: absolute;
-    color: #FFF;
-    text-shadow: 2px 2px 3px #000;
+    display: flex;
     flex-grow: 1;
     right: 5px;
     bottom: 10px;
+    margin: 5px;
+    margin-bottom: 1px;
 `;
 
 const LoaderContainer = styled.div`
@@ -73,13 +77,25 @@ const LoaderContainer = styled.div`
     top: 3.9em;
 `;
 export default class MediaItem extends Component {
+
+    static contextType = LoadingContext;
+
     static propTypes = {
-        downloadItem: PropTypes.object
+        downloadItem: PropTypes.object,
+        isDesktop: PropTypes.bool,
+        downloadsContext: PropTypes.object
+    }
+
+    downloadMedia = async (mediaId) => {
+        const { setIsLoading } = this.context;
+        setIsLoading(true);
+        API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
     }
 
     render() {
-        const { downloadItem, isDesktop } = this.props;
-        const { title, thumbnail, video_url, duration, filesize, progress, status } = downloadItem;
+        const { downloadItem, isDesktop, downloadsContext } = this.props;
+        const { media_id, title, thumbnail, video_url, duration, progress, status } = downloadItem;
+        const { downloadMedia } = this;
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
                 <Title><Url href={video_url}>{title}</Url></Title>
@@ -92,9 +108,10 @@ export default class MediaItem extends Component {
                         })} />
                     </LoaderContainer>
                 }
-                {['finished', 'downloaded'].includes(status) && <DownloadButton mediaId={downloadItem.media_id} />}
                 <Duration>{millisecToHumanReadable(duration)}</Duration>
-                {filesize && <Size>{bytesToHumanReadableFileSize(filesize)}</Size>}
+                <ButtonsBox>
+                    {['finished', 'downloaded'].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)}/>}
+                </ButtonsBox>
             </CardBox>
         )
     }

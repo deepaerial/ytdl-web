@@ -27,7 +27,7 @@ export default class DownloadsList extends Component {
         const { isDesktop } = this.props;
         return (
             <ListContainer isDesktop={isDesktop}>
-                {Object.entries(downloads).map(([k, v]) => v).map((download, index) => <MediaItem key={index} downloadItem={download} />)}
+                {Object.entries(downloads).map(([k, v]) => v).map((download, index) => <MediaItem key={index} downloadItem={download} downloadsContext={this.context}/>)}
             </ListContainer>
         )
     }

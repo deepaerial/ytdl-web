@@ -138,11 +138,11 @@ class App extends React.Component {
                 <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
                     <DownloadsContext.Provider value={{ downloads, setDownloads }}>
                         <LoadingContext.Consumer>
-                            {({isLoading, setIsLoading}) => <React.Fragment>
+                            {({ setIsLoading }) => <React.Fragment>
                                 <DownloadsContext.Consumer>
-                                    {({downloads, setDownloads}) => <React.Fragment>
+                                    {({ setDownloads }) => <React.Fragment>
                                         <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} setDownloads={setDownloads} setIsLoading={setIsLoading} />
-                                        <DownloadsList isDesktop={isDesktop} downloads={downloads} />
+                                        <DownloadsList isDesktop={isDesktop} />
                                     </React.Fragment>}
                                 </DownloadsContext.Consumer>
                             </React.Fragment>}

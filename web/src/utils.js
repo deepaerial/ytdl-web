@@ -45,3 +45,10 @@ export const getFilenameFromContentDisposition = (xhrResponse) => {
     }
     throw `Failed to get filename from ${disposition}`;
 }
+
+
+export const wrapFunc = (func, ...args) => {
+    const AsyncFunction = (async () => {}).constructor;
+    if (func instanceof AsyncFunction) return async () => await func(...args);
+    return () => func(...args);
+};
