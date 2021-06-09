@@ -2,8 +2,6 @@ import typing
 import asyncio
 from collections import defaultdict
 
-from youtube_dl.utils import clean_html
-
 
 from .schemas import Download, DownloadProgress, DownloadDataInfo
 
