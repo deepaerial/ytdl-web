@@ -46,6 +46,9 @@ async def on_runtimeerror(request, exc: RuntimeError):
     return make_internal_error()
 
 
+DOWNLOAD_NOT_FOUND = HTTPException(status_code=404, detail="Download not found")
+
+
 @router.get(
     "/info",
     response_model=schemas.VersionResponse,
@@ -123,7 +126,7 @@ async def download_media(
     """
     media_file = datasource.get_download(uid, media_id)
     if not media_file:
-        raise HTTPException(status_code=404, detail="Download not found")
+        raise DOWNLOAD_NOT_FOUND
     if not media_file._file_path.exists():
         raise HTTPException(status_code=404, detail="Downloaded file not found")
     media_file.status = schemas.ProgressStatusEnum.DOWNLOADED
@@ -173,7 +176,7 @@ async def fetch_stream(
             "description": "Download not found",
             "example": {"detail": "Download not found"},
         },
-        500: {"model": schemas.DetailMessage}
+        500: {"model": schemas.DetailMessage},
     },
 )
 async def delete_media(
@@ -186,10 +189,9 @@ async def delete_media(
     """
     media_file = datasource.get_download(uid, media_id)
     if not media_file:
-        raise HTTPException(status_code=404, detail="Download not found")
+        raise DOWNLOAD_NOT_FOUND
     if media_file._file_path.exists():
         media_file._file_path.unlink()
     media_file.status = schemas.ProgressStatusEnum.DELETED
-    datasource.update_download(media_file)
+    datasource.update_download(uid, media_file)
     return {"media_id": media_file.media_id, "status": media_file.status}
-    

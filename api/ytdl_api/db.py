@@ -140,7 +140,7 @@ class DetaDB(DAOInterface):
         download._file_path = Path(file_path)
         return download
 
-    def update_download(self, download: Download):
+    def update_download(self, client_id: str, download: Download):
         data = download.dict()
         data["_file_path"] = download.file_path
         key = data.pop("media_id")
