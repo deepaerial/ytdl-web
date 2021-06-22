@@ -120,7 +120,7 @@ export default class MediaItem extends Component {
         const { downloadMedia, deleteMedia } = this;
         return (
             <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
-                <Title><Url href={video_url}>{title}</Url></Title>
+                <Title><Url href={video_url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
                 {
                     status === 'downloading' && <LoaderContainer>
                         <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
