@@ -6,7 +6,7 @@ def test_version_endpoint(app_client):
     """
     Test endpoint that returns information about API version.
     """
-    response = app_client.get("/api/info")
+    response = app_client.get("/api/client_info")
     assert response.status_code == 200
     assert "api_version" in response.json()
     assert "youtube_dl_version" in response.json()

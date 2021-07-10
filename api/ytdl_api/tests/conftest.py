@@ -8,7 +8,7 @@ from ..dependencies import get_settings
 from ..db import InMemoryDB
 from ..config import Settings, DbTypes, DownloadersTypes
 from ..queue import NotificationQueue
-from ..downloaders import YoutubeDLDownloader
+from ..downloaders import YoutubeDLDownloader, PytubeDownloader
 
 
 @pytest.fixture
@@ -40,13 +40,24 @@ def task_queue():
 
 @pytest.fixture
 def youtube_dl_downloader(
-    fake_media_path, fake_db, event_queue, task_queue
+    fake_media_path, fake_db, task_queue
 ):
     return YoutubeDLDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
-        event_queue=event_queue,
+        event_queue=NotificationQueue(DownloadersTypes.YOUTUBE_DL),
         task_queue=task_queue,
+    )
+
+@pytest.fixture
+def pytube_downloader(
+    fake_media_path, fake_db, task_queue
+):
+    return PytubeDownloader(
+        media_path=fake_media_path,
+        datasource=fake_db,
+        event_queue=NotificationQueue(DownloadersTypes.PYTUBE),
+        task_queue=task_queue
     )
 
 

@@ -2,11 +2,8 @@ import re
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, TypedDict, Union
-from starlette.responses import FileResponse
 
 from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr, validator
-
-from .logger import YDLLogger
 
 
 class DetailMessage(BaseModel):
@@ -19,33 +16,13 @@ class DetailMessage(BaseModel):
 class MediaFormatOptions(str, Enum):
     # Video formats
     MP4 = "mp4"
-    FLV = "flv"
-    WEBM = "webm"
-    OGG = "ogg"
-    MKV = "mkv"
-    AVI = "avi"
-
     # Audio formats
-    AAC = "aac"
-    FLAC = "flac"
     MP3 = "mp3"
-    M4A = "m4a"
-    OPUS = "opus"
-    VORBIS = "vorbis"
     WAV = "wav"
 
     @property
     def is_audio(self) -> bool:
-        return self.name in [
-            "best",
-            "aac",
-            "flac",
-            "mp3",
-            "m4a",
-            "opus",
-            "vorbis",
-            "wav",
-        ]
+        return self.name in [MediaFormatOptions.MP3, MediaFormatOptions.WAV]
 
 
 class ProgressStatusEnum(str, Enum):
@@ -70,14 +47,53 @@ class ThumbnailInfo(BaseModel):
     )
 
 
+class BaseStream(BaseModel):
+    id: str = Field(..., description="Stream ID", example="123")
+    mimetype: str = Field(..., description="Stream mime-type", example="audio/webm")
+
+
+class VideoStream(BaseStream):
+    resolution: str = Field(..., description="Video resolution", example="1080p")
+
+
+class AudioStream(BaseStream):
+    bitrate: str = Field(..., description="Audio average bitrate", example="160kbps")
+
+
 class Download(BaseModel):
+    media_id: str = Field(
+        ...,
+        description="Download id",
+        example="1080c61c7683442e8d466c69917e8aa4"
+    )
     title: str = Field(
         ...,
         description="Video title",
         example="Adam Knight - I've Got The Gold (Shoby Remix)",
     )
+    url: AnyHttpUrl = Field(
+        ...,
+        description="URL of video",
+        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
+    )
+    video_streams: List[VideoStream] = Field(
+        ...,
+        description="List of video streams",
+        example=[VideoStream(id="133", resolution="240p", mimetype="video/mp4")],
+    )
+    audio_streams: List[AudioStream] = Field(
+        ...,
+        description="List of audio streams",
+        example=[AudioStream(id="89", bitrate="128kbps", mimetype="audio/webm")],
+    )
+    video_stream_id: Optional[str] = Field(
+        None, description="Video stream ID (downloaded)", example="133"
+    )
+    audio_stream_id: Optional[str] = Field(
+        None, description="Audio stream ID (downloaded)", example="118"
+    )
     media_format: MediaFormatOptions = Field(
-        ..., description="Video or audio (when extracting) format of file",
+        None, description="Video or audio (when extracting) format of file",
     )
     duration: int = Field(
         ..., description="Video duration (in milliseconds)", example=479000
@@ -85,42 +101,29 @@ class Download(BaseModel):
     filesize: int = Field(
         None, description="Video/audio filesize (in bytes)", example=5696217
     )
-    video_url: AnyHttpUrl = Field(
-        ...,
-        description="URL of video",
-        example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
-    )
-    thumbnail: ThumbnailInfo = Field(
+    thumbnail_url: AnyHttpUrl = Field(
         ...,
         description="Video thumbnail",
-        example={
-            "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
-            "width": 1920,
-            "height": 1080,
-        },
+        example="https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
     )
     status: ProgressStatusEnum = Field(
         None, description="Download status", example=ProgressStatusEnum.DOWNLOADING
     )
-    media_id: str = Field(
-        ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
-    )
     _file_path: Optional[Path] = PrivateAttr(None)
-    progress: int = Field(0, description="Download progress in ", example=20)
-
+    progress: int = Field(0, description="Download progress in %", example=20)
 
     @property
     def filename(self) -> str:
-        '''
+        """
         File name with extension
-        '''
+        """
         return f"{self.title}.{self.media_format}"
 
     @property
     def file_path(self) -> str:
-        '''
+        """
         POSIX File path
-        '''
+        """
         return self._file_path.absolute().as_posix()
 
 
@@ -130,17 +133,16 @@ class FetchedListResponse(BaseModel):
         description="List of pending and finished downloads",
         example=[
             {
-                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
-                "duration": 231000,
-                "filesize": None,
-                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
                 "media_id": "1080c61c7683442e8d466c69917e8aa4",
-                "status": "started",
-                "thumbnail": {
-                    "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
-                    "width": 1920,
-                    "height": 1080,
-                },
+                "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+                "url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
+                "streams": [
+                    VideoStream(id="134", resolution="720p", mimetype="video/mp4"),
+                    AudioStream(id="114", bitrate="128kbps", mimetype="audio/mp4"),
+                ],
+                "duration": 231000,
+                "status": ProgressStatusEnum.STARTED,
+                "thumbnail_url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
                 "progress": 0,
             }
         ],
@@ -148,7 +150,6 @@ class FetchedListResponse(BaseModel):
 
 
 class VersionResponse(BaseModel):
-    youtube_dl_version: str = Field(..., example="2020.03.24")
     api_version: str = Field(..., example="0.1.0")
     media_options: List[MediaFormatOptions] = Field(
         ...,
@@ -165,18 +166,18 @@ class VersionResponse(BaseModel):
         description="List of pending and finished downloads",
         example=[
             {
+                "media_id": "1080c61c7683442e8d466c69917e8aa4",
                 "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
+                "url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
                 "duration": 231000,
                 "filesize": None,
-                "video_url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
-                "media_id": "1080c61c7683442e8d466c69917e8aa4",
-                "status": "started",
+                "status": ProgressStatusEnum.DOWNLOADING,
                 "thumbnail": {
                     "url": "https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
                     "width": 1920,
                     "height": 1080,
                 },
-                "progress": 0,
+                "progress": 57,
             }
         ],
     )
@@ -189,13 +190,14 @@ class YTDLParams(BaseModel):
         description="URL to video",
         example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
     )
-    media_format: MediaFormatOptions = Field(
-        ..., description="Video or audio (when extracting) format of file",
+    video_stream_id: Optional[str] = Field(
+        None, description="Video stream ID", example="133"
     )
-    use_last_modified: bool = Field(
-        False,
-        title="Last-modified header",
-        description="Use the Last-modified header to set the file modification time",
+    audio_stream_id: Optional[str] = Field(
+        None, description="Audio stream ID", example="118"
+    )
+    media_format: Optional[MediaFormatOptions] = Field(
+        None, description="Video or audio (when extracting) format of file",
     )
 
     class Config:
@@ -238,7 +240,7 @@ class DownloadProgress(BaseModel):
     progress: int = Field(..., description="Download progress of a file", example=10)
 
     @classmethod
-    def from_data(
+    def from_youtube_dl_data(
         cls, client_id: str, media_id: str, data: DownloadDataInfo
     ) -> "DownloadProgress":
         status = data["status"]
@@ -256,12 +258,16 @@ class DownloadProgress(BaseModel):
         )
 
     @classmethod
+    def from_pytube_data(cls, client_id, media_id, stream, chunk, bytes_remaining) -> "DownloadProgress":
+        pass
+
+    @classmethod
     def from_download(cls, client_id: str, download: Download):
         return cls(
             client_id=client_id,
             media_id=download.media_id,
             status=download.status,
-            progress=download.progress
+            progress=download.progress,
         )
 
 

@@ -50,18 +50,18 @@ DOWNLOAD_NOT_FOUND = HTTPException(status_code=404, detail="Download not found")
 
 
 @router.get(
-    "/info",
+    "/client_info",
     response_model=schemas.VersionResponse,
     status_code=200,
     responses={500: {"model": schemas.DetailMessage,}},
 )
-async def info(
+async def client_info(
     uid: typing.Optional[str] = None,
     settings: config.Settings = Depends(dependencies.get_settings),
     datasource: db.DAOInterface = Depends(dependencies.get_database),
 ):
     """
-    Endpoint for getting info about server API.
+    Endpoint for getting info about server API and fetching list of downloaded videos.
     """
     if uid is None:
         uid = get_unique_id()
@@ -74,6 +74,23 @@ async def info(
         "uid": uid,
         "downloads": datasource.fetch_downloads(uid),
     }
+
+
+@router.get(
+    "/video_info",
+    response_model=schemas.Download,
+    status_code=200,
+    responses={500: {"model": schemas.DetailMessage,}},
+)
+async def video_info(
+    json_params: schemas.YTDLParams,
+    downloader: DownloaderInterface = Depends(dependencies.get_downloader),
+):
+    """
+    Endpoint for getting info about video.
+    """
+    download = downloader.get_video_info(json_params)
+    return download
 
 
 @router.put(

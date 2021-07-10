@@ -22,6 +22,7 @@ class DbTypes(str, Enum):
 
 class DownloadersTypes(str, Enum):
     YOUTUBE_DL = "youtube_dl"
+    PYTUBE = "pytube"
     MOCK = "mock" 
 
 class Settings(BaseSettings):

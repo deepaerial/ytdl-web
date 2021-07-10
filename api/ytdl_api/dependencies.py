@@ -10,8 +10,8 @@ def get_settings() -> Settings:
 
 
 @lru_cache
-def get_notification_queue() -> queue.NotificationQueue:
-    return queue.NotificationQueue()
+def get_notification_queue(settings: Settings = Depends(get_settings)) -> queue.NotificationQueue:
+    return queue.NotificationQueue(settings.downloader_type)
 
 
 
