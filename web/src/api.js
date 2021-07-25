@@ -9,7 +9,7 @@ class API {
     static async getClientInfo() {
         try {
             const uid = localStorage.getItem(UID_KEY);
-            const response = await api.get('info', { params: uid ? { uid } : {} });
+            const response = await api.get('client_info', { params: uid ? { uid } : {} });
             localStorage.setItem(UID_KEY, response.data.uid);
             return response.data;
         } catch (exc) {
