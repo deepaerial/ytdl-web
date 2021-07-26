@@ -46,6 +46,13 @@ async def on_runtimeerror(request, exc: RuntimeError):
     return make_internal_error()
 
 
+ERROR_HANDLERS = (
+    (YoutubeDLError, on_youtube_dl_error),
+    (RemoteDisconnected, on_remote_disconnected),
+    (socket.timeout, on_socket_timeout),
+    (RuntimeError, on_runtimeerror),
+)
+
 DOWNLOAD_NOT_FOUND = HTTPException(status_code=404, detail="Download not found")
 
 
