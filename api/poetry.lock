@@ -452,7 +452,7 @@ pytest-cache = "*"
 
 [[package]]
 name = "pytube"
-version = "10.8.5"
+version = "11.0.0"
 description = "Python 3 library for downloading YouTube Videos."
 category = "main"
 optional = false
@@ -606,7 +606,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ac6096b7d20f4c2622211bccef8044ff89253bfaec33b1f7087481ee9f81b4ac"
+content-hash = "a52e49a393e79a225f0f545c9f5cf75ea229cbf789b50eb9735f84ffd1dbef89"
 
 [metadata.files]
 aiofiles = [
@@ -854,8 +854,8 @@ pytest-pep8 = [
     {file = "pytest-pep8-1.0.6.tar.gz", hash = "sha256:032ef7e5fa3ac30f4458c73e05bb67b0f036a8a5cb418a534b3170f89f120318"},
 ]
 pytube = [
-    {file = "pytube-10.8.5-py3-none-any.whl", hash = "sha256:b3432b06d701b47af7793b194b57b5c121f293861874a37b86d832b7b8857b53"},
-    {file = "pytube-10.8.5.tar.gz", hash = "sha256:ed88d38e38206258ff74181f7776f5bfdb70fb835c32694b2c7e8131b51eb578"},
+    {file = "pytube-11.0.0-py3-none-any.whl", hash = "sha256:b2b82e831cc2dbf22202c3ecfd09b5af33a253e7a443be9f747ce506f6e88f1f"},
+    {file = "pytube-11.0.0.tar.gz", hash = "sha256:9e523a680814e1d6a754045271de2516d415be71a776ea190d415973a0b57c23"},
 ]
 regex = [
     {file = "regex-2021.4.4-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:619d71c59a78b84d7f18891fe914446d07edd48dc8328c8e149cbe0929b4e000"},

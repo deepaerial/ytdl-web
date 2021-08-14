@@ -19,7 +19,7 @@ def temp_directory():
 
 
 @pytest.fixture
-def fake_media_path(temp_directory):
+def fake_media_path(temp_directory: TemporaryDirectory):
     return Path(temp_directory.name)
 
 
