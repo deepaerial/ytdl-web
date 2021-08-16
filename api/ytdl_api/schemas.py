@@ -3,7 +3,14 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Optional, TypedDict, Union
 
-from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr, validator
+from pydantic import (
+    AnyHttpUrl,
+    BaseModel,
+    Field,
+    PrivateAttr,
+    validator,
+    root_validator,
+)
 
 
 class DetailMessage(BaseModel):
@@ -33,6 +40,7 @@ class ProgressStatusEnum(str, Enum):
     DELETED = "deleted"
 
 
+# TODO: remove due to deprecation
 class ThumbnailInfo(BaseModel):
     url: AnyHttpUrl = Field(
         ...,
@@ -62,9 +70,7 @@ class AudioStream(BaseStream):
 
 class Download(BaseModel):
     media_id: str = Field(
-        ...,
-        description="Download id",
-        example="1080c61c7683442e8d466c69917e8aa4"
+        ..., description="Download id", example="1080c61c7683442e8d466c69917e8aa4"
     )
     title: str = Field(
         ...,
@@ -196,12 +202,25 @@ class YTDLParams(BaseModel):
     audio_stream_id: Optional[str] = Field(
         None, description="Audio stream ID", example="118"
     )
-    media_format: Optional[MediaFormatOptions] = Field(
-        None, description="Video or audio (when extracting) format of file",
+    media_format: MediaFormatOptions = Field(
+        ...,
+        description="Video or audio (when extracting) format of file",
     )
 
     class Config:
         validate_all = True
+
+    @root_validator
+    def validate_stream_ids(cls, values):
+        video_stream_id, audio_stream_id = (
+            values.get("video_stream_id"),
+            values.get("audio_stream_id"),
+        )
+        if not any((video_stream_id, audio_stream_id)):
+            raise ValueError(
+                "Video or/and audio stream id should be specified for download."
+            )
+        return values
 
     @validator("url")
     def is_url_allowed(cls, url):
@@ -258,8 +277,10 @@ class DownloadProgress(BaseModel):
         )
 
     @classmethod
-    def from_pytube_data(cls, client_id, media_id, stream, chunk, bytes_remaining) -> "DownloadProgress":
-        pass
+    def from_pytube_data(
+        cls, client_id, media_id, stream, chunk, bytes_remaining
+    ) -> "DownloadProgress":
+        # TODO: implement on progress for pytube
 
     @classmethod
     def from_download(cls, client_id: str, download: Download):

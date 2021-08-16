@@ -4,6 +4,7 @@ import socket
 import re
 from http.client import RemoteDisconnected
 from fastapi import APIRouter, Request, Depends, HTTPException
+from pydantic.networks import AnyHttpUrl
 from starlette.responses import FileResponse, JSONResponse
 from sse_starlette.sse import EventSourceResponse
 from youtube_dl.utils import YoutubeDLError
@@ -73,7 +74,6 @@ async def client_info(
     if uid is None:
         uid = get_unique_id()
     return {
-        "youtube_dl_version": settings.youtube_dl_version,
         "api_version": settings.version,
         "media_options": [
             media_format.value for media_format in schemas.MediaFormatOptions
@@ -84,19 +84,19 @@ async def client_info(
 
 
 @router.get(
-    "/video_info",
+    "/preview",
     response_model=schemas.Download,
     status_code=200,
     responses={500: {"model": schemas.DetailMessage,}},
 )
-async def video_info(
-    json_params: schemas.YTDLParams,
+async def preview(
+    url: AnyHttpUrl,
     downloader: DownloaderInterface = Depends(dependencies.get_downloader),
 ):
     """
     Endpoint for getting info about video.
     """
-    download = downloader.get_video_info(json_params)
+    download = downloader.get_video_info(url)
     return download
 
 
@@ -116,10 +116,11 @@ async def fetch_media(
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    download = downloader.get_video_info(json_params)
+    download = downloader.get_video_info(json_params.url)
+    download.media_format = json_params.media_format
     datasource.put_download(uid, download)
     downloader.submit_download_task(
-        uid, download.media_id, json_params,
+        uid, download,
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 

@@ -4,6 +4,7 @@ import uuid
 from typing import Any, Coroutine, Optional, Callable
 from pathlib import Path
 from abc import ABC, abstractmethod
+from pydantic.networks import AnyHttpUrl
 
 import youtube_dl
 import ffmpeg
@@ -47,7 +48,7 @@ class DownloaderInterface(ABC):
 
     @abstractmethod
     def get_video_info(
-        self, download_params: YTDLParams
+        self, url: AnyHttpUrl
     ) -> Download:  # pragma: no cover
         """
         Abstract method for retrieving information about media resource.
@@ -82,14 +83,16 @@ class MockDownloader(DownloaderInterface):
     Mock downloader made primarly for endpoint testing purposes.
     """
 
-    def get_video_info(self, download_params: YTDLParams) -> Download:
+    def get_video_info(self, url: AnyHttpUrl) -> Download:
         media_id, media_format = get_unique_id(), MediaFormatOptions.MP3
         data = {
             "media_id": media_id,
             "url": "https://www.youtube.com/watch?v=B8WgNGN0IVA",
             "title": "Adam Knight - I've Got The Gold (Shoby Remix)",
-            "streams": [
+            "video_streams": [
                 VideoStream(id="134", resolution="720p", mimetype="video/mp4"),
+            ],
+            "audio_streams": [
                 AudioStream(id="134", bitrate="128kbps", mimetype="audio/webm"),
             ],
             "duration": 479000,
@@ -102,14 +105,15 @@ class MockDownloader(DownloaderInterface):
 
     def download(
         self,
-        download_params: YTDLParams,
-        media_id: str,
+        download: Download,
         progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None
     ):
         """
         Simulating download process
         """
-        file_path = self.media_path / f"{media_id}.{download_params.media_format}"
+        media_id = download.media_id
+        media_format = download.media_format
+        file_path = self.media_path / f"{media_id}.{media_format}"
         file_path.touch()
         return 0
 
@@ -211,8 +215,7 @@ class PytubeDownloader(DownloaderInterface):
     Downloader based on pytube library
     """
 
-    def get_video_info(self, download_params: YTDLParams) -> Download:
-        url = download_params.url
+    def get_video_info(self, url: AnyHttpUrl) -> Download:
         video = YouTube(url)
         media_id = get_unique_id()
         streams = video.streams.filter(is_dash=True).desc()
@@ -238,9 +241,6 @@ class PytubeDownloader(DownloaderInterface):
             audio_streams=audio_streams,
             thumbnail_url=video.thumbnail_url,
             duration=video.length,
-            video_stream_id=download_params.video_stream_id,
-            audio_stream_id=download_params.audio_stream_id,
-            media_format=download_params.media_format,
         )
         return download
 
@@ -255,8 +255,12 @@ class PytubeDownloader(DownloaderInterface):
         video_itag = download.video_stream_id
         # Chosen audio quality
         audio_itag = download.audio_stream_id
+        # Chosen media format
+        media_format = download.media_format
         if not any((video_itag, audio_itag)):
             raise Exception(f"No stream for {url} download was specified. {download}")
+        if not media_format:
+            raise Exception("No media_format provided.")
         kwargs = {}
         if progress_hook is not None:
             kwargs['on_progress_callback'] = lambda stream, chunk, bytes_remaining: asyncio.run(
@@ -294,7 +298,7 @@ class PytubeDownloader(DownloaderInterface):
             downloaded_streams_file_paths.append(audio_file_path)
         downloaded_streams = [ffmpeg.input(stream_file_path) for stream_file_path in downloaded_streams_file_paths]
         converted_file_path = self.media_path / f"{media_id}.{download.media_format}"
-        stdout, stderr = ffmpeg.concat(
+        _ = ffmpeg.concat(
                 *downloaded_streams
         ).output(converted_file_path.as_posix()).run(overwrite_output=True)
         download._file_path = converted_file_path

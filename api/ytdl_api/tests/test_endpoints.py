@@ -1,24 +1,44 @@
+from fastapi.testclient import TestClient
+
 from ..downloaders import get_unique_id
-from ..schemas import ProgressStatusEnum
+from ..schemas import AudioStream, ProgressStatusEnum, VideoStream
+from ..db import InMemoryDB
+
+from .utils import get_random_stream_id
 
 
-def test_version_endpoint(app_client):
+def test_version_endpoint(app_client: TestClient):
     """
     Test endpoint that returns information about API version.
     """
     response = app_client.get("/api/client_info")
     assert response.status_code == 200
     assert "api_version" in response.json()
-    assert "youtube_dl_version" in response.json()
     assert "uid" in response.json()
     assert "downloads" in response.json()
 
 
-def test_download_endpoint_no_format(app_client):
+def test_preview_endpoint(app_client: TestClient):
+    """
+    Test endpoint which returns download options for video.s
+    """
+    url = "https://www.youtube.com/watch?v=0ruMGbPXxbA"
+    response = app_client.get("/api/preview", params={"url": url})
+    assert response.status_code == 200
+    json_response = response.json()
+    assert "video_streams" in json_response
+    assert get_random_stream_id(json_response["video_streams"], VideoStream) is not None
+    assert "audio_streams" in json_response
+    assert get_random_stream_id(json_response["audio_streams"], AudioStream) is not None
+    assert "title" in json_response
+    assert "thumbnail_url" in json_response
+
+
+def test_download_endpoint_no_stream(app_client: TestClient):
     """
     Test endpoint for starting video download task.
 
-    Verify that error raised when no format is passed in POST body.
+    Verify that error raised when no video or audio stream is passed in PUT body.
     """
     response = app_client.put(
         "/api/fetch",
@@ -29,7 +49,29 @@ def test_download_endpoint_no_format(app_client):
     assert "detail" in response.json()
 
 
-def test_download_endpoint_bad_url(app_client):
+def test_download_endpoint_no_format(app_client: TestClient):
+    """
+    Test endpoint for starting video download task.
+
+    Verify that error raised when no format is passed in PUT body.
+    """
+    response = app_client.get(
+        "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
+    )
+    video_stream_id = get_random_stream_id(response.json()["video_streams"], VideoStream)
+    response = app_client.put(
+        "/api/fetch",
+        params={"uid": get_unique_id()},
+        json={
+            "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "video_stream_id": video_stream_id,
+        },
+    )
+    assert response.status_code == 422
+    assert "detail" in response.json()
+
+
+def test_download_endpoint_bad_url(app_client: TestClient):
     """
     Test endpoint for starting video download task.
 
@@ -44,17 +86,22 @@ def test_download_endpoint_bad_url(app_client):
     assert "detail" in response.json()
 
 
-def test_download_endpoint_video(app_client):
+def test_download_endpoint_video(app_client: TestClient):
     """
     Test endpoint for starting video download task.
 
     Verify that video dowload works
     """
+    response = app_client.get(
+        "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
+    )
+    video_stream_id = get_random_stream_id(response.json()["video_streams"], VideoStream)
     response = app_client.put(
         "/api/fetch",
         params={"uid": get_unique_id()},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "video_stream_id": video_stream_id,
             "media_format": "mp4",
         },
     )
@@ -62,17 +109,22 @@ def test_download_endpoint_video(app_client):
     assert "downloads" in response.json()
 
 
-def test_download_endpoint_audio(app_client):
+def test_download_endpoint_audio(app_client: TestClient):
     """
     Test endpoint for starting audio download task.
 
     Verify that audio dowload works
     """
+    response = app_client.get(
+        "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
+    )
+    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
     response = app_client.put(
         "/api/fetch",
         params={"uid": get_unique_id()},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "audio_stream_id": audio_stream_id,
             "media_format": "mp3",
         },
     )
@@ -80,16 +132,21 @@ def test_download_endpoint_audio(app_client):
     assert "downloads" in response.json()
 
 
-def test_download_fetched_media(app_client, fake_db):
+def test_download_fetched_media(app_client: TestClient, fake_db: InMemoryDB):
     """
     Test endpoint for fetching downloaded media.
     """
     uid = get_unique_id()
+    response = app_client.get(
+        "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
+    )
+    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
     response = app_client.put(
         "/api/fetch",
         params={"uid": uid},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "audio_stream_id": audio_stream_id,
             "media_format": "mp3",
         },
     )
@@ -106,20 +163,25 @@ def test_download_fetched_media(app_client, fake_db):
     assert download.status == ProgressStatusEnum.DOWNLOADED
 
 
-def test_download_fetched_media_not_found(app_client):
+def test_download_fetched_media_not_found(app_client: TestClient):
     response = app_client.get(
         "/api/fetch", params={"uid": "1111", "media_id": "somerandommediaid"}
     )
     assert response.status_code == 404
 
 
-def test_removed_downloaded_fetched_media(app_client):
+def test_removed_downloaded_fetched_media(app_client: TestClient):
     uid = get_unique_id()
+    response = app_client.get(
+        "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
+    )
+    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
     response = app_client.put(
         "/api/fetch",
         params={"uid": uid},
         json={
             "url": "https://www.youtube.com/watch?v=0ruMGbPXxbA",
+            "audio_stream_id": audio_stream_id,
             "media_format": "mp3",
         },
     )
@@ -135,9 +197,9 @@ def test_removed_downloaded_fetched_media(app_client):
     assert "media_id" in json_response
     assert json_response["media_id"] == media_id
     assert json_response["status"] == ProgressStatusEnum.DELETED
-    response = app_client.get("/api/info", params={"uid": uid})
+    response = app_client.get("/api/client_info", params={"uid": uid})
     assert response.status_code == 200
     # deleted media file cannot be present in downloads
     assert media_id not in [
-        d['media_id'] for d in response.json()["downloads"] if d["media_id"] == media_id
+        d["media_id"] for d in response.json()["downloads"] if d["media_id"] == media_id
     ]
