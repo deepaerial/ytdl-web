@@ -104,6 +104,9 @@ category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
+[package.dependencies]
+toml = {version = "*", optional = true, markers = "extra == \"toml\""}
+
 [package.extras]
 toml = ["toml"]
 
@@ -606,7 +609,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "a52e49a393e79a225f0f545c9f5cf75ea229cbf789b50eb9735f84ffd1dbef89"
+content-hash = "9edf36e08c0918728bac0ba9962665f444db7062db53d71d89844c8df294b2c5"
 
 [metadata.files]
 aiofiles = [

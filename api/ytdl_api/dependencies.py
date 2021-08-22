@@ -3,9 +3,10 @@ from functools import lru_cache
 from . import queue, db, downloaders, queue
 from .config import Settings, DbTypes, DownloadersTypes
 
-
+# Ignoring get_settings dependency in coverage because it will
+# overridden in unittests. 
 @lru_cache
-def get_settings() -> Settings:
+def get_settings() -> Settings: # pragma: no cover
     return Settings()
 
 

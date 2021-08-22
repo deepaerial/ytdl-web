@@ -281,6 +281,7 @@ class DownloadProgress(BaseModel):
         cls, client_id, media_id, stream, chunk, bytes_remaining
     ) -> "DownloadProgress":
         # TODO: implement on progress for pytube
+        pass
 
     @classmethod
     def from_download(cls, client_id: str, download: Download):
