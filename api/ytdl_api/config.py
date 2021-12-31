@@ -1,3 +1,4 @@
+import pkg_resources
 from pathlib import Path
 from typing import Any, Dict, Optional, List
 from enum import Enum
@@ -8,7 +9,6 @@ from pydantic import BaseSettings, root_validator, validator
 from starlette.middleware import Middleware
 from youtube_dl.version import __version__ as youtube_dl_version
 
-from . import __version__
 from .logger import log
 
 
@@ -34,7 +34,7 @@ class Settings(BaseSettings):
     redoc_url: str = "/redoc"
     title: str = "YTDL API"
     description: str = "API for YTDL backend server."
-    version: str = __version__
+    version: str = pkg_resources.get_distribution('ytdl-api').version
     youtube_dl_version = youtube_dl_version
     disable_docs: bool = False
     allow_origins: List[str] 
