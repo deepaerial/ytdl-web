@@ -4,11 +4,11 @@ from tempfile import TemporaryDirectory
 from fastapi.testclient import TestClient
 from fastapi import BackgroundTasks
 
-from ..dependencies import get_settings
-from ..db import InMemoryDB
-from ..config import Settings, DbTypes, DownloadersTypes
-from ..queue import NotificationQueue
-from ..downloaders import YoutubeDLDownloader, PytubeDownloader
+from ytdl_api.dependencies import get_settings
+from ytdl_api.db import InMemoryDB
+from ytdl_api.config import Settings, DbTypes, DownloadersTypes
+from ytdl_api.queue import NotificationQueue
+from ytdl_api.downloaders import YoutubeDLDownloader, PytubeDownloader
 
 
 @pytest.fixture

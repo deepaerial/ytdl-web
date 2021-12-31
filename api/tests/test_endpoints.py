@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
 
-from ..downloaders import get_unique_id
-from ..schemas import AudioStream, ProgressStatusEnum, VideoStream
-from ..db import InMemoryDB
+from ytdl_api.downloaders import get_unique_id
+from ytdl_api.schemas import AudioStream, ProgressStatusEnum, VideoStream
+from ytdl_api.db import InMemoryDB
 
 from .utils import get_random_stream_id
 

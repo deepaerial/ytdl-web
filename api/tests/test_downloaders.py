@@ -1,7 +1,7 @@
 import pytest
 from ytdl_api.downloaders import PytubeDownloader
 
-from ..schemas import Download, MediaFormatOptions, YTDLParams
+from ytdl_api.schemas import Download, MediaFormatOptions, YTDLParams
 
 
 @pytest.fixture
