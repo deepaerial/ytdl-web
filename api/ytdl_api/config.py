@@ -107,7 +107,7 @@ class Settings(BaseSettings):
         app.include_router(router, prefix="/api")
 
     def __setup_exception_handlers(__pydantic_self__, app: FastAPI):
-        from .endpoints import ERROR_HANDLERS
+        from .exceptions import ERROR_HANDLERS
         for error, handler in ERROR_HANDLERS:
             app.add_exception_handler(error, handler)
     
