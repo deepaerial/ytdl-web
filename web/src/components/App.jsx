@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 
 import styled from 'styled-components';
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -19,7 +19,7 @@ import Loader from './Loader.jsx';
 
 import "../../public/styles.css";
 import 'react-toastify/dist/ReactToastify.css';
-import { object } from 'prop-types';
+
 
 const Content = styled.div`
     display: flex;
@@ -41,35 +41,17 @@ const LoaderContainer = styled.div`
     background-color: #ffffff;
 `;
 
+const App = () => {
 
-const mapDownloads = (downloads) => {
-    if (downloads instanceof Array){
-        downloads = Object.assign({}, ...downloads.map(d => {
-            const { media_id } = d;
-            return { [media_id]: d }
-        }));
-    }
-    localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
-    return downloads;
-};
-
-class App extends React.Component {
-
-    state = {
-        version: null,
-        downloads: {},
-        mediaOptions: [],
-        isDesktop: false,
-        isLoading: true,
-    }
-
-    setIsDektop = () => {
+    const setIsDektop = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         this.setState({ isDesktop: viewportWidth > 1024 });
     }
 
+    useEffect(() => {
 
-    async componentDidMount() {
+    });
+    constcomponentDidMount() {
         this.setIsDektop();
         window.addEventListener('resize', this.setIsDektop);
         try {
