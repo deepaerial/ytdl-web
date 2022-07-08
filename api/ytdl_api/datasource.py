@@ -17,35 +17,41 @@ class IDataSource(ABC):
     """
 
     @abstractmethod
-    def fetch_downloads(self, client_id: str) -> typing.List[Download]: # pragma: no cover
+    def fetch_downloads(
+        self, client_id: str
+    ) -> typing.List[Download]:  # pragma: no cover
         """
         Abstract method that returns list of clients downloads from data source.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def put_download(self, client_id: str, download: Download): # pragma: no cover
+    def put_download(self, client_id: str, download: Download):  # pragma: no cover
         """
         Abstract method for inserting download instance to data source.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]: # pragma: no cover
+    def get_download(
+        self, client_id: str, media_id: str
+    ) -> typing.Optional[Download]:  # pragma: no cover
         """
         Abstract method for fetching download instance from data source
         """
         raise NotImplementedError
 
     @abstractmethod
-    def update_download(self, client_id: str, download: Download): # pragma: no cover
+    def update_download(self, client_id: str, download: Download):  # pragma: no cover
         """
         Abstract method for updating download instance from data source
         """
         raise NotImplementedError
 
     @abstractmethod
-    def update_download_progress(self, progress_obj: DownloadProgress): # pragma: no cover
+    def update_download_progress(
+        self, progress_obj: DownloadProgress
+    ):  # pragma: no cover
         """
         Abstract method that updates progress for media item of specific user/client.
         """
@@ -54,7 +60,7 @@ class IDataSource(ABC):
     @abstractmethod
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormatOptions
-    ) -> typing.Optional[Download]: # pragma: no cover
+    ) -> typing.Optional[Download]:  # pragma: no cover
         """
         Abstract method that returns True if media with given url and media format exists
         in downloaded media database.
@@ -70,7 +76,15 @@ class InMemoryDB(IDataSource):
     storage: typing.DefaultDict[str, typing.List[Download]] = defaultdict(list)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        return list(filter(lambda d: d.status != ProgressStatusEnum.DELETED, self.storage[client_id])) or []
+        return (
+            list(
+                filter(
+                    lambda d: d.status != ProgressStatusEnum.DELETED,
+                    self.storage[client_id],
+                )
+            )
+            or []
+        )
 
     def put_download(self, client_id: str, download: Download):
         self.storage[client_id].append(download)
@@ -79,10 +93,13 @@ class InMemoryDB(IDataSource):
         return next(
             filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
         )
-    
+
     def update_download(self, client_id: str, download: Download):
         donwloads = self.storage[client_id]
-        index = next((idx for idx, d in enumerate(donwloads) if d.media_id == download.media_id), None)
+        index = next(
+            (idx for idx, d in enumerate(donwloads) if d.media_id == download.media_id),
+            None,
+        )
         if index is None:
             self.storage[client_id].append(download)
         else:
@@ -121,7 +138,11 @@ class DetaDB(IDataSource):
             self.base = deta.Base(self.__base_name)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        downloads = next(self.base.fetch({"client_id": client_id, "status?ne": ProgressStatusEnum.DELETED}))
+        downloads = next(
+            self.base.fetch(
+                {"client_id": client_id, "status?ne": ProgressStatusEnum.DELETED}
+            )
+        )
         return parse_obj_as(typing.List[Download], downloads)
 
     def put_download(self, client_id: str, download: Download):
@@ -132,7 +153,14 @@ class DetaDB(IDataSource):
         self.base.put(data, key)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
-        data = next(iter(next(self.base.fetch({"client_id": client_id, "media_id": media_id}), [])), None)
+        data = next(
+            iter(
+                next(
+                    self.base.fetch({"client_id": client_id, "media_id": media_id}), []
+                )
+            ),
+            None,
+        )
         if data is None:
             return data
         file_path = data.pop("_file_path")
@@ -163,5 +191,5 @@ class DetaDB(IDataSource):
                 return None
             filtered_download = filtered_download[0]
         download: Download = parse_obj_as(Download, filtered_download)
-        download._file_path = Path(filtered_download['_file_path'])
+        download._file_path = Path(filtered_download["_file_path"])
         return download

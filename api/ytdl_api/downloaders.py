@@ -46,9 +46,7 @@ class DownloaderInterface(ABC):
         self.task_queue = task_queue
 
     @abstractmethod
-    def get_video_info(
-        self, url: AnyHttpUrl
-    ) -> Download:  # pragma: no cover
+    def get_video_info(self, url: AnyHttpUrl) -> Download:  # pragma: no cover
         """
         Abstract method for retrieving information about media resource.
         """
@@ -105,7 +103,7 @@ class MockDownloader(DownloaderInterface):
     def download(
         self,
         download: Download,
-        progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None
+        progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None,
     ):
         """
         Simulating download process
@@ -246,7 +244,7 @@ class PytubeDownloader(DownloaderInterface):
     def download(
         self,
         download: Download,
-        progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None
+        progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None,
     ):
         url = download.url
         media_id = download.media_id
@@ -262,17 +260,12 @@ class PytubeDownloader(DownloaderInterface):
             raise Exception("No media_format provided.")
         kwargs = {}
         if progress_hook is not None:
-            kwargs['on_progress_callback'] = lambda stream, chunk, bytes_remaining: asyncio.run(
+            kwargs[
+                "on_progress_callback"
+            ] = lambda stream, chunk, bytes_remaining: asyncio.run(
                 progress_hook(stream, chunk, bytes_remaining)
             )
-        streams = (
-            YouTube(
-                url,
-                **kwargs
-            )
-            .streams.filter(is_dash=True)
-            .desc()
-        )
+        streams = YouTube(url, **kwargs).streams.filter(is_dash=True).desc()
         downloaded_streams_file_paths = []
         output_path = self.media_path.as_posix()
         if video_itag:
@@ -295,11 +288,16 @@ class PytubeDownloader(DownloaderInterface):
                 output_path=output_path, filename_prefix=f"{audio_itag}_{media_id}",
             )
             downloaded_streams_file_paths.append(audio_file_path)
-        downloaded_streams = [ffmpeg.input(stream_file_path) for stream_file_path in downloaded_streams_file_paths]
+        downloaded_streams = [
+            ffmpeg.input(stream_file_path)
+            for stream_file_path in downloaded_streams_file_paths
+        ]
         converted_file_path = self.media_path / f"{media_id}.{download.media_format}"
-        _ = ffmpeg.concat(
-                *downloaded_streams
-        ).output(converted_file_path.as_posix()).run(overwrite_output=True)
+        _ = (
+            ffmpeg.concat(*downloaded_streams)
+            .output(converted_file_path.as_posix())
+            .run(overwrite_output=True)
+        )
         download._file_path = converted_file_path
         # Cleaning downloaded streams
         for stream_path in downloaded_streams_file_paths:

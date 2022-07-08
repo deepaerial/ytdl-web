@@ -43,9 +43,7 @@ async def client_info(
     "/downloads",
     response_model=schemas.DownloadsResponse,
     status_code=status.HTTP_200_OK,
-    responses={
-        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": schemas.ErrorResponse}
-    },
+    responses={status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": schemas.ErrorResponse}},
 )
 async def get_downloads(
     uid: str, datasource: datasource.IDataSource = Depends(dependencies.get_database),

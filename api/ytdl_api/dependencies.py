@@ -4,16 +4,17 @@ from . import datasource, queue, downloaders, queue
 from .config import Settings, DbTypes, DownloadersTypes
 
 # Ignoring get_settings dependency in coverage because it will
-# overridden in unittests. 
+# overridden in unittests.
 @lru_cache
-def get_settings() -> Settings: # pragma: no cover
+def get_settings() -> Settings:  # pragma: no cover
     return Settings()
 
 
 @lru_cache
-def get_notification_queue(settings: Settings = Depends(get_settings)) -> queue.NotificationQueue:
+def get_notification_queue(
+    settings: Settings = Depends(get_settings),
+) -> queue.NotificationQueue:
     return queue.NotificationQueue(settings.downloader_type)
-
 
 
 def get_database(settings: Settings = Depends(get_settings)) -> datasource.IDataSource:
@@ -42,4 +43,3 @@ def get_downloader(
         return downloaders.MockDownloader(
             settings.media_path, datasource, event_queue, task_queue
         )
-

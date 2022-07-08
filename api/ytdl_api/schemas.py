@@ -203,8 +203,7 @@ class YTDLParams(BaseModel):
         None, description="Audio stream ID", example="118"
     )
     media_format: MediaFormatOptions = Field(
-        ...,
-        description="Video or audio (when extracting) format of file",
+        ..., description="Video or audio (when extracting) format of file",
     )
 
     class Config:

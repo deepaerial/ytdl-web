@@ -80,4 +80,3 @@ def app_client(fake_media_path):
     app = settings.init_app()
     app.dependency_overrides[get_settings] = lambda: settings
     return TestClient(app)
-
