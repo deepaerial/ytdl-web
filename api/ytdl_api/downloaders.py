@@ -127,7 +127,7 @@ class YoutubeDLDownloader(DownloaderInterface):
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]",
             "outtmpl": (self.media_path / f"{media_id}.%(ext)s").absolute().as_posix(),
             "logger": YDLLogger(),
-            "updatetime": params.use_last_modified,
+            "updatetime": True,
             "noplaylist": False,  # download only video if URL refers to playlist and video
         }
         if params.media_format.is_audio:

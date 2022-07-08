@@ -124,11 +124,10 @@ async def download_media(
     media_file = datasource.get_download(uid, media_id)
     if not media_file:
         raise DOWNLOAD_NOT_FOUND
-    if not media_file._file_path.exists():
+    if media_file is None:
         raise HTTPException(status_code=404, detail="Downloaded file not found")
     media_file.status = schemas.ProgressStatusEnum.DOWNLOADED
     datasource.put_download(uid, media_file)
-    await event_queue.put(uid, media_file)
     return FileResponse(
         media_file.file_path,
         media_type="application/octet-stream",

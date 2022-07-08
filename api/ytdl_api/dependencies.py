@@ -18,13 +18,7 @@ def get_notification_queue(
 
 
 def get_database(settings: Settings = Depends(get_settings)) -> datasource.IDataSource:
-    db_type = settings.db_type
-    if db_type == DbTypes.MEMORY:
-        return datasource.InMemoryDB()
-    elif db_type == DbTypes.DETA:
-        deta_project_key = settings.deta_key
-        deta_base_name = settings.deta_base
-        return datasource.DetaDB(deta_project_key, deta_base_name)
+    return settings.datasource_config.get_datasource()
 
 
 @lru_cache

@@ -1,28 +1,75 @@
-import pkg_resources
-from pathlib import Path
-from typing import Any, Dict, Optional, List
+import abc
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Union
 
+import pkg_resources
+from confz import ConfZ, ConfZEnvSource
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseSettings, root_validator, validator
+from pydantic import root_validator, validator
 from starlette.middleware import Middleware
 
+from .datasource import IDataSource, InMemoryDB, DetaDB
+from .storage import IStorage, LocalFileStorage
 from .logger import log
 
 
-class DbTypes(str, Enum):
-    MEMORY = "memory"
-    DETA = "deta"
+class BaseDataSourceConfig(ConfZ, abc.ABC):
+    """
+    Base abstract class for datasource config class.
+    """
+
+    @abc.abstractmethod
+    def get_datasource(self) -> IDataSource:
+        raise NotImplementedError
 
 
-class DownloadersTypes(str, Enum):
-    YOUTUBE_DL = "youtube_dl"
-    PYTUBE = "pytube"
-    MOCK = "mock"
+class InMemoryDataSourceConfig(BaseDataSourceConfig):
+    """
+    Data source that stores downloads in memory.
+    """
+
+    in_memory: bool = False
+
+    def get_datasource(self) -> IDataSource:
+        return InMemoryDB()
 
 
-class Settings(BaseSettings):
+class DetaBaseDataSourceConfig(BaseDataSourceConfig):
+    """
+    Deta Base DB datasource config.
+    """
+
+    deta_key: str
+    deta_base: str
+
+    def get_datasource(self) -> IDataSource:
+        return DetaDB(self.deta_key, self.deta_base)
+
+
+class BaseStorageConfig(ConfZ, abc.ABC):
+    """
+    Base abstract class for storage config class.
+    """
+
+    @abc.abstractmethod
+    def get_storage(self) -> IStorage:
+        raise NotImplementedError
+
+
+class LocalStorageConfig(BaseStorageConfig):
+    """
+    Local filesystem storage config.
+    """
+
+    path: Path
+
+    def get_storage(self) -> IStorage:
+        return LocalFileStorage(self.path)
+
+
+class Settings(ConfZ):
     """
     Application settings config
     """
@@ -38,16 +85,12 @@ class Settings(BaseSettings):
     disable_docs: bool = False
     allow_origins: List[str]
 
-    # Path to directory where downloaded medias will be stored
-    media_path: Path
-    # Type of database to use
-    db_type: DbTypes
-    # Type of downloader
-    downloader_type: DownloadersTypes = DownloadersTypes.YOUTUBE_DL
-    # Deta project key
-    deta_key: Optional[str]
-    # Deta base name
-    deta_base: Optional[str]
+    storage_config: LocalStorageConfig
+    datasource_config: Union[DetaBaseDataSourceConfig, InMemoryDataSourceConfig]
+
+    CONFIG_SOURCES = ConfZEnvSource(
+        allow_all=True, deny=["title", "description", "version"], nested_separator="__"
+    )
 
     @root_validator
     def validate_deta_db(cls, values):
@@ -93,8 +136,6 @@ class Settings(BaseSettings):
         if __pydantic_self__.disable_docs:
             kwargs.update({"docs_url": None, "openapi_url": None, "redoc_url": None})
         app = FastAPI(**kwargs)
-        log.info(f"Using database: {__pydantic_self__.db_type}")
-        log.info(f"Using downloader: {__pydantic_self__.downloader_type}")
         __pydantic_self__.__setup_endpoints(app)
         __pydantic_self__.__setup_exception_handlers(app)
         return app
