@@ -17,6 +17,9 @@ omit = [
     "ytdl_api/tests/*"
 ]
 
+[tool.mypy]
+python_version = "3.8"
+
 [tool.poetry]
 name = "ytdl-api"
 version = "0.1.0"
@@ -47,6 +50,7 @@ pytest-pep8 = "^1.0.6"
 pytest-cov = "^2.11.1"
 coverage = {extras = ["toml"], version = "^5.5"}
 pre-commit = "^2.18.1"
+mypy = "^0.961"
 
 [build-system]
 requires = ["poetry>=0.12"]
