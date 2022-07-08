@@ -23,6 +23,22 @@ class API {
         }
     }
 
+    static async getDownloadsList(uid) {
+        try {
+            const response = await api.get('downloads', { params: { uid } });
+            localStorage.setItem(UID_KEY, response.data.uid);
+            return response.data;
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                error_message = exc.response.data.detail;
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
     static async fetchMediaInfo(videoUrl, mediaFormat) {
         try {
             const uid = localStorage.getItem(UID_KEY);
