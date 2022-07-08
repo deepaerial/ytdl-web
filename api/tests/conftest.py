@@ -5,10 +5,15 @@ from fastapi.testclient import TestClient
 from fastapi import BackgroundTasks
 
 from ytdl_api.dependencies import get_settings
-from ytdl_api.db import InMemoryDB
+from ytdl_api.datasource import IDataSource, InMemoryDB
 from ytdl_api.config import Settings, DbTypes, DownloadersTypes
 from ytdl_api.queue import NotificationQueue
-from ytdl_api.downloaders import YoutubeDLDownloader, PytubeDownloader
+from ytdl_api.downloaders import YoutubeDLDownloader, PytubeDownloader, get_unique_id
+
+
+@pytest.fixture()
+def uid() -> str:
+    return get_unique_id()
 
 
 @pytest.fixture
@@ -39,9 +44,7 @@ def task_queue():
 
 
 @pytest.fixture
-def youtube_dl_downloader(
-    fake_media_path, fake_db, task_queue
-):
+def youtube_dl_downloader(fake_media_path, fake_db, task_queue):
     return YoutubeDLDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
@@ -49,16 +52,20 @@ def youtube_dl_downloader(
         task_queue=task_queue,
     )
 
+
 @pytest.fixture
-def pytube_downloader(
-    fake_media_path, fake_db, task_queue
-):
+def pytube_downloader(fake_media_path, fake_db, task_queue):
     return PytubeDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
         event_queue=NotificationQueue(DownloadersTypes.PYTUBE),
-        task_queue=task_queue
+        task_queue=task_queue,
     )
+
+
+@pytest.fixture()
+def mock_datasource() -> IDataSource:
+    return InMemoryDB()
 
 
 @pytest.fixture

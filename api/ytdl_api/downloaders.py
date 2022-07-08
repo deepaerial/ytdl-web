@@ -1,7 +1,6 @@
 import asyncio
-import pdb
 import uuid
-from typing import Any, Coroutine, Optional, Callable
+from typing import Any, Union, Coroutine, Optional, Callable
 from pathlib import Path
 from abc import ABC, abstractmethod
 from pydantic.networks import AnyHttpUrl
@@ -11,7 +10,7 @@ import ffmpeg
 from pytube import YouTube
 from fastapi import BackgroundTasks
 
-from .db import DAOInterface
+from .datasource import IDataSource
 from .queue import NotificationQueue
 from .schemas import (
     AudioStream,
@@ -37,7 +36,7 @@ class DownloaderInterface(ABC):
     def __init__(
         self,
         media_path: Path,
-        datasource: DAOInterface,
+        datasource: IDataSource,
         event_queue: NotificationQueue,
         task_queue: BackgroundTasks,
     ):
@@ -215,7 +214,7 @@ class PytubeDownloader(DownloaderInterface):
     Downloader based on pytube library
     """
 
-    def get_video_info(self, url: AnyHttpUrl) -> Download:
+    def get_video_info(self, url: Union[AnyHttpUrl, str]) -> Download:
         video = YouTube(url)
         media_id = get_unique_id()
         streams = video.streams.filter(is_dash=True).desc()

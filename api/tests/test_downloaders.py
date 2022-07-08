@@ -55,6 +55,7 @@ def test_pytube_downloader_download_video(pytube_downloader: PytubeDownloader):
     download.media_format = MediaFormatOptions.MP4
     pytube_downloader.download(download)
     # Check if file was downloaded
+    assert download._file_path is not None
     assert download._file_path.exists()
 
 

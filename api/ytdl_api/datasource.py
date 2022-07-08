@@ -10,7 +10,7 @@ from pydantic import AnyHttpUrl, parse_obj_as
 from .schemas import Download, MediaFormatOptions, DownloadProgress, ProgressStatusEnum
 
 
-class DAOInterface(ABC):
+class IDataSource(ABC):
     """
     Abstract interface that provides abstract methods for accessing and manipulating data
     from database.
@@ -62,7 +62,7 @@ class DAOInterface(ABC):
         raise NotImplementedError
 
 
-class InMemoryDB(DAOInterface):
+class InMemoryDB(IDataSource):
     """
     In-memory database implementation for DAOInterface.
     """
@@ -106,7 +106,7 @@ class InMemoryDB(DAOInterface):
         )
 
 
-class DetaDB(DAOInterface):
+class DetaDB(IDataSource):
     """
     DAO interface implementation for Deta Bases: https://docs.deta.sh/docs/base/sdk
     """

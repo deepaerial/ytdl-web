@@ -13,7 +13,7 @@ from pydantic import (
 )
 
 
-class DetailMessage(BaseModel):
+class ErrorResponse(BaseModel):
     detail: str = Field(
         ..., description="Message detail", example="Internal server error"
     )
@@ -77,7 +77,7 @@ class Download(BaseModel):
         description="Video title",
         example="Adam Knight - I've Got The Gold (Shoby Remix)",
     )
-    url: AnyHttpUrl = Field(
+    url: Union[AnyHttpUrl, str] = Field(
         ...,
         description="URL of video",
         example="https://www.youtube.com/watch?v=B8WgNGN0IVA",
@@ -107,7 +107,7 @@ class Download(BaseModel):
     filesize: int = Field(
         None, description="Video/audio filesize (in bytes)", example=5696217
     )
-    thumbnail_url: AnyHttpUrl = Field(
+    thumbnail_url: Union[AnyHttpUrl, str] = Field(
         ...,
         description="Video thumbnail",
         example="https://i.ytimg.com/vi_webp/B8WgNGN0IVA/maxresdefault.webp",
@@ -133,7 +133,7 @@ class Download(BaseModel):
         return self._file_path.absolute().as_posix()
 
 
-class FetchedListResponse(BaseModel):
+class DownloadsResponse(BaseModel):
     downloads: List[Download] = Field(
         ...,
         description="List of pending and finished downloads",

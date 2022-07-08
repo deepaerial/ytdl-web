@@ -35,9 +35,9 @@ class Settings(BaseSettings):
     title: str = "YTDL API"
     description: str = "API for YTDL backend server."
     version: str = pkg_resources.get_distribution('ytdl-api').version
-    youtube_dl_version = youtube_dl_version
+    youtube_dl_version: str = youtube_dl_version
     disable_docs: bool = False
-    allow_origins: List[str] 
+    allow_origins: List[str]
 
     # Path to directory where downloaded medias will be stored
     media_path: Path
@@ -95,7 +95,6 @@ class Settings(BaseSettings):
         if __pydantic_self__.disable_docs:
             kwargs.update({"docs_url": None, "openapi_url": None, "redoc_url": None})
         app = FastAPI(**kwargs)
-        app.config = __pydantic_self__
         log.info(f"Using database: {__pydantic_self__.db_type}")
         log.info(f"Using downloader: {__pydantic_self__.downloader_type}")
         __pydantic_self__.__setup_endpoints(app)

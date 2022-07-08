@@ -1,27 +1,28 @@
 import asyncio
 import typing
-from fastapi import APIRouter, Request, Depends
+from starlette import status
+from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic.networks import AnyHttpUrl
 from starlette.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
 
 from .exceptions import DOWNLOAD_NOT_FOUND
-from . import dependencies, schemas, config, queue, db
+from . import datasource, dependencies, schemas, config, queue
 from .downloaders import DownloaderInterface, get_unique_id
 
-router = APIRouter()
+router = APIRouter(tags=["base"])
 
 
 @router.get(
     "/client_info",
     response_model=schemas.VersionResponse,
     status_code=200,
-    responses={500: {"model": schemas.DetailMessage,}},
+    responses={500: {"model": schemas.ErrorResponse,}},
 )
 async def client_info(
     uid: typing.Optional[str] = None,
     settings: config.Settings = Depends(dependencies.get_settings),
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     Endpoint for getting info about server API and fetching list of downloaded videos.
@@ -39,10 +40,28 @@ async def client_info(
 
 
 @router.get(
+    "/downloads",
+    response_model=schemas.DownloadsResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": schemas.ErrorResponse}
+    },
+)
+async def get_downloads(
+    uid: str, datasource: datasource.IDataSource = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for fetching list of downloaded videos for current client/user.
+    """
+    downloads = datasource.fetch_downloads(uid)
+    return {"downloads": downloads}
+
+
+@router.get(
     "/preview",
     response_model=schemas.Download,
     status_code=200,
-    responses={500: {"model": schemas.DetailMessage,}},
+    responses={500: {"model": schemas.ErrorResponse,}},
 )
 async def preview(
     url: AnyHttpUrl,
@@ -57,14 +76,14 @@ async def preview(
 
 @router.put(
     "/fetch",
-    response_model=schemas.FetchedListResponse,
+    response_model=schemas.DownloadsResponse,
     status_code=201,
-    responses={500: {"model": schemas.DetailMessage,}},
+    responses={500: {"model": schemas.ErrorResponse,}},
 )
 async def fetch_media(
     uid: str,
     json_params: schemas.YTDLParams,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
     downloader: DownloaderInterface = Depends(dependencies.get_downloader),
 ):
     """
@@ -89,7 +108,7 @@ async def fetch_media(
         },
         404: {
             "content": {"application/json": {}},
-            "model": schemas.DetailMessage,
+            "model": schemas.ErrorResponse,
             "description": "Download not found",
             "example": {"detail": "Download not found"},
         },
@@ -98,7 +117,7 @@ async def fetch_media(
 async def download_media(
     uid: str,
     media_id: str,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
@@ -124,7 +143,7 @@ async def fetch_stream(
     uid: str,
     request: Request,
     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     SSE endpoint for recieving download status of media items.
@@ -152,17 +171,17 @@ async def fetch_stream(
     responses={
         404: {
             "content": {"application/json": {}},
-            "model": schemas.DetailMessage,
+            "model": schemas.ErrorResponse,
             "description": "Download not found",
             "example": {"detail": "Download not found"},
         },
-        500: {"model": schemas.DetailMessage},
+        500: {"model": schemas.ErrorResponse},
     },
 )
 async def delete_media(
     uid: str,
     media_id: str,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     Endpoint for deleting downloaded media.

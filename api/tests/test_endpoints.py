@@ -1,8 +1,9 @@
 from fastapi.testclient import TestClient
+from pydantic import AnyHttpUrl
 
 from ytdl_api.downloaders import get_unique_id
-from ytdl_api.schemas import AudioStream, ProgressStatusEnum, VideoStream
-from ytdl_api.db import InMemoryDB
+from ytdl_api.schemas import AudioStream, Download, ProgressStatusEnum, VideoStream
+from ytdl_api.datasource import IDataSource, InMemoryDB
 
 from .utils import get_random_stream_id
 
@@ -34,6 +35,27 @@ def test_preview_endpoint(app_client: TestClient):
     assert "thumbnail_url" in json_response
 
 
+def test_get_downloads(uid: str, app_client: TestClient, mock_datasource: IDataSource):
+    download_1 = Download(
+        media_id=get_unique_id(),
+        title="Some video 1",
+        url="https://www.youtube.com/watch?v=TNhaISOUy6Q",
+        video_streams=[],
+        audio_streams=[],
+        duration=1000,
+        thumbnail_url="https://i.ytimg.com/vi_webp/TNhaISOUy6Q/maxresdefault.webp",
+    )
+    mock_datasource.put_download(uid, download_1)
+    response = app_client.get("/api/downloads", params={"uid": uid})
+    assert response.status_code == 200
+    json_response = response.json()
+    assert "downloads" in json_response
+    assert len(json_response) == 1
+    assert json_response["downloads"][0]["title"] == download_1.title
+    assert json_response["downloads"][0]["url"] == download_1.url
+    assert json_response["downloads"][0]["media_id"] == download_1.media_id
+
+
 def test_download_endpoint_no_stream(app_client: TestClient):
     """
     Test endpoint for starting video download task.
@@ -58,7 +80,9 @@ def test_download_endpoint_no_format(app_client: TestClient):
     response = app_client.get(
         "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
-    video_stream_id = get_random_stream_id(response.json()["video_streams"], VideoStream)
+    video_stream_id = get_random_stream_id(
+        response.json()["video_streams"], VideoStream
+    )
     response = app_client.put(
         "/api/fetch",
         params={"uid": get_unique_id()},
@@ -95,7 +119,9 @@ def test_download_endpoint_video(app_client: TestClient):
     response = app_client.get(
         "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
-    video_stream_id = get_random_stream_id(response.json()["video_streams"], VideoStream)
+    video_stream_id = get_random_stream_id(
+        response.json()["video_streams"], VideoStream
+    )
     response = app_client.put(
         "/api/fetch",
         params={"uid": get_unique_id()},
@@ -118,7 +144,9 @@ def test_download_endpoint_audio(app_client: TestClient):
     response = app_client.get(
         "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
-    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
+    audio_stream_id = get_random_stream_id(
+        response.json()["audio_streams"], AudioStream
+    )
     response = app_client.put(
         "/api/fetch",
         params={"uid": get_unique_id()},
@@ -140,7 +168,9 @@ def test_download_fetched_media(app_client: TestClient, fake_db: InMemoryDB):
     response = app_client.get(
         "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
-    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
+    audio_stream_id = get_random_stream_id(
+        response.json()["audio_streams"], AudioStream
+    )
     response = app_client.put(
         "/api/fetch",
         params={"uid": uid},
@@ -175,7 +205,9 @@ def test_removed_downloaded_fetched_media(app_client: TestClient):
     response = app_client.get(
         "/api/preview", params={"url": "https://www.youtube.com/watch?v=0ruMGbPXxbA"},
     )
-    audio_stream_id = get_random_stream_id(response.json()["audio_streams"], AudioStream)
+    audio_stream_id = get_random_stream_id(
+        response.json()["audio_streams"], AudioStream
+    )
     response = app_client.put(
         "/api/fetch",
         params={"uid": uid},
