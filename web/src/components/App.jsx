@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, { useEffect, useState } from 'react';
 
 import styled from 'styled-components';
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -10,7 +10,7 @@ import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
 import API from '../api';
-import { parametrizeUrl } from '../utils';
+import { parametrizeUrl, mapDownloads } from '../utils';
 import { DOWNLOADS } from '../constants';
 import DownloadsContext from '../context/DownloadsContext';
 import LoadingContext from '../context/LoadingContext.js';
@@ -42,26 +42,37 @@ const LoaderContainer = styled.div`
 `;
 
 const App = () => {
-
-    const setIsDektop = () => {
+    const checkIsDesktop = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-        this.setState({ isDesktop: viewportWidth > 1024 });
-    }
+        return viewportWidth > 1024;
+    };
+    const { isDesktop, setIsDesktop } = useState(checkIsDesktop());
+    const { isLoading, setIsLoading } = useState(false);
+    const { downloads, setDownloads } = useState({});
 
+    const onProgressUpdate = (download) => {
+        const { media_id, status, progress } = download;
+        let downloadItem = downloads[media_id];
+        if (downloadItem) {
+            downloadItem = Object.assign(downloadItem, {
+                status, progress
+            });
+            downloads[media_id] = downloadItem;
+            this.setDownloads(prevDownloads => {
+                return { ...prevDownloads, ...downloads }
+            });
+        }
+    };
     useEffect(() => {
-
-    });
-    constcomponentDidMount() {
-        this.setIsDektop();
-        window.addEventListener('resize', this.setIsDektop);
+        window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
         try {
-            this.setIsLoading(true);
+            setIsLoading(true);
             const { api_version, media_options, uid, downloads } = await API.getClientInfo();
             this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
             if (uid) {
                 const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
                 eventSource.addEventListener("message", (event) => {
-                    this.onProgressUpdate(JSON.parse(event.data));
+                    onProgressUpdate(JSON.parse(event.data));
                 });
                 eventSource.addEventListener("end", (event) => {
                     eventSource.close();
@@ -72,30 +83,7 @@ const App = () => {
         } finally {
             this.setIsLoading(false);
         }
-    }
-
-    setDownloads = (downloads) => {
-        downloads = mapDownloads(downloads);
-        this.setState({ downloads });
-    }
-
-    setIsLoading = (isLoading) => {
-        this.setState({ isLoading })
-    }
-
-    onProgressUpdate = (download) => {
-        const { media_id, status, progress } = download;
-        const { downloads } = this.state;
-        let downloadItem = downloads[media_id];
-        if (downloadItem) {
-            downloadItem = Object.assign(downloadItem, {
-                status, progress
-            });
-            downloads[media_id] = downloadItem;
-            localStorage.setItem(DOWNLOADS, JSON.stringify(downloads));
-            this.setState({ downloads });
-        }
-    }
+    });
 
     render() {
         const { version, mediaOptions, isDesktop, isLoading } = this.state;

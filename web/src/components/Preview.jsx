@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import PreviewContext from '../context/PreviewContext';
+import React from 'react';
+import styled from 'styled-components';
 
 
 const PreviewBox = styled.div`
@@ -15,18 +15,10 @@ const PreviewBox = styled.div`
     transition: all 0.3s cubic-bezier(.25,.8,.25,1);
 `;
 
-export default class Preview extends Component {
-    static contextType = PreviewContext;
-
-    static propTypes = {
-        downloadItem: PropTypes.object,
-        isDesktop: PropTypes.bool,
-        downloadsContext: PropTypes.object
-    }
-
-    render() {
+export default function Preview({ downloadItem, isDesktop }) {
+    return (
         <PreviewBox>
-            
+
         </PreviewBox>
-    }
+    )
 }

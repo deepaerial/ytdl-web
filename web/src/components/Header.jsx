@@ -1,4 +1,3 @@
-import React, { version } from "react";
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
@@ -32,22 +31,20 @@ const Description = styled.p`
     margin-top: 10px;
 `;
 
-
-export default class Header extends React.Component {
-    static propTypes = {
-        version: PropTypes.string
-    }
-
-    render() {
-        const {version} = this.props;
-        return (
-            <header>
-                <HeaderTitle>
-                    <AppTitle>YTDL</AppTitle>
-                    {version && <Version>ver. {this.props.version}</Version>}
-                </HeaderTitle>
-                <Description>Web video downloader</Description>
-            </header>
-        )
-    }
+Header.propTypes = {
+    version: PropTypes.string.isRequired
 }
+
+export default function Header({ version }) {
+    return (
+        <header>
+            <HeaderTitle>
+                <AppTitle>YTDL</AppTitle>
+                {version && <Version>ver. {version}</Version>}
+            </HeaderTitle>
+            <Description>Web video downloader</Description>
+        </header>
+    )
+}
+
+
