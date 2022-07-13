@@ -10,17 +10,17 @@ class IStorage(abc.ABC):
     @abc.abstractmethod
     def save_download(self, data: bytes, path: str) -> str:
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def download_exists(self, path: str) -> bool:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_download(self, path: str)) -> bytes:
+    def get_download(self, path: str) -> bytes:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def remove_download(self, path: str)):
+    def remove_download(self, path: str):
         raise NotImplementedError
 
 

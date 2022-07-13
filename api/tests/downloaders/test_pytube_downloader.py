@@ -1,16 +1,18 @@
 import pytest
 from ytdl_api.downloaders import PytubeDownloader
+from ytdl_api.queue import NotificationQueue
+from ytdl_api.schemas.models import Download
 
-from ytdl_api.schemas import Download
 
 @pytest.fixture
 def pytube_downloader(fake_media_path, fake_db, task_queue):
     return PytubeDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
-        event_queue=NotificationQueue(DownloadersTypes.PYTUBE),
+        event_queue=NotificationQueue(),
         task_queue=task_queue,
     )
+
 
 def test_pytube_downloader_get_video_info(pytube_downloader: PytubeDownloader):
     """
@@ -29,7 +31,6 @@ def test_pytube_downloader_download_video(pytube_downloader: PytubeDownloader):
     url = "https://www.youtube.com/watch?v=rsd4FNGTRBw"
     download = pytube_downloader.get_video_info(url)
     download.video_stream_id = download.video_streams[0].id
-    download.media_format = MediaFormatOptions.MP4
     pytube_downloader.download(download)
     # Check if file was downloaded
     assert download._file_path is not None

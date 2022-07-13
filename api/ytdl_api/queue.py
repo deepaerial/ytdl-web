@@ -1,10 +1,9 @@
 import typing
 import asyncio
-from functools import partial
 from collections import defaultdict
 
 
-from .schemas import Download, DownloadProgress
+from .schemas.models import DownloadProgress
 
 
 class NotificationQueue:
@@ -41,4 +40,3 @@ class NotificationQueue:
         Empty callback
         """
         pass
-

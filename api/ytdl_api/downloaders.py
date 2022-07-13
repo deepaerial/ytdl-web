@@ -12,15 +12,9 @@ from fastapi import BackgroundTasks
 
 from .datasource import IDataSource
 from .queue import NotificationQueue
-from .schemas import (
-    AudioStream,
-    VideoStream,
-    YTDLParams,
-    Download,
-    ThumbnailInfo,
-    ProgressStatusEnum,
-    MediaFormatOptions,
-)
+from .schemas.models import AudioStream, VideoStream, Download
+from .schemas.requests import YTDLParams
+from .constants import ProgressStatusEnum, MediaFormatOptions
 from .logger import YDLLogger
 
 
@@ -50,19 +44,19 @@ class DownloaderInterface(ABC):
         """
         Abstract method for retrieving information about media resource.
         """
-        raise NotImplemented
+        raise NotImplementedError()
 
     @abstractmethod
     def download(
         self,
-        download_params: YTDLParams,
+        download: Download,
         media_id: str,
         progress_hook: Optional[Callable[..., Coroutine[Any, Any, Any]]] = None,
     ):  # pragma: no cover
         """
         Abstract method for downloading media given download parameters.
         """
-        raise NotImplemented
+        raise NotImplementedError()
 
     def submit_download_task(self, uid: str, download: Download):  # pragma: no cover
         """

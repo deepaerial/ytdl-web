@@ -2,8 +2,6 @@
 Logging configuratio utiities
 """
 import logging
-from pathlib import Path
-from typing import Union
 
 
 def get_logger(logger_name: str = "ytdl") -> logging.Logger:

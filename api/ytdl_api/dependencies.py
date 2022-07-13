@@ -1,7 +1,8 @@
 from fastapi import Depends, BackgroundTasks
 from functools import lru_cache
-from . import datasource, queue, downloaders, queue
-from .config import Settings, DbTypes, DownloadersTypes
+from . import datasource, downloaders, queue
+from .config import Settings
+
 
 # Ignoring get_settings dependency in coverage because it will
 # overridden in unittests.
@@ -14,7 +15,7 @@ def get_settings() -> Settings:  # pragma: no cover
 def get_notification_queue(
     settings: Settings = Depends(get_settings),
 ) -> queue.NotificationQueue:
-    return queue.NotificationQueue(settings.downloader_type)
+    return queue.NotificationQueue(settings)
 
 
 def get_database(settings: Settings = Depends(get_settings)) -> datasource.IDataSource:

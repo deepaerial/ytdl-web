@@ -26,16 +26,8 @@ def temp_directory():
 
 
 @pytest.fixture
-def fake_media_path(temp_directory: TemporaryDirectory):
+def fake_media_path(temp_directory: TemporaryDirectory) -> Path:
     return Path(temp_directory.name)
-
-
-@pytest.fixture
-def download_params() -> YTDLParams:
-    return YTDLParams(
-        url="https://www.youtube.com/watch?v=rsd4FNGTRBw", media_format="mp4"
-    )
-
 
 
 @pytest.fixture
@@ -58,7 +50,7 @@ def youtube_dl_downloader(fake_media_path, fake_db, task_queue):
     return YoutubeDLDownloader(
         media_path=fake_media_path,
         datasource=fake_db,
-        event_queue=NotificationQueue(DownloadersTypes.YOUTUBE_DL),
+        event_queue=NotificationQueue(),
         task_queue=task_queue,
     )
 
@@ -69,15 +61,21 @@ def mock_datasource() -> IDataSource:
 
 
 @pytest.fixture()
-def settings() -> Iterable[Settings]:
-    data_source = ConfZDataSource(data={"datasource_config": {"in_memory": True}})
+def settings(fake_media_path: Path) -> Iterable[Settings]:
+    data_source = ConfZDataSource(
+        data={
+            "datasource_config": {"in_memory": True},
+            "allow_origins": ["*"],
+            "storage_config": {"path": fake_media_path},
+        }
+    )
     with Settings.change_config_sources(data_source):
-        yield Settings() # type: ignore
+        yield Settings()  # type: ignore
 
 
 @pytest.fixture
-def app_client(settings: Settings, mock_database: IDataSource):
+def app_client(settings: Settings, mock_datasource: IDataSource):
     app = settings.init_app()
     app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_database] = lambda: mock_database
+    app.dependency_overrides[get_database] = lambda: mock_datasource
     return TestClient(app)

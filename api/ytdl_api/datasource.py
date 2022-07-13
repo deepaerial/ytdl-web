@@ -7,7 +7,8 @@ import itertools
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
-from .schemas import Download, MediaFormatOptions, DownloadProgress, ProgressStatusEnum
+from .schemas.models import Download, DownloadProgress
+from .constants import MediaFormatOptions, ProgressStatusEnum
 
 
 class IDataSource(ABC):

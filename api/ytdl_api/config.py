@@ -1,5 +1,4 @@
 import abc
-from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
@@ -7,12 +6,11 @@ import pkg_resources
 from confz import ConfZ, ConfZEnvSource
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import root_validator, validator
+from pydantic import validator
 from starlette.middleware import Middleware
 
 from .datasource import IDataSource, InMemoryDB, DetaDB
 from .storage import IStorage, LocalFileStorage
-from .logger import log
 
 
 class BaseDataSourceConfig(ConfZ, abc.ABC):
@@ -65,6 +63,14 @@ class LocalStorageConfig(BaseStorageConfig):
 
     path: Path
 
+    @validator("path")
+    def validate_path(cls, value):
+        media_path = Path(value)
+        if not media_path.exists():  # pragma: no cover
+            print(f'Media path "{value}" does not exist...Creating...')
+            media_path.mkdir(parents=True)
+        return value
+
     def get_storage(self) -> IStorage:
         return LocalFileStorage(self.path)
 
@@ -91,23 +97,6 @@ class Settings(ConfZ):
     CONFIG_SOURCES = ConfZEnvSource(
         allow_all=True, deny=["title", "description", "version"], nested_separator="__"
     )
-
-    @root_validator
-    def validate_deta_db(cls, values):
-        db_type = values.get("db_type")
-        if db_type == DbTypes.DETA:
-            deta_key = values.get("deta_key")
-            if not deta_key:
-                raise ValueError("Deta key is required when using Deta Base service")
-        return values
-
-    @validator("media_path")
-    def validate_media_path(cls, value):
-        media_path = Path(value)
-        if not media_path.exists():  # pragma: no cover
-            print(f'Media path "{value}" does not exist...Creating...')
-            media_path.mkdir(parents=True)
-        return value
 
     def init_app(__pydantic_self__) -> FastAPI:
         """
