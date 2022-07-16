@@ -18,22 +18,12 @@ def test_version_endpoint(app_client: TestClient):
     assert json_response["api_version"] == expected_api_version
 
 
-def test_get_downloads(uid: str, app_client: TestClient, mock_datasource: IDataSource):
-    download_1 = Download(
-        media_id=get_unique_id(),
-        title="Some video 1",
-        url="https://www.youtube.com/watch?v=TNhaISOUy6Q",
-        video_streams=[],
-        audio_streams=[],
-        duration=1000,
-        thumbnail_url="https://i.ytimg.com/vi_webp/TNhaISOUy6Q/maxresdefault.webp",
-    )
-    mock_datasource.put_download(uid, download_1)
+def test_get_downloads(uid: str, app_client: TestClient, mock_persisted_download: Download):
     response = app_client.get("/api/downloads", params={"uid": uid})
     assert response.status_code == 200
     json_response = response.json()
     assert "downloads" in json_response
     assert len(json_response) == 1
-    assert json_response["downloads"][0]["title"] == download_1.title
-    assert json_response["downloads"][0]["url"] == download_1.url
-    assert json_response["downloads"][0]["media_id"] == download_1.media_id
+    assert json_response["downloads"][0]["title"] == mock_persisted_download.title
+    assert json_response["downloads"][0]["url"] == mock_persisted_download.url
+    assert json_response["downloads"][0]["media_id"] == mock_persisted_download.media_id

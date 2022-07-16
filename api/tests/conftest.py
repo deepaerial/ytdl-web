@@ -11,6 +11,7 @@ from ytdl_api.datasource import IDataSource, InMemoryDB
 from ytdl_api.config import Settings
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.downloaders import YoutubeDLDownloader, PytubeDownloader, get_unique_id
+from ytdl_api.schemas.models import Download
 
 
 @pytest.fixture()
@@ -58,6 +59,21 @@ def youtube_dl_downloader(fake_media_path, fake_db, task_queue):
 @pytest.fixture()
 def mock_datasource() -> IDataSource:
     return InMemoryDB()
+
+
+@pytest.fixture()
+def mock_persisted_download(uid: str, mock_datasource: IDataSource):
+    mock_download = Download(
+        media_id=get_unique_id(),
+        title="Some video 1",
+        url="https://www.youtube.com/watch?v=TNhaISOUy6Q",
+        video_streams=[],
+        audio_streams=[],
+        duration=1000,
+        thumbnail_url="https://i.ytimg.com/vi_webp/TNhaISOUy6Q/maxresdefault.webp",
+    )
+    mock_datasource.put_download(uid, mock_download)
+    yield mock_download
 
 
 @pytest.fixture()
