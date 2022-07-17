@@ -10,8 +10,12 @@ from ytdl_api.dependencies import get_database, get_settings
 from ytdl_api.datasource import IDataSource, InMemoryDB
 from ytdl_api.config import Settings
 from ytdl_api.queue import NotificationQueue
-from ytdl_api.downloaders import YoutubeDLDownloader, PytubeDownloader, get_unique_id
-from ytdl_api.schemas.models import Download
+from ytdl_api.utils import get_unique_id
+
+
+@pytest.fixture()
+def mock_url() -> str:
+    return "https://www.youtube.com/watch?v=TNhaISOUy6Q"
 
 
 @pytest.fixture()
@@ -41,48 +45,19 @@ def event_queue():
     return NotificationQueue()
 
 
-@pytest.fixture
-def task_queue():
-    return BackgroundTasks()
-
-
-@pytest.fixture
-def youtube_dl_downloader(fake_media_path, fake_db, task_queue):
-    return YoutubeDLDownloader(
-        media_path=fake_media_path,
-        datasource=fake_db,
-        event_queue=NotificationQueue(),
-        task_queue=task_queue,
-    )
-
-
 @pytest.fixture()
 def mock_datasource() -> IDataSource:
     return InMemoryDB()
 
 
 @pytest.fixture()
-def mock_persisted_download(uid: str, mock_datasource: IDataSource):
-    mock_download = Download(
-        media_id=get_unique_id(),
-        title="Some video 1",
-        url="https://www.youtube.com/watch?v=TNhaISOUy6Q",
-        video_streams=[],
-        audio_streams=[],
-        duration=1000,
-        thumbnail_url="https://i.ytimg.com/vi_webp/TNhaISOUy6Q/maxresdefault.webp",
-    )
-    mock_datasource.put_download(uid, mock_download)
-    yield mock_download
-
-
-@pytest.fixture()
 def settings(fake_media_path: Path) -> Iterable[Settings]:
     data_source = ConfZDataSource(
         data={
-            "datasource_config": {"in_memory": True},
+            "datasource": {"in_memory": True},
+            "downloader": "mocked",
             "allow_origins": ["*"],
-            "storage_config": {"path": fake_media_path},
+            "media_path": fake_media_path,
         }
     )
     with Settings.change_config_sources(data_source):

@@ -1,58 +1,81 @@
 import pytest
-from ytdl_api.downloaders import PytubeDownloader
+import random
+from ytdl_api.datasource import IDataSource
+from ytdl_api.downloaders import DownloaderInterface, PytubeDownloader
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
+from ytdl_api.constants import MediaFormat
+from ytdl_api.schemas.requests import DownloadParams
+from ytdl_api.schemas.responses import VideoInfoResponse
+from ytdl_api.converters import create_download_from_download_params
 
 
 @pytest.fixture
-def pytube_downloader(fake_media_path, fake_db, task_queue):
+def pytube_downloader(fake_media_path, fake_db):
     return PytubeDownloader(
-        media_path=fake_media_path,
-        datasource=fake_db,
-        event_queue=NotificationQueue(),
-        task_queue=task_queue,
+        media_path=fake_media_path, datasource=fake_db, event_queue=NotificationQueue(),
     )
 
 
-def test_pytube_downloader_get_video_info(pytube_downloader: PytubeDownloader):
+@pytest.fixture
+def video_info(mock_url: str, pytube_downloader: PytubeDownloader) -> VideoInfoResponse:
+    review = pytube_downloader.get_video_info(mock_url)
+    return review
+
+
+@pytest.fixture()
+def mock_download_params(
+    mock_url: str, video_info: VideoInfoResponse
+) -> DownloadParams:
+    video_stream_id = random.choice(video_info.video_streams).id
+    audio_stream_id = random.choice(video_info.audio_streams).id
+    return DownloadParams(
+        url=mock_url,
+        video_stream_id=video_stream_id,
+        audio_stream_id=audio_stream_id,
+        media_format=MediaFormat.MP4,
+    )
+
+
+@pytest.fixture()
+def mock_persisted_download(
+    uid: str,
+    mock_download_params: DownloadParams,
+    mock_datasource: IDataSource,
+    pytube_downloader: DownloaderInterface,
+):
+    mock_download = create_download_from_download_params(
+        uid, mock_download_params, pytube_downloader
+    )
+    mock_datasource.put_download(uid, mock_download)
+    yield mock_download
+
+
+def test_pytube_downloader_get_video_info(video_info):
     """
     Testing downloader for fetching info data about video
     """
-    url = "https://www.youtube.com/watch?v=rsd4FNGTRBw"
-    download = pytube_downloader.get_video_info(url)
-    assert isinstance(download, Download)
-    assert download.media_id is not None
+    assert isinstance(video_info, VideoInfoResponse)
+    assert video_info.title is not None
+    assert video_info.thumbnail_url is not None
+    assert video_info.audio_streams is not None
+    assert video_info.video_streams is not None
+    assert isinstance(video_info.media_formats, list)
 
 
-def test_pytube_downloader_download_video(pytube_downloader: PytubeDownloader):
+def test_pytube_downloader_download_video(
+    pytube_downloader: PytubeDownloader,
+    mock_persisted_download: Download,
+    mock_datasource: IDataSource,
+):
     """
     Testing downloading video using pytube
     """
-    url = "https://www.youtube.com/watch?v=rsd4FNGTRBw"
-    download = pytube_downloader.get_video_info(url)
-    download.video_stream_id = download.video_streams[0].id
-    pytube_downloader.download(download)
+    pytube_downloader.download(mock_persisted_download)
     # Check if file was downloaded
-    assert download._file_path is not None
-    assert download._file_path.exists()
-
-
-def test_pytube_downloader_no_stream_provided(pytube_downloader: PytubeDownloader):
-    """
-    Testing if exception is raised when no video/audio stream provided for pytube downloader.
-    """
-    with pytest.raises(Exception):
-        url = "https://www.youtube.com/watch?v=rsd4FNGTRBw"
-        download = pytube_downloader.get_video_info(url)
-        pytube_downloader.download(download)
-
-
-def test_pytube_downloader_no_format_provided(pytube_downloader: PytubeDownloader):
-    """
-    Testing if exception is raised when no media_format provided for pytube downloader.
-    """
-    with pytest.raises(Exception):
-        url = "https://www.youtube.com/watch?v=rsd4FNGTRBw"
-        download = pytube_downloader.get_video_info(url)
-        download.video_stream_id = download.video_streams[0].id
-        pytube_downloader.download(download)
+    download = mock_datasource.get_download(
+        mock_persisted_download.client_id, mock_persisted_download.media_id
+    )
+    assert download.status == "finished"
+    assert download.file_path is not None
+    assert download.file_path.exists()

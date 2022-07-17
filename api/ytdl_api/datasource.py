@@ -8,7 +8,7 @@ from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
 from .schemas.models import Download, DownloadProgress
-from .constants import MediaFormatOptions, ProgressStatusEnum
+from .constants import MediaFormat, ProgressStatusEnum
 
 
 class IDataSource(ABC):
@@ -60,7 +60,7 @@ class IDataSource(ABC):
 
     @abstractmethod
     def get_download_if_exists(
-        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+        self, url: AnyHttpUrl, media_format: MediaFormat
     ) -> typing.Optional[Download]:  # pragma: no cover
         """
         Abstract method that returns True if media with given url and media format exists
@@ -112,7 +112,7 @@ class InMemoryDB(IDataSource):
         download.status = progress_obj.status
 
     def get_download_if_exists(
-        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+        self, url: AnyHttpUrl, media_format: MediaFormat
     ) -> typing.Optional[Download]:
         downloads = list(itertools.chain.from_iterable(self.storage.values()))
         return next(
@@ -182,7 +182,7 @@ class DetaDB(IDataSource):
         self.base.update({"status": status, "progress": progress}, media_id)
 
     def get_download_if_exists(
-        self, url: AnyHttpUrl, media_format: MediaFormatOptions
+        self, url: AnyHttpUrl, media_format: MediaFormat
     ) -> typing.Optional[Download]:
         filtered_download = next(
             self.base.fetch({"video_url": url, "media_format": media_format})

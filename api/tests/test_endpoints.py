@@ -1,9 +1,7 @@
 from fastapi.testclient import TestClient
 import pkg_resources
 
-from ytdl_api.downloaders import get_unique_id
 from ytdl_api.schemas.models import Download
-from ytdl_api.datasource import IDataSource
 
 
 def test_version_endpoint(app_client: TestClient):
@@ -18,7 +16,9 @@ def test_version_endpoint(app_client: TestClient):
     assert json_response["api_version"] == expected_api_version
 
 
-def test_get_downloads(uid: str, app_client: TestClient, mock_persisted_download: Download):
+def test_get_downloads(
+    uid: str, app_client: TestClient, mock_persisted_download: Download
+):
     response = app_client.get("/api/downloads", params={"uid": uid})
     assert response.status_code == 200
     json_response = response.json()
@@ -27,3 +27,21 @@ def test_get_downloads(uid: str, app_client: TestClient, mock_persisted_download
     assert json_response["downloads"][0]["title"] == mock_persisted_download.title
     assert json_response["downloads"][0]["url"] == mock_persisted_download.url
     assert json_response["downloads"][0]["media_id"] == mock_persisted_download.media_id
+
+
+def test_get_preview(app_client: TestClient, mock_url: str):
+    response = app_client.get("/api/preview", params={"url": mock_url})
+    assert response.status_code == 200
+    json_response = response.json()
+    assert all(
+        field in json_response
+        for field in [
+            "url",
+            "title",
+            "thumbnail_url",
+            "duration",
+            "media_formats",
+            "audio_streams",
+            "video_streams",
+        ]
+    )

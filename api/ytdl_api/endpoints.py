@@ -1,5 +1,3 @@
-import asyncio
-import typing
 from starlette import status
 from fastapi import APIRouter, Request, Depends, HTTPException
 from pydantic.networks import AnyHttpUrl
@@ -8,9 +6,9 @@ from sse_starlette.sse import EventSourceResponse
 
 from .exceptions import DOWNLOAD_NOT_FOUND
 from . import datasource, dependencies, schemas, config, queue
-from .downloaders import DownloaderInterface, get_unique_id
+from .downloaders import DownloaderInterface
 
-from .schemas import requests, responses
+from .schemas import requests, responses, models
 
 router = APIRouter(tags=["base"])
 
@@ -33,7 +31,9 @@ async def get_api_version(
     "/downloads",
     response_model=responses.DownloadsResponse,
     status_code=status.HTTP_200_OK,
-    responses={status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}},
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
 )
 async def get_downloads(
     uid: str, datasource: datasource.IDataSource = Depends(dependencies.get_database),
@@ -45,21 +45,23 @@ async def get_downloads(
     return {"downloads": downloads}
 
 
-# @router.get(
-#     "/preview",
-#     response_model=models.Download,
-#     status_code=200,
-#     responses={500: {"model": schemas.ErrorResponse}},
-# )
-# async def preview(
-#     url: AnyHttpUrl,
-#     downloader: DownloaderInterface = Depends(dependencies.get_downloader),
-# ):
-#     """
-#     Endpoint for getting info about video.
-#     """
-#     download = downloader.get_video_info(url)
-#     return download
+@router.get(
+    "/preview",
+    response_model=responses.VideoInfoResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
+)
+async def preview(
+    url: AnyHttpUrl,
+    downloader: DownloaderInterface = Depends(dependencies.get_downloader),
+):
+    """
+    Endpoint for getting info about video.
+    """
+    download = downloader.get_video_info(url)
+    return download
 
 
 # @router.put(

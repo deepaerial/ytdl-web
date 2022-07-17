@@ -8,10 +8,10 @@ from pydantic import (
     validator,
     root_validator,
 )
-from ..constants import MediaFormatOptions, YOUTUBE_URI_REGEX
+from ..constants import MediaFormat, YOUTUBE_URI_REGEX
 
 
-class YTDLParams(BaseModel):
+class DownloadParams(BaseModel):
     url: AnyHttpUrl = Field(
         ...,
         title="URL",
@@ -24,7 +24,7 @@ class YTDLParams(BaseModel):
     audio_stream_id: Optional[str] = Field(
         None, description="Audio stream ID", example="118"
     )
-    media_format: MediaFormatOptions = Field(
+    media_format: MediaFormat = Field(
         ..., description="Video or audio (when extracting) format of file",
     )
 

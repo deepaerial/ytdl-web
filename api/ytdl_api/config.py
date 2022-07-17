@@ -9,8 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import validator
 from starlette.middleware import Middleware
 
-from .datasource import IDataSource, InMemoryDB, DetaDB
+from .constants import DownloaderTypes
+from .datasource import DetaDB, IDataSource, InMemoryDB
 from .storage import IStorage, LocalFileStorage
+
+MEDIA_PATH = (Path(__file__).parent / ".." / ".." / "media").resolve()
 
 
 class BaseDataSourceConfig(ConfZ, abc.ABC):
@@ -32,6 +35,15 @@ class InMemoryDataSourceConfig(BaseDataSourceConfig):
 
     def get_datasource(self) -> IDataSource:
         return InMemoryDB()
+
+    # In order to avoid TypeError: unhashable type: 'Settings' when overidding
+    # dependencies.get_settings in tests.py __hash__ should be implemented
+    def __hash__(self):  # make hashable BaseModel subclass
+        attrs = tuple(
+            attr if not isinstance(attr, list) else ",".join(attr)
+            for attr in self.__dict__.values()
+        )
+        return hash((type(self),) + attrs)
 
 
 class DetaBaseDataSourceConfig(BaseDataSourceConfig):
@@ -91,8 +103,9 @@ class Settings(ConfZ):
     disable_docs: bool = False
     allow_origins: List[str]
 
-    storage_config: LocalStorageConfig
-    datasource_config: Union[DetaBaseDataSourceConfig, InMemoryDataSourceConfig]
+    downloader: DownloaderTypes
+    media_path: Path = MEDIA_PATH
+    datasource: Union[DetaBaseDataSourceConfig, InMemoryDataSourceConfig]
 
     CONFIG_SOURCES = ConfZEnvSource(
         allow_all=True, deny=["title", "description", "version"], nested_separator="__"

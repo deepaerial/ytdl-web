@@ -1,4 +1,10 @@
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, Union, Callable, Coroutine, Any
+
+from pydantic import AnyHttpUrl
+
+
+URL = Union[AnyHttpUrl, str]
+OnDownloadProgressCallback = Callable[..., Coroutine[Any, Any, Any]]
 
 
 class DownloadDataInfo(TypedDict):

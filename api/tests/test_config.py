@@ -4,9 +4,8 @@ import pytest
 from typing import Iterable
 from fastapi.testclient import TestClient
 
-from ytdl_api.dependencies import get_database, get_settings
+from ytdl_api.dependencies import get_settings
 from ytdl_api.config import Settings
-from ytdl_api.datasource import IDataSource
 
 
 @pytest.fixture()
@@ -14,6 +13,7 @@ def settings(fake_media_path: Path) -> Iterable[Settings]:
     data_source = ConfZDataSource(
         data={
             "allow_origins": ["*"],
+            "downloader": "mock",
             "datasource_config": {"in_memory": True},
             "storage_config": {"path": fake_media_path},
             "disable_docs": True,
