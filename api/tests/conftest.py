@@ -87,5 +87,4 @@ def settings(fake_media_path: Path) -> Iterable[Settings]:
 def app_client(settings: Settings, mock_datasource: IDataSource):
     app = settings.init_app()
     app.dependency_overrides[get_settings] = lambda: settings
-    app.dependency_overrides[get_database] = lambda: mock_datasource
     return TestClient(app)

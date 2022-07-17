@@ -22,7 +22,7 @@ class BaseDataSourceConfig(ConfZ, abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_datasource(self) -> IDataSource:
+    def get_datasource(self) -> IDataSource:  # pragma: no cover
         raise NotImplementedError
 
 
@@ -64,7 +64,7 @@ class BaseStorageConfig(ConfZ, abc.ABC):
     """
 
     @abc.abstractmethod
-    def get_storage(self) -> IStorage:
+    def get_storage(self) -> IStorage:  # pragma: no cover
         raise NotImplementedError
 
 

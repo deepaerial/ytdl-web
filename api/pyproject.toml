@@ -1,4 +1,5 @@
 [tool.pytest.ini_options]
+addopts = "--cov-report xml:cov.xml --cov tests"
 norecursedirs = [
     ".venv",
     ".vscode",
