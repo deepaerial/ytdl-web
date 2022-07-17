@@ -1,5 +1,4 @@
-from ytdl_api.constants import ProgressStatusEnum
-
+from .constants import ProgressStatusEnum
 from .datasource import IDataSource
 from .queue import NotificationQueue
 from .schemas.models import Download, DownloadProgress
