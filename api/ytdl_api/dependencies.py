@@ -1,13 +1,14 @@
-from fastapi import Depends
 from functools import lru_cache
 
-from pydantic import ValidationError
+from fastapi import Depends
 from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
+
 from . import datasource, downloaders, queue
+from .config import MEDIA_PATH, Settings
 from .constants import DownloaderTypes
 from .schemas.requests import DownloadParams
-from .config import Settings, MEDIA_PATH
 
 
 # Ignoring get_settings dependency in coverage because it will be

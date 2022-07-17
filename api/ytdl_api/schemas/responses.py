@@ -1,11 +1,9 @@
 from typing import List, Optional
 
-from pydantic import (
-    BaseModel,
-    Field,
-)
-from ..types import URL
+from pydantic import BaseModel, Field
+
 from ..constants import MediaFormat, ProgressStatusEnum
+from ..types import URL
 from .models import AudioStream, Download, VideoStream
 
 

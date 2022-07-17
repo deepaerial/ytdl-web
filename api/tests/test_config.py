@@ -1,11 +1,12 @@
 from pathlib import Path
-from confz import ConfZDataSource
-import pytest
 from typing import Iterable
+
+import pytest
+from confz import ConfZDataSource
 from fastapi.testclient import TestClient
 
-from ytdl_api.dependencies import get_settings
 from ytdl_api.config import Settings
+from ytdl_api.dependencies import get_settings
 
 
 @pytest.fixture()
@@ -36,4 +37,3 @@ def test_no_docs_if_disabled(app: TestClient):
     """
     response = app.get("/docs")
     assert response.status_code == 404
-

@@ -1,7 +1,6 @@
-import typing
 import asyncio
+import typing
 from collections import defaultdict
-
 
 from .schemas.models import DownloadProgress
 

@@ -1,13 +1,14 @@
-from confz import ConfZDataSource
-import pytest
 from pathlib import Path
-from typing import Iterable
 from tempfile import TemporaryDirectory
+from typing import Iterable
+
+import pytest
+from confz import ConfZDataSource
 from fastapi.testclient import TestClient
 
-from ytdl_api.dependencies import get_database, get_settings
-from ytdl_api.datasource import IDataSource, InMemoryDB
 from ytdl_api.config import MEDIA_PATH, Settings
+from ytdl_api.datasource import IDataSource, InMemoryDB
+from ytdl_api.dependencies import get_database, get_settings
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
 from ytdl_api.utils import get_unique_id

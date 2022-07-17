@@ -1,8 +1,6 @@
-from ytdl_api.constants import ProgressStatusEnum
-
 from .downloaders import IDownloader
-from .schemas.requests import DownloadParams
 from .schemas.models import Download
+from .schemas.requests import DownloadParams
 
 
 def create_download_from_download_params(

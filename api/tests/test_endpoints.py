@@ -1,5 +1,5 @@
-from fastapi.testclient import TestClient
 import pkg_resources
+from fastapi.testclient import TestClient
 
 from ytdl_api.schemas.models import Download
 

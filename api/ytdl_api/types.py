@@ -1,6 +1,6 @@
-from typing import Optional, TypedDict, Union, Callable, Coroutine, Any
-from pydantic import AnyHttpUrl
+from typing import Any, Callable, Coroutine, Optional, TypedDict, Union
 
+from pydantic import AnyHttpUrl
 
 URL = Union[AnyHttpUrl, str]
 OnDownloadProgressCallback = Callable[..., Coroutine[Any, Any, Any]]

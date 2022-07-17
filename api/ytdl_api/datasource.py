@@ -1,13 +1,13 @@
+import itertools
+import typing
 from abc import ABC, abstractmethod
 from collections import defaultdict
-import typing
-import itertools
 
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
-from .schemas.models import Download, DownloadProgress
 from .constants import MediaFormat, ProgressStatusEnum
+from .schemas.models import Download, DownloadProgress
 
 
 class IDataSource(ABC):

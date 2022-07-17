@@ -1,14 +1,9 @@
 import re
 from typing import Optional
 
-from pydantic import (
-    AnyHttpUrl,
-    BaseModel,
-    Field,
-    validator,
-    root_validator,
-)
-from ..constants import MediaFormat, YOUTUBE_URI_REGEX
+from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
+
+from ..constants import YOUTUBE_URI_REGEX, MediaFormat
 
 
 class DownloadParams(BaseModel):

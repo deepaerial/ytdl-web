@@ -1,5 +1,5 @@
-import socket
 import re
+import socket
 from http.client import RemoteDisconnected
 
 from fastapi import HTTPException

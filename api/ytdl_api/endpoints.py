@@ -1,14 +1,10 @@
-from starlette import status
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic.networks import AnyHttpUrl
-from starlette.responses import FileResponse
-from sse_starlette.sse import EventSourceResponse
+from starlette import status
 
-from .exceptions import DOWNLOAD_NOT_FOUND
-from . import datasource, dependencies, schemas, config, queue
+from . import config, datasource, dependencies
 from .downloaders import IDownloader
-
-from .schemas import requests, responses, models
+from .schemas import responses
 
 router = APIRouter(tags=["base"])
 

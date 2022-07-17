@@ -1,7 +1,9 @@
-from typing import List, Union, Type
-from pydantic import parse_obj_as
 from random import choice
-from ytdl_api.schemas import BaseStream, AudioStream, VideoStream
+from typing import List, Type, Union
+
+from pydantic import parse_obj_as
+
+from ytdl_api.schemas import AudioStream, BaseStream, VideoStream
 
 
 def get_random_stream_id(

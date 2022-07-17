@@ -1,7 +1,8 @@
 from ytdl_api.constants import ProgressStatusEnum
+
+from .datasource import IDataSource
 from .queue import NotificationQueue
 from .schemas.models import Download, DownloadProgress
-from .datasource import IDataSource
 
 
 async def on_pytube_progress_callback(
@@ -13,7 +14,7 @@ async def on_pytube_progress_callback(
     **kwargs
 ):
     """
-    Callback which will be used in Pytube's progress update callback 
+    Callback which will be used in Pytube's progress update callback
     """
     download_proress = DownloadProgress(
         client_id=client_id,

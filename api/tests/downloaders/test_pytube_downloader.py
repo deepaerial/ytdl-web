@@ -1,14 +1,16 @@
-import pytest
 import random
+
+import pytest
+
 from ytdl_api.callbacks import on_pytube_progress_callback
+from ytdl_api.constants import MediaFormat
+from ytdl_api.converters import create_download_from_download_params
 from ytdl_api.datasource import IDataSource
 from ytdl_api.downloaders import IDownloader, PytubeDownloader
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
-from ytdl_api.constants import MediaFormat
 from ytdl_api.schemas.requests import DownloadParams
 from ytdl_api.schemas.responses import VideoInfoResponse
-from ytdl_api.converters import create_download_from_download_params
 
 
 @pytest.fixture
