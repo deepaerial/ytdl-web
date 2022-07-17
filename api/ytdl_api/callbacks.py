@@ -1,16 +1,63 @@
 from ytdl_api.constants import ProgressStatusEnum
 from .queue import NotificationQueue
-from .schemas.models import DownloadProgress
+from .schemas.models import Download, DownloadProgress
+from .datasource import IDataSource
 
 
 async def on_pytube_progress_callback(
-    queue: NotificationQueue, client_id, media_id, stream, chunk, bytes_remaining
+    datasource: IDataSource,
+    queue: NotificationQueue,
+    client_id: str,
+    media_id: str,
+    *args,
+    **kwargs
 ):
-    # TODO: fix creating download progress from pytube callback data
+    """
+    Callback which will be used in Pytube's progress update callback 
+    """
     download_proress = DownloadProgress(
         client_id=client_id,
         media_id=media_id,
         status=ProgressStatusEnum.DOWNLOADING,
-        progress=0,
+        progress=-1,
     )
+    datasource.update_download_progress(download_proress)
     return await queue.put(client_id, download_proress)
+
+
+async def on_ffmpeg_start_converting(
+    datasource: IDataSource, queue: NotificationQueue, download: Download
+):
+    """
+    Callback called once ffmpeg media format converting process is initiated.
+    """
+    download.status = ProgressStatusEnum.CONVERTING
+    datasource.put_download(download)
+    await queue.put(
+        download.client_id,
+        DownloadProgress(
+            client_id=download.client_id,
+            media_id=download.media_id,
+            status=download.status,
+            progress=-1,
+        ),
+    )
+
+
+async def on_ffmpeg_complete_callback(
+    datasource: IDataSource, queue: NotificationQueue, download: Download
+):
+    """
+    Callback which is executed once ffmpeg finished converting files.
+    """
+    download.status = ProgressStatusEnum.FINISHED
+    datasource.put_download(download)
+    await queue.put(
+        download.client_id,
+        DownloadProgress(
+            client_id=download.client_id,
+            media_id=download.media_id,
+            status=download.status,
+            progress=100,
+        ),
+    )

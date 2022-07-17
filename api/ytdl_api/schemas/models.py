@@ -45,7 +45,7 @@ class Download(BaseModel):
     filesize: int = Field(None, description="Video/audio filesize (in bytes)")
     thumbnail_url: Union[AnyHttpUrl, str] = Field(..., description="Video thumbnail")
     status: ProgressStatusEnum = Field(
-        ProgressStatusEnum.CREATED, description="Download status"
+        ProgressStatusEnum.STARTED, description="Download status"
     )
     file_path: Optional[Path] = Field(None, description="Path to file")
     progress: int = Field(0, description="Download progress in %")

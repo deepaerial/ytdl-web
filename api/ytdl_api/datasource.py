@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from pathlib import Path
 import typing
 import itertools
 
@@ -27,7 +26,7 @@ class IDataSource(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def put_download(self, client_id: str, download: Download):  # pragma: no cover
+    def put_download(self, download: Download):  # pragma: no cover
         """
         Abstract method for inserting download instance to data source.
         """
@@ -43,7 +42,7 @@ class IDataSource(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def update_download(self, client_id: str, download: Download):  # pragma: no cover
+    def update_download(self, download: Download):  # pragma: no cover
         """
         Abstract method for updating download instance from data source
         """
@@ -87,29 +86,30 @@ class InMemoryDB(IDataSource):
             or []
         )
 
-    def put_download(self, client_id: str, download: Download):
-        self.storage[client_id].append(download)
+    def put_download(self, download: Download):
+        self.storage[download.client_id].append(download)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
         return next(
             filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
         )
 
-    def update_download(self, client_id: str, download: Download):
-        donwloads = self.storage[client_id]
+    def update_download(self, download: Download):
+        donwloads = self.storage[download.client_id]
         index = next(
             (idx for idx, d in enumerate(donwloads) if d.media_id == download.media_id),
             None,
         )
         if index is None:
-            self.storage[client_id].append(download)
+            self.storage[download.client_id].append(download)
         else:
-            self.storage[client_id][index] = download
+            self.storage[download.client_id][index] = download
 
     def update_download_progress(self, progress_obj: DownloadProgress):
         download = self.get_download(progress_obj.client_id, progress_obj.media_id)
-        download.progress = progress_obj.progress
-        download.status = progress_obj.status
+        if download is not None:
+            download.progress = progress_obj.progress
+            download.status = progress_obj.status
 
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormat
@@ -146,10 +146,8 @@ class DetaDB(IDataSource):
         )
         return parse_obj_as(typing.List[Download], downloads)
 
-    def put_download(self, client_id: str, download: Download):
+    def put_download(self, download: Download):
         data = download.dict()
-        data["client_id"] = client_id
-        data["_file_path"] = download.file_path
         key = data["media_id"]
         self.base.put(data, key)
 
@@ -164,16 +162,12 @@ class DetaDB(IDataSource):
         )
         if data is None:
             return data
-        file_path = data.pop("_file_path")
         download = Download(**data)
-        download._file_path = Path(file_path)
         return download
 
-    def update_download(self, client_id: str, download: Download):
+    def update_download(self, download: Download):
         data = download.dict()
-        data["_file_path"] = download.file_path
-        key = data.pop("media_id")
-        self.base.update(data, key)
+        self.base.update(data, download.media_id)
 
     def update_download_progress(self, progress_obj: DownloadProgress):
         media_id = progress_obj.media_id
@@ -192,5 +186,4 @@ class DetaDB(IDataSource):
                 return None
             filtered_download = filtered_download[0]
         download: Download = parse_obj_as(Download, filtered_download)
-        download._file_path = Path(filtered_download["_file_path"])
         return download

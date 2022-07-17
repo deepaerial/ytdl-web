@@ -6,7 +6,7 @@ from sse_starlette.sse import EventSourceResponse
 
 from .exceptions import DOWNLOAD_NOT_FOUND
 from . import datasource, dependencies, schemas, config, queue
-from .downloaders import DownloaderInterface
+from .downloaders import IDownloader
 
 from .schemas import requests, responses, models
 
@@ -54,8 +54,7 @@ async def get_downloads(
     },
 )
 async def preview(
-    url: AnyHttpUrl,
-    downloader: DownloaderInterface = Depends(dependencies.get_downloader),
+    url: AnyHttpUrl, downloader: IDownloader = Depends(dependencies.get_downloader),
 ):
     """
     Endpoint for getting info about video.

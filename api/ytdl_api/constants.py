@@ -11,9 +11,9 @@ class DownloaderTypes(str, Enum):
 
 
 class ProgressStatusEnum(str, Enum):
-    CREATED = "created"
     STARTED = "started"
     DOWNLOADING = "downloading"
+    CONVERTING = "converting"
     FINISHED = "finished"
     DOWNLOADED = "downloaded"  # by client
     DELETED = "deleted"

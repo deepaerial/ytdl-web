@@ -1,11 +1,14 @@
 import asyncio
 from abc import ABC, abstractmethod
+from functools import partial
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, Literal, Optional, Union
 
 import ffmpeg
 from pydantic.networks import AnyHttpUrl
-from pytube import YouTube, StreamQuery
+from pytube import StreamQuery, YouTube
+
+from ytdl_api.callbacks import on_ffmpeg_complete_callback, on_ffmpeg_start_converting
 from ytdl_api.types import OnDownloadProgressCallback
 
 from .datasource import IDataSource
@@ -14,7 +17,7 @@ from .schemas.models import AudioStream, Download, VideoStream
 from .schemas.responses import VideoInfoResponse
 
 
-class DownloaderInterface(ABC):
+class IDownloader(ABC):
     """
     Base interface for media downloader class.
     """
@@ -45,16 +48,16 @@ class DownloaderInterface(ABC):
         raise NotImplementedError()
 
 
-class MockDownloader(DownloaderInterface):
+class MockDownloader(IDownloader):
     """
     Mock downloader made primarly for endpoint testing purposes.
     """
 
     def get_video_info(self, url: AnyHttpUrl) -> VideoInfoResponse:
         video_info = VideoInfoResponse(
-            url="https://www.youtube.com/watch?v=B8WgNGN0IVA",
-            title="Adam Knight - I've Got The Gold (Shoby Remix)",
-            thumbnail_url="https://img.youtube.com/vi/B8WgNGN0IVA/0.jpg",
+            url=url,
+            title="Example",
+            thumbnail_url="https://img.youtube.com/vi/example/0.jpg",
             video_streams=[
                 VideoStream(id="134", resolution="720p", mimetype="video/mp4"),
             ],
@@ -78,7 +81,7 @@ class MockDownloader(DownloaderInterface):
         return 0
 
 
-class PytubeDownloader(DownloaderInterface):
+class PytubeDownloader(IDownloader):
     """
     Downloader based on pytube library
     """
@@ -111,13 +114,20 @@ class PytubeDownloader(DownloaderInterface):
         return video_info
 
     def __download_stream(
-        self, stream_id: str, media_id: str, streams: StreamQuery
-    ) -> Path:
+        self,
+        stream_id: Optional[str],
+        media_id: str,
+        streams: StreamQuery,
+        downloaded_streams_aggregation: dict,
+        stream_type: Literal["audio", "video"],
+    ):
+        if stream_id is None:
+            return
         stream = streams.get_by_itag(stream_id)
         downloaded_stream_file_path = stream.download(
             self.media_path.as_posix(), filename_prefix=f"{stream_id}_{media_id}"
         )
-        return Path(downloaded_stream_file_path)
+        downloaded_streams_aggregation[stream_type] = Path(downloaded_stream_file_path)
 
     def download(
         self,
@@ -126,39 +136,60 @@ class PytubeDownloader(DownloaderInterface):
     ):
         kwargs = {}
         if progress_hook is not None:
+            on_progress_callback = asyncio.coroutine(
+                partial(
+                    progress_hook,
+                    self.datasource,
+                    self.event_queue,
+                    download.client_id,
+                    download.media_id,
+                )
+            )
             kwargs[
                 "on_progress_callback"
             ] = lambda stream, chunk, bytes_remaining: asyncio.run(
-                progress_hook(stream, chunk, bytes_remaining)
+                on_progress_callback(stream, chunk, bytes_remaining)
             )
         streams = YouTube(download.url, **kwargs).streams.filter(is_dash=True).desc()
-        downloaded_streams_file_paths = []
-        # Downloading video stream if chosen
-        if download.video_stream_id:
-            video_file_path = self.__download_stream(
-                download.video_stream_id, download.media_id, streams
-            )
-            downloaded_streams_file_paths.append(video_file_path)
+        downloaded_streams_file_paths: Dict[str, Path] = {}
         # Downloading audio stream if chosen
-        if download.audio_stream_id is not None:
-            audio_file_path = self.__download_stream(
-                download.audio_stream_id, download.media_id, streams
-            )
-            downloaded_streams_file_paths.append(audio_file_path)
+        self.__download_stream(
+            download.audio_stream_id,
+            download.media_id,
+            streams,
+            downloaded_streams_file_paths,
+            "audio",
+        )
+        # Downloading video stream if chosen
+        self.__download_stream(
+            download.video_stream_id,
+            download.media_id,
+            streams,
+            downloaded_streams_file_paths,
+            "video",
+        )
         # Converting to chosen format
-        downloaded_streams = [
-            ffmpeg.input(stream_file_path)
-            for stream_file_path in downloaded_streams_file_paths
-        ]
         converted_file_path = (
             self.media_path / f"{download.media_id}.{download.media_format}"
         )
+        asyncio.run(
+            on_ffmpeg_start_converting(self.datasource, self.event_queue, download)
+        )
         out, err = (
-            ffmpeg.concat(*downloaded_streams)
+            ffmpeg.concat(
+                ffmpeg.input(downloaded_streams_file_paths["video"].as_posix()),
+                ffmpeg.input(downloaded_streams_file_paths["audio"].as_posix()),
+                a=1,
+                v=1,
+            )
             .output(converted_file_path.as_posix())
+            .overwrite_output()
             .run(capture_stdout=True, capture_stderr=True)
         )
         download.file_path = converted_file_path
+        asyncio.run(
+            on_ffmpeg_complete_callback(self.datasource, self.event_queue, download)
+        )
         # Cleaning downloaded streams
-        for stream_path in downloaded_streams_file_paths:
+        for stream_path in downloaded_streams_file_paths.values():
             Path(stream_path).unlink()

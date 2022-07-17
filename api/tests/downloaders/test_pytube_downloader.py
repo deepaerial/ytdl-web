@@ -1,7 +1,8 @@
 import pytest
 import random
+from ytdl_api.callbacks import on_pytube_progress_callback
 from ytdl_api.datasource import IDataSource
-from ytdl_api.downloaders import DownloaderInterface, PytubeDownloader
+from ytdl_api.downloaders import IDownloader, PytubeDownloader
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
 from ytdl_api.constants import MediaFormat
@@ -42,12 +43,12 @@ def mock_persisted_download(
     uid: str,
     mock_download_params: DownloadParams,
     mock_datasource: IDataSource,
-    pytube_downloader: DownloaderInterface,
+    pytube_downloader: IDownloader,
 ):
     mock_download = create_download_from_download_params(
         uid, mock_download_params, pytube_downloader
     )
-    mock_datasource.put_download(uid, mock_download)
+    mock_datasource.put_download(mock_download)
     yield mock_download
 
 
@@ -71,7 +72,7 @@ def test_pytube_downloader_download_video(
     """
     Testing downloading video using pytube
     """
-    pytube_downloader.download(mock_persisted_download)
+    pytube_downloader.download(mock_persisted_download, on_pytube_progress_callback)
     # Check if file was downloaded
     download = mock_datasource.get_download(
         mock_persisted_download.client_id, mock_persisted_download.media_id

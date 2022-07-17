@@ -4,11 +4,10 @@ from pathlib import Path
 from typing import Iterable
 from tempfile import TemporaryDirectory
 from fastapi.testclient import TestClient
-from fastapi import BackgroundTasks
 
 from ytdl_api.dependencies import get_database, get_settings
 from ytdl_api.datasource import IDataSource, InMemoryDB
-from ytdl_api.config import Settings
+from ytdl_api.config import MEDIA_PATH, Settings
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
 from ytdl_api.utils import get_unique_id
@@ -27,7 +26,7 @@ def uid() -> str:
 @pytest.fixture
 def temp_directory():
     tmp = TemporaryDirectory()
-    yield tmp
+    yield MEDIA_PATH
     tmp.cleanup()
 
 
@@ -64,9 +63,9 @@ def mock_download(uid: str) -> Download:
 
 @pytest.fixture()
 def mock_persisted_download(
-    uid: str, mock_download: Download, mock_datasource: IDataSource,
+    mock_download: Download, mock_datasource: IDataSource,
 ):
-    mock_datasource.put_download(uid, mock_download)
+    mock_datasource.put_download(mock_download)
     yield mock_download
 
 

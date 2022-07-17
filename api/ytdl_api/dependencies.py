@@ -33,7 +33,7 @@ def get_downloader(
     settings: Settings = Depends(get_settings),
     datasource: datasource.IDataSource = Depends(get_database),
     event_queue: queue.NotificationQueue = Depends(get_notification_queue),
-) -> downloaders.DownloaderInterface:
+) -> downloaders.IDownloader:
     _type = settings.downloader
     # downloader: downloaders.DownloaderInterface
     if _type == DownloaderTypes.PYTUBE:
