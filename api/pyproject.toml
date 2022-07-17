@@ -30,6 +30,9 @@ init_typed = true
 warn_required_dynamic_aliases = true
 warn_untyped_fields = false
 
+[tool.isort]
+profile = "black"
+
 [tool.poetry]
 name = "ytdl-api"
 version = "0.1.0"
