@@ -10,6 +10,7 @@ from ytdl_api.dependencies import get_database, get_settings
 from ytdl_api.datasource import IDataSource, InMemoryDB
 from ytdl_api.config import Settings
 from ytdl_api.queue import NotificationQueue
+from ytdl_api.schemas.models import Download
 from ytdl_api.utils import get_unique_id
 
 
@@ -48,6 +49,25 @@ def event_queue():
 @pytest.fixture()
 def mock_datasource() -> IDataSource:
     return InMemoryDB()
+
+
+@pytest.fixture
+def mock_download(uid: str) -> Download:
+    return Download(
+        client_id=uid,
+        title="Some title",
+        url="https://www.youtube.com/watch?v=4B24vYj_vaI",
+        thumbnail_url="https://img.youtube.com/vi/4B24vYj_vaI/0.jpg",
+        duration=100,
+    )
+
+
+@pytest.fixture()
+def mock_persisted_download(
+    uid: str, mock_download: Download, mock_datasource: IDataSource,
+):
+    mock_datasource.put_download(uid, mock_download)
+    yield mock_download
 
 
 @pytest.fixture()

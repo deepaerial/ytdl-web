@@ -26,8 +26,12 @@ class Download(BaseModel):
     media_id: str = Field(description="Download id", default_factory=get_unique_id)
     title: str = Field(..., description="Video title")
     url: URL = Field(..., description="URL of video")
-    video_streams: List[VideoStream] = Field(..., description="List of video streams")
-    audio_streams: List[AudioStream] = Field(..., description="List of audio streams")
+    video_streams: List[VideoStream] = Field(
+        description="List of video streams", default_factory=list
+    )
+    audio_streams: List[AudioStream] = Field(
+        description="List of audio streams", default_factory=list
+    )
     video_stream_id: Optional[str] = Field(
         None, description="Video stream ID (downloaded)"
     )
@@ -40,7 +44,9 @@ class Download(BaseModel):
     duration: int = Field(..., description="Video duration (in milliseconds)")
     filesize: int = Field(None, description="Video/audio filesize (in bytes)")
     thumbnail_url: Union[AnyHttpUrl, str] = Field(..., description="Video thumbnail")
-    status: ProgressStatusEnum = Field(None, description="Download status")
+    status: ProgressStatusEnum = Field(
+        ProgressStatusEnum.CREATED, description="Download status"
+    )
     file_path: Optional[Path] = Field(None, description="Path to file")
     progress: int = Field(0, description="Download progress in %")
 
