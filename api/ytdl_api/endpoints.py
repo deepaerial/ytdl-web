@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic.networks import AnyHttpUrl
 from starlette import status
 
 from . import config, datasource, dependencies
+from .converters import create_download_from_download_params
 from .downloaders import IDownloader
-from .schemas import responses
+from .schemas import requests, responses
+from .types import OnDownloadProgressCallback
 
 router = APIRouter(tags=["base"])
 
@@ -59,29 +61,33 @@ async def preview(
     return download
 
 
-# @router.put(
-#     "/fetch",
-#     response_model=schemas.DownloadsResponse,
-#     status_code=201,
-#     responses={500: {"model": schemas.ErrorResponse}},
-# )
-# async def fetch_media(
-#     uid: str,
-#     json_params: schemas.YTDLParams,
-#     datasource: datasource.IDataSource = Depends(dependencies.get_database),
-#     downloader: DownloaderInterface = Depends(dependencies.get_downloader),
-# ):
-#     """
-#     Endpoint for fetching video from Youtube and converting it to
-#     specified format.
-#     """
-#     download = downloader.get_video_info(json_params.url)
-#     download.media_format = json_params.media_format
-#     datasource.put_download(uid, download)
-#     downloader.submit_download_task(
-#         uid, download,
-#     )
-#     return {"downloads": datasource.fetch_downloads(uid)}
+@router.put(
+    "/fetch",
+    response_model=responses.DownloadsResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(dependencies.validate_download_params)],
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
+)
+async def submit_download(
+    uid: str,
+    download_params: requests.DownloadParams,
+    background_tasks: BackgroundTasks,
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
+    downloader: IDownloader = Depends(dependencies.get_downloader),
+    progress_hook: OnDownloadProgressCallback = Depends(
+        dependencies.get_on_progress_hook
+    ),
+):
+    """
+    Endpoint for fetching video from Youtube and converting it to
+    specified format.
+    """
+    download = create_download_from_download_params(uid, download_params, downloader)
+    datasource.put_download(download)
+    background_tasks.add_task(downloader.download, download, progress_hook)
+    return {"downloads": datasource.fetch_downloads(uid)}
 
 
 # @router.get(

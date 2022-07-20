@@ -7,10 +7,12 @@ from confz import ConfZDataSource
 from fastapi.testclient import TestClient
 
 from ytdl_api.config import MEDIA_PATH, Settings
+from ytdl_api.constants import MediaFormat
 from ytdl_api.datasource import IDataSource, InMemoryDB
-from ytdl_api.dependencies import get_database, get_settings
+from ytdl_api.dependencies import get_settings
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
+from ytdl_api.schemas.requests import DownloadParams
 from ytdl_api.utils import get_unique_id
 
 
@@ -27,7 +29,7 @@ def uid() -> str:
 @pytest.fixture
 def temp_directory():
     tmp = TemporaryDirectory()
-    yield MEDIA_PATH
+    yield tmp
     tmp.cleanup()
 
 
@@ -68,6 +70,16 @@ def mock_persisted_download(
 ):
     mock_datasource.put_download(mock_download)
     yield mock_download
+
+
+@pytest.fixture()
+def mock_download_params(mock_url: str) -> DownloadParams:
+    return DownloadParams(
+        url=mock_url,
+        video_stream_id="fake_video_stream_id",
+        audio_stream_id="fake_audio_stream_id",
+        media_format=MediaFormat.MP4,
+    )
 
 
 @pytest.fixture()

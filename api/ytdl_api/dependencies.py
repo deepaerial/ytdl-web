@@ -5,8 +5,11 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
+from ytdl_api.types import OnDownloadProgressCallback
+
 from . import datasource, downloaders, queue
-from .config import MEDIA_PATH, Settings
+from .callbacks import noop_callback, on_pytube_progress_callback
+from .config import Settings
 from .constants import DownloaderTypes
 from .schemas.requests import DownloadParams
 
@@ -19,9 +22,7 @@ def get_settings() -> Settings:  # pragma: no cover
 
 
 @lru_cache
-def get_notification_queue(
-    settings: Settings = Depends(get_settings),
-) -> queue.NotificationQueue:
+def get_notification_queue() -> queue.NotificationQueue:
     return queue.NotificationQueue()
 
 
@@ -35,13 +36,19 @@ def get_downloader(
     datasource: datasource.IDataSource = Depends(get_database),
     event_queue: queue.NotificationQueue = Depends(get_notification_queue),
 ) -> downloaders.IDownloader:
-    _type = settings.downloader
-    # downloader: downloaders.DownloaderInterface
-    if _type == DownloaderTypes.PYTUBE:
-        downloader = downloaders.PytubeDownloader(MEDIA_PATH, datasource, event_queue)
-    elif _type == DownloaderTypes.MOCK:
-        downloader = downloaders.MockDownloader(MEDIA_PATH, datasource, event_queue)
-    return downloader
+    if settings.downloader == DownloaderTypes.PYTUBE:
+        return downloaders.PytubeDownloader(
+            settings.media_path, datasource, event_queue
+        )
+    return downloaders.MockDownloader(settings.media_path, datasource, event_queue)
+
+
+def get_on_progress_hook(
+    settings: Settings = Depends(get_settings),
+) -> OnDownloadProgressCallback:
+    if settings.downloader == DownloaderTypes.PYTUBE:
+        return on_pytube_progress_callback
+    return noop_callback
 
 
 def validate_download_params(

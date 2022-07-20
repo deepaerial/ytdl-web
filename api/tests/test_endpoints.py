@@ -2,6 +2,7 @@ import pkg_resources
 from fastapi.testclient import TestClient
 
 from ytdl_api.schemas.models import Download
+from ytdl_api.schemas.requests import DownloadParams
 
 
 def test_version_endpoint(app_client: TestClient):
@@ -44,4 +45,20 @@ def test_get_preview(app_client: TestClient, mock_url: str):
             "audio_streams",
             "video_streams",
         ]
+    )
+
+
+def test_submit_download(
+    app_client: TestClient, uid: str, mock_download_params: DownloadParams
+):
+    response = app_client.put(
+        "/api/fetch", params={"uid": uid}, json=mock_download_params.dict()
+    )
+    assert response.status_code == 201
+    json_response = response.json()
+    assert "downloads" in json_response
+    assert any(
+        download
+        for download in json_response["downloads"]
+        if download["url"] == mock_download_params.url
     )

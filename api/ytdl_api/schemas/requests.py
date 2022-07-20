@@ -1,13 +1,14 @@
 import re
 from typing import Optional
 
-from pydantic import AnyHttpUrl, BaseModel, Field, root_validator, validator
+from pydantic import BaseModel, Field, root_validator, validator
 
 from ..constants import YOUTUBE_URI_REGEX, MediaFormat
+from ..types import VideoURL
 
 
 class DownloadParams(BaseModel):
-    url: AnyHttpUrl = Field(
+    url: VideoURL = Field(
         ...,
         title="URL",
         description="URL to video",

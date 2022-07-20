@@ -4,6 +4,13 @@ from .queue import NotificationQueue
 from .schemas.models import Download, DownloadProgress
 
 
+async def noop_callback(*args, **kwargs):  # pragma: no cover
+    """
+    Empty on downaload progess callback
+    """
+    pass
+
+
 async def on_pytube_progress_callback(
     datasource: IDataSource,
     queue: NotificationQueue,

@@ -1,10 +1,10 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseModel, Field, PrivateAttr
+from pydantic import AnyHttpUrl, BaseModel, Field
 
 from ..constants import MediaFormat, ProgressStatusEnum
-from ..types import URL
+from ..types import VideoURL
 from ..utils import get_unique_id
 
 
@@ -25,7 +25,7 @@ class Download(BaseModel):
     client_id: str = Field(..., description="Client ID")
     media_id: str = Field(description="Download id", default_factory=get_unique_id)
     title: str = Field(..., description="Video title")
-    url: URL = Field(..., description="URL of video")
+    url: VideoURL = Field(..., description="URL of video")
     video_streams: List[VideoStream] = Field(
         description="List of video streams", default_factory=list
     )

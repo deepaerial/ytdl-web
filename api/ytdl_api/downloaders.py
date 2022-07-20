@@ -2,14 +2,13 @@ import asyncio
 from abc import ABC, abstractmethod
 from functools import partial
 from pathlib import Path
-from typing import Dict, Literal, Optional, Union
+from typing import Dict, Literal, Optional
 
 import ffmpeg
-from pydantic.networks import AnyHttpUrl
 from pytube import StreamQuery, YouTube
 
 from ytdl_api.callbacks import on_ffmpeg_complete_callback, on_ffmpeg_start_converting
-from ytdl_api.types import OnDownloadProgressCallback
+from ytdl_api.types import OnDownloadProgressCallback, VideoURL
 
 from .datasource import IDataSource
 from .queue import NotificationQueue
@@ -30,7 +29,7 @@ class IDownloader(ABC):
         self.event_queue = event_queue
 
     @abstractmethod
-    def get_video_info(self, url: AnyHttpUrl) -> VideoInfoResponse:  # pragma: no cover
+    def get_video_info(self, url: VideoURL) -> VideoInfoResponse:  # pragma: no cover
         """
         Abstract method for retrieving information about media resource.
         """
@@ -53,7 +52,7 @@ class MockDownloader(IDownloader):
     Mock downloader made primarly for endpoint testing purposes.
     """
 
-    def get_video_info(self, url: AnyHttpUrl) -> VideoInfoResponse:
+    def get_video_info(self, url: VideoURL) -> VideoInfoResponse:
         video_info = VideoInfoResponse(
             url=url,
             title="Example",
@@ -86,7 +85,7 @@ class PytubeDownloader(IDownloader):
     Downloader based on pytube library
     """
 
-    def get_video_info(self, url: Union[AnyHttpUrl, str]) -> VideoInfoResponse:
+    def get_video_info(self, url: VideoURL) -> VideoInfoResponse:
         video = YouTube(url)
         streams = video.streams.filter(is_dash=True).desc()
         audio_streams = [

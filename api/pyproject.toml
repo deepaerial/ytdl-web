@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-addopts = "--cov-report xml:cov.xml --cov tests"
+addopts = "--cov-report xml:cov.xml --cov"
 norecursedirs = [
     ".venv",
     ".vscode",
@@ -15,7 +15,6 @@ python_functions = [
 [tool.coverage.run]
 omit = [
     ".venv/*", 
-    "tests/*"
 ]
 
 [tool.mypy]
