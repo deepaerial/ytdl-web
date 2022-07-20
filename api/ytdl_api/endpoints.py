@@ -1,10 +1,14 @@
-from fastapi import APIRouter, BackgroundTasks, Depends
+import asyncio
+
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from pydantic.networks import AnyHttpUrl
+from sse_starlette.sse import EventSourceResponse
 from starlette import status
 
 from . import config, datasource, dependencies
 from .converters import create_download_from_download_params
 from .downloaders import IDownloader
+from .queue import NotificationQueue
 from .schemas import requests, responses
 from .types import OnDownloadProgressCallback
 
@@ -128,30 +132,28 @@ async def submit_download(
 #     )
 
 
-# @router.get("/fetch/stream",)
-# async def fetch_stream(
-#     uid: str,
-#     request: Request,
-#     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-#     datasource: datasource.IDataSource = Depends(dependencies.get_database),
-# ):
-#     """
-#     SSE endpoint for recieving download status of media items.
-#     """
+@router.get("/fetch/stream", response_class=EventSourceResponse)
+async def fetch_stream(
+    uid: str,
+    request: Request,
+    event_queue: NotificationQueue = Depends(dependencies.get_notification_queue),
+):
+    """
+    SSE endpoint for recieving download status of media items.
+    """
 
-#     async def _stream():
-#         while True:
-#             if await request.is_disconnected():
-#                 break
-#             try:
-#                 data = await event_queue.get(uid)
-#             except asyncio.QueueEmpty:
-#                 continue
-#             else:
-#                 datasource.update_download_progress(data)
-#                 yield data.json()
+    async def _stream():
+        while True:
+            if await request.is_disconnected():
+                break
+            try:
+                data = await event_queue.get(uid)
+            except asyncio.QueueEmpty:
+                continue
+            else:
+                yield data.json()
 
-#     return EventSourceResponse(_stream())
+    return EventSourceResponse(_stream())
 
 
 # @router.delete(
