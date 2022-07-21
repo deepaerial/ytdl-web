@@ -3,7 +3,7 @@ from typing import Any, Callable, Coroutine, Optional, TypedDict, Union
 from pydantic import AnyHttpUrl
 
 VideoURL = Union[AnyHttpUrl, str]
-OnDownloadProgressCallback = Callable[..., Coroutine[Any, Any, Any]]
+OnDownloadCallback = Callable[..., Coroutine[Any, Any, Any]]
 
 
 class DownloadDataInfo(TypedDict):

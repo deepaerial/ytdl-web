@@ -6,7 +6,7 @@ from collections import defaultdict
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
-from .constants import MediaFormat, ProgressStatusEnum
+from .constants import MediaFormat, DonwloadStatus
 from .schemas.models import Download, DownloadProgress
 
 
@@ -79,7 +79,7 @@ class InMemoryDB(IDataSource):
         return (
             list(
                 filter(
-                    lambda d: d.status != ProgressStatusEnum.DELETED,
+                    lambda d: d.status != DonwloadStatus.DELETED,
                     self.storage[client_id],
                 )
             )
@@ -141,7 +141,7 @@ class DetaDB(IDataSource):
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
         downloads = next(
             self.base.fetch(
-                {"client_id": client_id, "status?ne": ProgressStatusEnum.DELETED}
+                {"client_id": client_id, "status?ne": DonwloadStatus.DELETED}
             )
         )
         return parse_obj_as(typing.List[Download], downloads)

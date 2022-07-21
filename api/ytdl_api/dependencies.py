@@ -5,12 +5,12 @@ from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
-from ytdl_api.types import OnDownloadProgressCallback
+from ytdl_api.types import OnDownloadCallback
 
 from . import datasource, downloaders, queue
 from .callbacks import noop_callback, on_pytube_progress_callback
 from .config import Settings
-from .constants import DownloaderTypes
+from .constants import DownloaderType
 from .schemas.requests import DownloadParams
 
 
@@ -36,7 +36,7 @@ def get_downloader(
     datasource: datasource.IDataSource = Depends(get_database),
     event_queue: queue.NotificationQueue = Depends(get_notification_queue),
 ) -> downloaders.IDownloader:
-    if settings.downloader == DownloaderTypes.PYTUBE:
+    if settings.downloader == DownloaderType.PYTUBE:
         return downloaders.PytubeDownloader(
             settings.media_path, datasource, event_queue
         )
@@ -45,8 +45,8 @@ def get_downloader(
 
 def get_on_progress_hook(
     settings: Settings = Depends(get_settings),
-) -> OnDownloadProgressCallback:
-    if settings.downloader == DownloaderTypes.PYTUBE:
+) -> OnDownloadCallback:
+    if settings.downloader == DownloaderType.PYTUBE:
         return on_pytube_progress_callback
     return noop_callback
 
@@ -55,7 +55,7 @@ def validate_download_params(
     download_params: DownloadParams, settings: Settings = Depends(get_settings),
 ):
     try:
-        if settings.downloader == DownloaderTypes.PYTUBE:
+        if settings.downloader == DownloaderType.PYTUBE:
             if not any(
                 (download_params.video_stream_id, download_params.audio_stream_id)
             ):

@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ..constants import MediaFormat, ProgressStatusEnum
+from ..constants import MediaFormat, DonwloadStatus
 from ..types import VideoURL
 from .models import AudioStream, Download, VideoStream
 
@@ -24,7 +24,7 @@ class VersionResponse(BaseModel):
 
 class DeleteResponse(BaseModel):
     media_id: str = Field(..., description="Id of downloaded media")
-    status: ProgressStatusEnum = Field(..., description="Download status")
+    status: DonwloadStatus = Field(..., description="Download status")
 
 
 class VideoInfoResponse(BaseModel):

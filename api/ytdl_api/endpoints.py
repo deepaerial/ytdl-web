@@ -1,6 +1,7 @@
 import asyncio
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, HTTPException
+from fastapi.responses import FileResponse
 from pydantic.networks import AnyHttpUrl
 from sse_starlette.sse import EventSourceResponse
 from starlette import status
@@ -10,7 +11,9 @@ from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
 from .schemas import requests, responses
-from .types import OnDownloadProgressCallback
+from .constants import DonwloadStatus
+from .types import OnDownloadCallback
+from .callbacks import on_start_converting, on_finish_callback
 
 router = APIRouter(tags=["base"])
 
@@ -66,7 +69,7 @@ async def preview(
 
 
 @router.put(
-    "/fetch",
+    "/download",
     response_model=responses.DownloadsResponse,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(dependencies.validate_download_params)],
@@ -80,9 +83,7 @@ async def submit_download(
     background_tasks: BackgroundTasks,
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
     downloader: IDownloader = Depends(dependencies.get_downloader),
-    progress_hook: OnDownloadProgressCallback = Depends(
-        dependencies.get_on_progress_hook
-    ),
+    progress_hook: OnDownloadCallback = Depends(dependencies.get_on_progress_hook),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
@@ -90,49 +91,63 @@ async def submit_download(
     """
     download = create_download_from_download_params(uid, download_params, downloader)
     datasource.put_download(download)
-    background_tasks.add_task(downloader.download, download, progress_hook)
+    background_tasks.add_task(
+        downloader.download,
+        download,
+        progress_hook,
+        on_start_converting,
+        on_finish_callback,
+    )
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
-# @router.get(
-#     "/fetch",
-#     responses={
-#         200: {
-#             "content": {"application/octet-stream": {}},
-#             "description": "Downloaded media file",
-#         },
-#         404: {
-#             "content": {"application/json": {}},
-#             "model": schemas.ErrorResponse,
-#             "description": "Download not found",
-#             "example": {"detail": "Download not found"},
-#         },
-#     },
-# )
-# async def download_media(
-#     uid: str,
-#     media_id: str,
-#     datasource: datasource.IDataSource = Depends(dependencies.get_database),
-#     event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-# ):
-#     """
-#     Endpoint for downloading fetched video from Youtube.
-#     """
-#     media_file = datasource.get_download(uid, media_id)
-#     if not media_file:
-#         raise DOWNLOAD_NOT_FOUND
-#     if media_file is None:
-#         raise HTTPException(status_code=404, detail="Downloaded file not found")
-#     media_file.status = schemas.ProgressStatusEnum.DOWNLOADED
-#     datasource.put_download(uid, media_file)
-#     return FileResponse(
-#         media_file.file_path,
-#         media_type="application/octet-stream",
-#         filename=media_file.filename,
-#     )
+# TODO: write unittest for endpoint
+@router.get(
+    "/download",
+    responses={
+        status.HTTP_200_OK: {
+            "content": {"application/octet-stream": {}},
+            "description": "Downloaded media file",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "content": {"application/json": {}},
+            "model": responses.ErrorResponse,
+            "description": "Download not found",
+            "example": {"detail": "Download not found"},
+        },
+    },
+)
+async def download_file(
+    uid: str,
+    media_id: str,
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for downloading fetched video from Youtube.
+    """
+    media_file = datasource.get_download(uid, media_id)
+    if media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
+    if media_file.status != DonwloadStatus.FINISHED:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
+        )
+    if media_file.file_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file not found"
+        )
+    media_file.status = DonwloadStatus.DOWNLOADED
+    datasource.put_download(media_file)
+    return FileResponse(
+        media_file.file_path,
+        media_type="application/octet-stream",
+        filename=media_file.filename,
+    )
 
 
-@router.get("/fetch/stream", response_class=EventSourceResponse)
+@router.get("/download/stream", response_class=EventSourceResponse)
 async def fetch_stream(
     uid: str,
     request: Request,

@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import validator
 from starlette.middleware import Middleware
 
-from .constants import DownloaderTypes
+from .constants import DownloaderType
 from .datasource import DetaDB, IDataSource, InMemoryDB
 from .storage import IStorage, LocalFileStorage
 
@@ -103,7 +103,7 @@ class Settings(ConfZ):
     disable_docs: bool = False
     allow_origins: List[str]
 
-    downloader: DownloaderTypes
+    downloader: DownloaderType
     media_path: Path = MEDIA_PATH
     datasource: Union[DetaBaseDataSourceConfig, InMemoryDataSourceConfig]
 

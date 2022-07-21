@@ -7,8 +7,8 @@ from typing import Dict, Literal, Optional
 import ffmpeg
 from pytube import StreamQuery, YouTube
 
-from ytdl_api.callbacks import on_ffmpeg_complete_callback, on_ffmpeg_start_converting
-from ytdl_api.types import OnDownloadProgressCallback, VideoURL
+from ytdl_api.callbacks import on_finish_callback, on_start_converting
+from ytdl_api.types import OnDownloadCallback, VideoURL
 
 from .datasource import IDataSource
 from .queue import NotificationQueue
@@ -39,7 +39,9 @@ class IDownloader(ABC):
     def download(
         self,
         download: Download,
-        progress_hook: Optional[OnDownloadProgressCallback] = None,
+        on_progress_callback: Optional[OnDownloadCallback] = None,
+        on_converting_callback: Optional[OnDownloadCallback] = None,
+        on_finish_callback: Optional[OnDownloadCallback] = None,
     ):  # pragma: no cover
         """
         Abstract method for downloading media given download parameters.
@@ -70,13 +72,18 @@ class MockDownloader(IDownloader):
     def download(
         self,
         download: Download,
-        progress_hook: Optional[OnDownloadProgressCallback] = None,
+        on_progress_callback: Optional[OnDownloadCallback] = None,
+        on_converting_callback: Optional[OnDownloadCallback] = None,
+        on_finish_callback: Optional[OnDownloadCallback] = None,
     ):
         """
         Simulating download process
         """
         file_path = self.media_path / f"{download.media_id}.{download.media_format}"
         file_path.touch()
+        download.file_path = file_path
+        if on_finish_callback is not None:
+            asyncio.run(on_finish_callback(self.datasource, self.event_queue, download))
         return 0
 
 
@@ -131,17 +138,15 @@ class PytubeDownloader(IDownloader):
     def download(
         self,
         download: Download,
-        progress_hook: Optional[OnDownloadProgressCallback] = None,
+        on_progress_cllback: Optional[OnDownloadCallback] = None,
+        on_converting_callback: Optional[OnDownloadCallback] = None,
+        on_finish_callback: Optional[OnDownloadCallback] = None,
     ):
         kwargs = {}
-        if progress_hook is not None:
+        if on_progress_cllback is not None:
             on_progress_callback = asyncio.coroutine(
                 partial(
-                    progress_hook,
-                    self.datasource,
-                    self.event_queue,
-                    download.client_id,
-                    download.media_id,
+                    on_progress_cllback, self.datasource, self.event_queue, download
                 )
             )
             kwargs[
@@ -171,9 +176,10 @@ class PytubeDownloader(IDownloader):
         converted_file_path = (
             self.media_path / f"{download.media_id}.{download.media_format}"
         )
-        asyncio.run(
-            on_ffmpeg_start_converting(self.datasource, self.event_queue, download)
-        )
+        if on_converting_callback is not None:
+            asyncio.run(
+                on_converting_callback(self.datasource, self.event_queue, download)
+            )
         out, err = (
             ffmpeg.concat(
                 ffmpeg.input(downloaded_streams_file_paths["video"].as_posix()),
@@ -186,9 +192,8 @@ class PytubeDownloader(IDownloader):
             .run(capture_stdout=True, capture_stderr=True)
         )
         download.file_path = converted_file_path
-        asyncio.run(
-            on_ffmpeg_complete_callback(self.datasource, self.event_queue, download)
-        )
+        if on_finish_callback is not None:
+            asyncio.run(on_finish_callback(self.datasource, self.event_queue, download))
         # Cleaning downloaded streams
         for stream_path in downloaded_streams_file_paths.values():
             Path(stream_path).unlink()

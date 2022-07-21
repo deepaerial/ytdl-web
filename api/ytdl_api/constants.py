@@ -2,7 +2,7 @@ import re
 from enum import Enum
 
 
-class DownloaderTypes(str, Enum):
+class DownloaderType(str, Enum):
     PYTUBE = "pytube"
     MOCK = "mocked"
 
@@ -10,7 +10,7 @@ class DownloaderTypes(str, Enum):
         return self.value
 
 
-class ProgressStatusEnum(str, Enum):
+class DonwloadStatus(str, Enum):
     STARTED = "started"
     DOWNLOADING = "downloading"
     CONVERTING = "converting"

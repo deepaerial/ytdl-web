@@ -52,7 +52,7 @@ def test_submit_download(
     app_client: TestClient, uid: str, mock_download_params: DownloadParams
 ):
     response = app_client.put(
-        "/api/fetch", params={"uid": uid}, json=mock_download_params.dict()
+        "/api/download", params={"uid": uid}, json=mock_download_params.dict()
     )
     assert response.status_code == 201
     json_response = response.json()
@@ -62,3 +62,67 @@ def test_submit_download(
         for download in json_response["downloads"]
         if download["url"] == mock_download_params.url
     )
+
+
+def test_download_file_endpoint(
+    app_client: TestClient, mocked_downloaded_media: Download
+):
+    response = app_client.get(
+        "/api/download",
+        params={
+            "uid": mocked_downloaded_media.client_id,
+            "media_id": mocked_downloaded_media.media_id,
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/octet-stream"
+
+
+def test_download_file_but_non_exisiting_media_id(
+    app_client: TestClient, mocked_downloaded_media: Download
+):
+    response = app_client.get(
+        "/api/download",
+        params={"uid": mocked_downloaded_media.client_id, "media_id": "*****",},
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Download not found"
+
+
+def test_download_file_but_non_existing_client_id(
+    app_client: TestClient, mocked_downloaded_media: Download
+):
+    response = app_client.get(
+        "/api/download",
+        params={"uid": "******", "media_id": mocked_downloaded_media.media_id,},
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Download not found"
+
+
+def test_download_file_but_download_not_finished(
+    app_client: TestClient, mock_persisted_download: Download
+):
+    response = app_client.get(
+        "/api/download",
+        params={
+            "uid": mock_persisted_download.client_id,
+            "media_id": mock_persisted_download.media_id,
+        },
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "File not downloaded yet"
+
+
+def test_download_file_but_no_file_present(
+    app_client: TestClient, mock_persisted_download_with_finished_status: Download
+):
+    response = app_client.get(
+        "/api/download",
+        params={
+            "uid": mock_persisted_download_with_finished_status.client_id,
+            "media_id": mock_persisted_download_with_finished_status.media_id,
+        },
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Downloaded file not found"

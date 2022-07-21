@@ -2,7 +2,6 @@ import re
 import socket
 from http.client import RemoteDisconnected
 
-from fastapi import HTTPException
 from starlette.responses import JSONResponse
 from youtube_dl.utils import YoutubeDLError
 
@@ -44,5 +43,3 @@ ERROR_HANDLERS = (
     (socket.timeout, on_socket_timeout),
     (RuntimeError, on_runtimeerror),
 )
-
-DOWNLOAD_NOT_FOUND = HTTPException(status_code=404, detail="Download not found")
