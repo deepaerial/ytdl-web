@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ..constants import MediaFormat, DonwloadStatus
+from ..constants import DonwloadStatus, MediaFormat
 from ..types import VideoURL
 from .models import AudioStream, Download, VideoStream
 

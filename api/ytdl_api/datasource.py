@@ -6,7 +6,7 @@ from collections import defaultdict
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
 
-from .constants import MediaFormat, DonwloadStatus
+from .constants import DonwloadStatus, MediaFormat
 from .schemas.models import Download, DownloadProgress
 
 
@@ -117,8 +117,7 @@ class InMemoryDB(IDataSource):
         downloads = list(itertools.chain.from_iterable(self.storage.values()))
         return next(
             filter(
-                lambda d: d.video_url == url and d.media_format == media_format,
-                downloads,
+                lambda d: d.url == url and d.media_format == media_format, downloads,
             ),
             None,
         )

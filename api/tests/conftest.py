@@ -1,22 +1,22 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterable
+from typing import Generator, Iterable
 
 import pytest
 from confz import ConfZDataSource
 from fastapi.testclient import TestClient
-from ytdl_api.callbacks import on_finish_callback
 
+from ytdl_api.callbacks import on_finish_callback
 from ytdl_api.config import Settings
-from ytdl_api.constants import MediaFormat, DonwloadStatus
+from ytdl_api.constants import DonwloadStatus, MediaFormat
+from ytdl_api.converters import create_download_from_download_params
 from ytdl_api.datasource import IDataSource, InMemoryDB
-from ytdl_api.downloaders import IDownloader, MockDownloader
 from ytdl_api.dependencies import get_settings
+from ytdl_api.downloaders import IDownloader, MockDownloader
 from ytdl_api.queue import NotificationQueue
 from ytdl_api.schemas.models import Download
 from ytdl_api.schemas.requests import DownloadParams
 from ytdl_api.utils import get_unique_id
-from ytdl_api.converters import create_download_from_download_params
 
 
 @pytest.fixture()
@@ -70,9 +70,19 @@ def mock_download(uid: str) -> Download:
 
 
 @pytest.fixture()
+def mock_download_params(mock_url: str) -> DownloadParams:
+    return DownloadParams(
+        url=mock_url,
+        video_stream_id="fake_video_stream_id",
+        audio_stream_id="fake_audio_stream_id",
+        media_format=MediaFormat.MP4,
+    )
+
+
+@pytest.fixture()
 def mock_persisted_download(
     mock_download: Download, mock_datasource: IDataSource,
-):
+) -> Generator[Download, None, None]:
     mock_datasource.put_download(mock_download)
     yield mock_download
 
@@ -84,16 +94,6 @@ def mock_persisted_download_with_finished_status(
     mock_persisted_download.status = DonwloadStatus.FINISHED
     mock_datasource.put_download(mock_persisted_download)
     yield mock_persisted_download
-
-
-@pytest.fixture()
-def mock_download_params(mock_url: str) -> DownloadParams:
-    return DownloadParams(
-        url=mock_url,
-        video_stream_id="fake_video_stream_id",
-        audio_stream_id="fake_audio_stream_id",
-        media_format=MediaFormat.MP4,
-    )
 
 
 @pytest.fixture()

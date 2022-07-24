@@ -1,19 +1,19 @@
 import asyncio
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic.networks import AnyHttpUrl
 from sse_starlette.sse import EventSourceResponse
 from starlette import status
 
 from . import config, datasource, dependencies
+from .callbacks import on_finish_callback, on_start_converting
+from .constants import DonwloadStatus
 from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
 from .schemas import requests, responses
-from .constants import DonwloadStatus
 from .types import OnDownloadCallback
-from .callbacks import on_start_converting, on_finish_callback
 
 router = APIRouter(tags=["base"])
 
@@ -136,7 +136,7 @@ async def download_file(
         )
     if media_file.file_path is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
         )
     media_file.status = DonwloadStatus.DOWNLOADED
     datasource.put_download(media_file)
@@ -171,33 +171,50 @@ async def fetch_stream(
     return EventSourceResponse(_stream())
 
 
-# @router.delete(
-#     "/delete",
-#     response_model=schemas.DeleteResponse,
-#     status_code=200,
-#     responses={
-#         404: {
-#             "content": {"application/json": {}},
-#             "model": schemas.ErrorResponse,
-#             "description": "Download not found",
-#             "example": {"detail": "Download not found"},
-#         },
-#         500: {"model": schemas.ErrorResponse},
-#     },
-# )
-# async def delete_media(
-#     uid: str,
-#     media_id: str,
-#     datasource: datasource.IDataSource = Depends(dependencies.get_database),
-# ):
-#     """
-#     Endpoint for deleting downloaded media.
-#     """
-#     media_file = datasource.get_download(uid, media_id)
-#     if not media_file:
-#         raise DOWNLOAD_NOT_FOUND
-#     if media_file._file_path.exists():
-#         media_file._file_path.unlink()
-#     media_file.status = schemas.ProgressStatusEnum.DELETED
-#     datasource.update_download(uid, media_file)
-#     return {"media_id": media_file.media_id, "status": media_file.status}
+@router.delete(
+    "/delete",
+    response_model=responses.DeleteResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_404_NOT_FOUND: {
+            "content": {"application/json": {}},
+            "model": responses.ErrorResponse,
+            "description": "Download not found",
+            "example": {"detail": "Download not found"},
+        },
+        status.HTTP_400_BAD_REQUEST: {
+            "content": {"application/json": {}},
+            "model": responses.ErrorResponse,
+            "description": "Media is not downloaded",
+            "example": {"detail": "Media is not downloaded"},
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse},
+    },
+)
+async def delete_download(
+    uid: str,
+    media_id: str,
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for deleting downloaded media.
+    """
+    media_file = datasource.get_download(uid, media_id)
+    if media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
+    if media_file.status != DonwloadStatus.FINISHED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Media file is not downloaded yet",
+        )
+    if media_file.file_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
+        )
+    if media_file.file_path.exists():
+        media_file.file_path.unlink()
+    media_file.status = DonwloadStatus.DELETED
+    datasource.update_download(media_file)
+    return {"media_id": media_file.media_id, "status": media_file.status}

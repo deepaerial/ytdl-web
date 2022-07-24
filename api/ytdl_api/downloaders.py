@@ -7,7 +7,6 @@ from typing import Dict, Literal, Optional
 import ffmpeg
 from pytube import StreamQuery, YouTube
 
-from ytdl_api.callbacks import on_finish_callback, on_start_converting
 from ytdl_api.types import OnDownloadCallback, VideoURL
 
 from .datasource import IDataSource

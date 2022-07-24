@@ -125,4 +125,56 @@ def test_download_file_but_no_file_present(
         },
     )
     assert response.status_code == 404
-    assert response.json()["detail"] == "Downloaded file not found"
+    assert response.json()["detail"] == "Downloaded file is not found"
+
+
+def test_delete_non_existing_download(app_client: TestClient):
+    response = app_client.delete("/api/delete", params={"uid": -1, "media_id": -1})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Download not found"
+
+
+def test_delete_existing_unfinished_download(
+    app_client: TestClient, mock_persisted_download: Download
+):
+    response = app_client.delete(
+        "/api/delete",
+        params={
+            "uid": mock_persisted_download.client_id,
+            "media_id": mock_persisted_download.media_id,
+        },
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Media file is not downloaded yet"
+
+
+def test_delete_existing_download_with_finished_status_but_no_file(
+    app_client: TestClient, mock_persisted_download_with_finished_status: Download
+):
+    response = app_client.delete(
+        "/api/delete",
+        params={
+            "uid": mock_persisted_download_with_finished_status.client_id,
+            "media_id": mock_persisted_download_with_finished_status.media_id,
+        },
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Downloaded file is not found"
+
+
+def test_delete_existing_downloaded_file(
+    app_client: TestClient, mocked_downloaded_media: Download
+):
+    response = app_client.delete(
+        "/api/delete",
+        params={
+            "uid": mocked_downloaded_media.client_id,
+            "media_id": mocked_downloaded_media.media_id,
+        },
+    )
+    assert response.status_code == 200
+    json_response = response.json()
+    assert "media_id" in json_response
+    assert json_response["media_id"] == mocked_downloaded_media.media_id
+    assert "status" in json_response
+    assert json_response["status"] == "deleted"

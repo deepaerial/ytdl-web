@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, Field
 
-from ..constants import MediaFormat, DonwloadStatus
+from ..constants import DonwloadStatus, MediaFormat
 from ..types import VideoURL
 from ..utils import get_unique_id
 

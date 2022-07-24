@@ -1,4 +1,5 @@
 import random
+from typing import Generator
 from pathlib import Path
 
 import pytest
@@ -53,7 +54,7 @@ def mock_persisted_download(
     mock_download_params: DownloadParams,
     mock_datasource: IDataSource,
     pytube_downloader: IDownloader,
-) -> Download:
+) -> Generator[Download, None, None]:
     mock_download = create_download_from_download_params(
         uid, mock_download_params, pytube_downloader
     )
