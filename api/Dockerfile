@@ -39,4 +39,4 @@ RUN pip install debugpy
 CMD ["pytest", "--cov-report", "html"]
 ############ Prod ###################
 FROM base as prod
-CMD ["uvicorn", "ytdl_api.asgi:app", "--host", "0.0.0.0", "--port", "80", "--log-level", "error"]
+CMD ["uvicorn", "ytdl_api.asgi:app", "--host", "0.0.0.0", "--port", "80"]

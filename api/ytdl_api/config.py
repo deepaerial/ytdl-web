@@ -1,4 +1,5 @@
 import abc
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Union
 
@@ -110,6 +111,12 @@ class Settings(ConfZ):
     CONFIG_SOURCES = ConfZEnvSource(
         allow_all=True, deny=["title", "description", "version"], nested_separator="__"
     )
+
+    @validator("allow_origins", pre=True)
+    def validate_allow_origins(cls, value):
+        if isinstance(value, str):
+            return json.loads(value)
+        return value
 
     def init_app(__pydantic_self__) -> FastAPI:
         """
