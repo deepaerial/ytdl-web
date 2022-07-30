@@ -15,11 +15,17 @@ from .queue import NotificationQueue
 from .schemas import requests, responses
 from .types import OnDownloadCallback
 
-router = APIRouter(tags=["base"], dependencies=[Depends(dependencies.get_uid)])
+router = APIRouter(tags=["base"])
+
+get_uid = dependencies.get_uid_dependency_factory()
+get_uid_or_403 = dependencies.get_uid_dependency_factory(raise_error_on_empty=True)
 
 
 @router.get(
-    "/version", response_model=responses.VersionResponse, status_code=status.HTTP_200_OK
+    "/version",
+    response_model=responses.VersionResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(get_uid)],
 )
 async def get_api_version(
     settings: config.Settings = Depends(dependencies.get_settings),
@@ -41,7 +47,7 @@ async def get_api_version(
     },
 )
 async def get_downloads(
-    uid: str = Depends(dependencies.get_uid),
+    uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
@@ -82,7 +88,7 @@ async def preview(
 async def submit_download(
     download_params: requests.DownloadParams,
     background_tasks: BackgroundTasks,
-    uid: str = Depends(dependencies.get_uid),
+    uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
     downloader: IDownloader = Depends(dependencies.get_downloader),
     progress_hook: OnDownloadCallback = Depends(dependencies.get_on_progress_hook),
@@ -121,7 +127,7 @@ async def submit_download(
 )
 async def download_file(
     media_id: str,
-    uid: str = Depends(dependencies.get_uid),
+    uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
@@ -152,7 +158,7 @@ async def download_file(
 @router.get("/download/stream", response_class=EventSourceResponse)
 async def fetch_stream(
     request: Request,
-    uid: str = Depends(dependencies.get_uid),
+    uid: str = Depends(get_uid_or_403),
     event_queue: NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
@@ -195,7 +201,7 @@ async def fetch_stream(
 )
 async def delete_download(
     media_id: str,
-    uid: str = Depends(dependencies.get_uid),
+    uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """

@@ -7,7 +7,7 @@ import pkg_resources
 from confz import ConfZ, ConfZEnvSource
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import SecretStr, validator
+from pydantic import validator
 from starlette.middleware import Middleware
 
 from .constants import DownloaderType
@@ -103,6 +103,9 @@ class Settings(ConfZ):
     version: str = pkg_resources.get_distribution("ytdl-api").version
     disable_docs: bool = False
     allow_origins: List[str]
+    cookie_samesite: str = "None"
+    cookie_secure: bool = True
+    cookie_httponly: bool = True
 
     downloader: DownloaderType
     media_path: Path = MEDIA_PATH

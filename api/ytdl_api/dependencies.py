@@ -2,9 +2,10 @@ from functools import lru_cache
 import secrets
 from typing import Optional
 
-from fastapi import Cookie, Depends, Response
+from starlette import status
+from fastapi import Cookie, Depends, HTTPException, Response
 from fastapi.exceptions import RequestValidationError
-from pydantic import SecretStr, ValidationError
+from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
 from ytdl_api.types import OnDownloadCallback
@@ -72,11 +73,32 @@ def validate_download_params(
         raise RequestValidationError(validation_error.raw_errors)
 
 
-def get_uid(response: Response, uid: Optional[str] = Cookie(None)):
+def get_uid_dependency_factory(raise_error_on_empty: bool = False):
     """
-    Dependency for fetchng user ID from cookie or setting it in cookie if absent.
+    Factory function fore returning dependency that fetches client ID.
     """
-    if uid is None:
-        uid = secrets.token_hex(16)
-        response.set_cookie(key="uid", value=uid)
-    return uid
+
+    def get_uid(
+        response: Response,
+        uid: Optional[str] = Cookie(None),
+        settings: Settings = Depends(get_settings),
+    ):
+        """
+        Dependency for fetchng user ID from cookie or setting it in cookie if absent.
+        """
+        if uid is None and raise_error_on_empty:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="No cookie provided :("
+            )
+        elif uid is None and not raise_error_on_empty:
+            uid = secrets.token_hex(16)
+            response.set_cookie(
+                key="uid",
+                value=uid,
+                samesite=settings.cookie_samesite,
+                secure=settings.cookie_secure,
+                httponly=settings.cookie_httponly,
+            )
+        return uid
+
+    return get_uid

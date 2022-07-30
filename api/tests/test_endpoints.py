@@ -85,9 +85,9 @@ def test_download_file_but_non_exisiting_media_id(
     response = app_client.get(
         "/api/download",
         params={
-            "uid": mocked_downloaded_media.client_id,
             "media_id": "*****",
         },
+        cookies={"uid": mocked_downloaded_media.client_id},
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Download not found"
@@ -132,7 +132,9 @@ def test_download_file_but_no_file_present(
 
 
 def test_delete_non_existing_download(app_client: TestClient):
-    response = app_client.delete("/api/delete", params={"uid": -1, "media_id": -1})
+    response = app_client.delete(
+        "/api/delete", params={"media_id": -1}, cookies={"uid": "-1"}
+    )
     assert response.status_code == 404
     assert response.json()["detail"] == "Download not found"
 
