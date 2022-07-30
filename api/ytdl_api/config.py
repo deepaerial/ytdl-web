@@ -7,7 +7,7 @@ import pkg_resources
 from confz import ConfZ, ConfZEnvSource
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import validator
+from pydantic import SecretStr, validator
 from starlette.middleware import Middleware
 
 from .constants import DownloaderType
@@ -102,6 +102,7 @@ class Settings(ConfZ):
     description: str = "API for YTDL backend server."
     version: str = pkg_resources.get_distribution("ytdl-api").version
     disable_docs: bool = False
+    secret_key: SecretStr
     allow_origins: List[str]
 
     downloader: DownloaderType

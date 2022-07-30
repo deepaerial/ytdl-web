@@ -21,7 +21,8 @@ class DownloadParams(BaseModel):
         None, description="Audio stream ID", example="118"
     )
     media_format: MediaFormat = Field(
-        ..., description="Video or audio (when extracting) format of file",
+        ...,
+        description="Video or audio (when extracting) format of file",
     )
 
     class Config:

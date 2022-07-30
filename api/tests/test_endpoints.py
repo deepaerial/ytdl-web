@@ -83,7 +83,10 @@ def test_download_file_but_non_exisiting_media_id(
 ):
     response = app_client.get(
         "/api/download",
-        params={"uid": mocked_downloaded_media.client_id, "media_id": "*****",},
+        params={
+            "uid": mocked_downloaded_media.client_id,
+            "media_id": "*****",
+        },
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Download not found"
@@ -94,7 +97,10 @@ def test_download_file_but_non_existing_client_id(
 ):
     response = app_client.get(
         "/api/download",
-        params={"uid": "******", "media_id": mocked_downloaded_media.media_id,},
+        params={
+            "uid": "******",
+            "media_id": mocked_downloaded_media.media_id,
+        },
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Download not found"

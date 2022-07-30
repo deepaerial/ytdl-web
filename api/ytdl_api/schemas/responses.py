@@ -14,7 +14,8 @@ class ErrorResponse(BaseModel):
 
 class DownloadsResponse(BaseModel):
     downloads: List[Download] = Field(
-        ..., description="List of pending and finished downloads",
+        ...,
+        description="List of pending and finished downloads",
     )
 
 

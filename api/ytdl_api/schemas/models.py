@@ -39,7 +39,8 @@ class Download(BaseModel):
         None, description="Audio stream ID (downloaded)"
     )
     media_format: MediaFormat = Field(
-        None, description="Video or audio (when extracting) format of file",
+        None,
+        description="Video or audio (when extracting) format of file",
     )
     duration: int = Field(..., description="Video duration (in milliseconds)")
     filesize: int = Field(None, description="Video/audio filesize (in bytes)")

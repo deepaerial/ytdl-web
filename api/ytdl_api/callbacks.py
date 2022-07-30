@@ -32,7 +32,9 @@ async def on_pytube_progress_callback(
 
 
 async def on_start_converting(
-    datasource: IDataSource, queue: NotificationQueue, download: Download,
+    datasource: IDataSource,
+    queue: NotificationQueue,
+    download: Download,
 ):
     """
     Callback called once ffmpeg media format converting process is initiated.
@@ -51,7 +53,9 @@ async def on_start_converting(
 
 
 async def on_finish_callback(
-    datasource: IDataSource, queue: NotificationQueue, download: Download,
+    datasource: IDataSource,
+    queue: NotificationQueue,
+    download: Download,
 ):
     """
     Callback which is executed once ffmpeg finished converting files.

@@ -41,7 +41,8 @@ async def get_api_version(
     },
 )
 async def get_downloads(
-    uid: str, datasource: datasource.IDataSource = Depends(dependencies.get_database),
+    uid: str,
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     Endpoint for fetching list of downloaded videos for current client/user.
@@ -59,7 +60,8 @@ async def get_downloads(
     },
 )
 async def preview(
-    url: AnyHttpUrl, downloader: IDownloader = Depends(dependencies.get_downloader),
+    url: AnyHttpUrl,
+    downloader: IDownloader = Depends(dependencies.get_downloader),
 ):
     """
     Endpoint for getting info about video.

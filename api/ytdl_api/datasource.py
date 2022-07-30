@@ -91,7 +91,8 @@ class InMemoryDB(IDataSource):
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
         return next(
-            filter(lambda d: d.media_id == media_id, self.storage[client_id]), None,
+            filter(lambda d: d.media_id == media_id, self.storage[client_id]),
+            None,
         )
 
     def update_download(self, download: Download):
@@ -117,7 +118,8 @@ class InMemoryDB(IDataSource):
         downloads = list(itertools.chain.from_iterable(self.storage.values()))
         return next(
             filter(
-                lambda d: d.url == url and d.media_format == media_format, downloads,
+                lambda d: d.url == url and d.media_format == media_format,
+                downloads,
             ),
             None,
         )

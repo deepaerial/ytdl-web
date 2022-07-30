@@ -81,7 +81,8 @@ def mock_download_params(mock_url: str) -> DownloadParams:
 
 @pytest.fixture()
 def mock_persisted_download(
-    mock_download: Download, mock_datasource: IDataSource,
+    mock_download: Download,
+    mock_datasource: IDataSource,
 ) -> Generator[Download, None, None]:
     mock_datasource.put_download(mock_download)
     yield mock_download
@@ -89,7 +90,8 @@ def mock_persisted_download(
 
 @pytest.fixture()
 def mock_persisted_download_with_finished_status(
-    mock_persisted_download: Download, mock_datasource: IDataSource,
+    mock_persisted_download: Download,
+    mock_datasource: IDataSource,
 ):
     mock_persisted_download.status = DonwloadStatus.FINISHED
     mock_datasource.put_download(mock_persisted_download)
