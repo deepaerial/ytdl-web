@@ -54,8 +54,7 @@ ffmpeg-python = "^0.2.0"
 confz = "^1.6.1"
 
 [tool.poetry.dev-dependencies]
-black = "^19.10b0"
-devtools = "^0.5.1"
+black = "*"
 isort = "^5.10.1"
 pytest = "*"
 flake8 = "^3.7.9"
