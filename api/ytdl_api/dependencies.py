@@ -1,8 +1,10 @@
 from functools import lru_cache
+import secrets
+from typing import Optional
 
-from fastapi import Depends
+from fastapi import Cookie, Depends, Response
 from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
+from pydantic import SecretStr, ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
 from ytdl_api.types import OnDownloadCallback
@@ -52,7 +54,8 @@ def get_on_progress_hook(
 
 
 def validate_download_params(
-    download_params: DownloadParams, settings: Settings = Depends(get_settings),
+    download_params: DownloadParams,
+    settings: Settings = Depends(get_settings),
 ):
     try:
         if settings.downloader == DownloaderType.PYTUBE:
@@ -67,3 +70,13 @@ def validate_download_params(
             [ErrorWrapper(e, loc="__root__")], download_params.__class__
         )
         raise RequestValidationError(validation_error.raw_errors)
+
+
+def get_uid(response: Response, uid: Optional[str] = Cookie(None)):
+    """
+    Dependency for fetchng user ID from cookie or setting it in cookie if absent.
+    """
+    if uid is None:
+        uid = secrets.token_hex(16)
+        response.set_cookie(key="uid", value=uid)
+    return uid

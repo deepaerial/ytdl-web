@@ -102,7 +102,6 @@ class Settings(ConfZ):
     description: str = "API for YTDL backend server."
     version: str = pkg_resources.get_distribution("ytdl-api").version
     disable_docs: bool = False
-    secret_key: SecretStr
     allow_origins: List[str]
 
     downloader: DownloaderType

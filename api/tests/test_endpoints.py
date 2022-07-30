@@ -1,3 +1,4 @@
+from plistlib import UID
 import pkg_resources
 from fastapi.testclient import TestClient
 
@@ -20,7 +21,7 @@ def test_version_endpoint(app_client: TestClient):
 def test_get_downloads(
     uid: str, app_client: TestClient, mock_persisted_download: Download
 ):
-    response = app_client.get("/api/downloads", params={"uid": uid})
+    response = app_client.get("/api/downloads", cookies={"uid": uid})
     assert response.status_code == 200
     json_response = response.json()
     assert "downloads" in json_response
@@ -52,7 +53,7 @@ def test_submit_download(
     app_client: TestClient, uid: str, mock_download_params: DownloadParams
 ):
     response = app_client.put(
-        "/api/download", params={"uid": uid}, json=mock_download_params.dict()
+        "/api/download", cookies={"uid": uid}, json=mock_download_params.dict()
     )
     assert response.status_code == 201
     json_response = response.json()
@@ -70,9 +71,9 @@ def test_download_file_endpoint(
     response = app_client.get(
         "/api/download",
         params={
-            "uid": mocked_downloaded_media.client_id,
             "media_id": mocked_downloaded_media.media_id,
         },
+        cookies={"uid": mocked_downloaded_media.client_id},
     )
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/octet-stream"
@@ -97,10 +98,8 @@ def test_download_file_but_non_existing_client_id(
 ):
     response = app_client.get(
         "/api/download",
-        params={
-            "uid": "******",
-            "media_id": mocked_downloaded_media.media_id,
-        },
+        params={"media_id": mocked_downloaded_media.media_id},
+        cookies={"uid": "******"},
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Download not found"
@@ -112,9 +111,9 @@ def test_download_file_but_download_not_finished(
     response = app_client.get(
         "/api/download",
         params={
-            "uid": mock_persisted_download.client_id,
             "media_id": mock_persisted_download.media_id,
         },
+        cookies={"uid": mock_persisted_download.client_id},
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "File not downloaded yet"
@@ -125,10 +124,8 @@ def test_download_file_but_no_file_present(
 ):
     response = app_client.get(
         "/api/download",
-        params={
-            "uid": mock_persisted_download_with_finished_status.client_id,
-            "media_id": mock_persisted_download_with_finished_status.media_id,
-        },
+        params={"media_id": mock_persisted_download_with_finished_status.media_id},
+        cookies={"uid": mock_persisted_download_with_finished_status.client_id},
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Downloaded file is not found"
@@ -146,9 +143,9 @@ def test_delete_existing_unfinished_download(
     response = app_client.delete(
         "/api/delete",
         params={
-            "uid": mock_persisted_download.client_id,
             "media_id": mock_persisted_download.media_id,
         },
+        cookies={"uid": mock_persisted_download.client_id},
     )
     assert response.status_code == 400
     assert response.json()["detail"] == "Media file is not downloaded yet"
@@ -159,10 +156,8 @@ def test_delete_existing_download_with_finished_status_but_no_file(
 ):
     response = app_client.delete(
         "/api/delete",
-        params={
-            "uid": mock_persisted_download_with_finished_status.client_id,
-            "media_id": mock_persisted_download_with_finished_status.media_id,
-        },
+        params={"media_id": mock_persisted_download_with_finished_status.media_id},
+        cookies={"uid": mock_persisted_download_with_finished_status.client_id},
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Downloaded file is not found"
@@ -173,10 +168,8 @@ def test_delete_existing_downloaded_file(
 ):
     response = app_client.delete(
         "/api/delete",
-        params={
-            "uid": mocked_downloaded_media.client_id,
-            "media_id": mocked_downloaded_media.media_id,
-        },
+        params={"media_id": mocked_downloaded_media.media_id},
+        cookies={"uid": mocked_downloaded_media.client_id},
     )
     assert response.status_code == 200
     json_response = response.json()

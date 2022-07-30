@@ -15,7 +15,7 @@ from .queue import NotificationQueue
 from .schemas import requests, responses
 from .types import OnDownloadCallback
 
-router = APIRouter(tags=["base"])
+router = APIRouter(tags=["base"], dependencies=[Depends(dependencies.get_uid)])
 
 
 @router.get(
@@ -41,7 +41,7 @@ async def get_api_version(
     },
 )
 async def get_downloads(
-    uid: str,
+    uid: str = Depends(dependencies.get_uid),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
@@ -80,9 +80,9 @@ async def preview(
     },
 )
 async def submit_download(
-    uid: str,
     download_params: requests.DownloadParams,
     background_tasks: BackgroundTasks,
+    uid: str = Depends(dependencies.get_uid),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
     downloader: IDownloader = Depends(dependencies.get_downloader),
     progress_hook: OnDownloadCallback = Depends(dependencies.get_on_progress_hook),
@@ -120,8 +120,8 @@ async def submit_download(
     },
 )
 async def download_file(
-    uid: str,
     media_id: str,
+    uid: str = Depends(dependencies.get_uid),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
@@ -151,8 +151,8 @@ async def download_file(
 
 @router.get("/download/stream", response_class=EventSourceResponse)
 async def fetch_stream(
-    uid: str,
     request: Request,
+    uid: str = Depends(dependencies.get_uid),
     event_queue: NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
@@ -194,8 +194,8 @@ async def fetch_stream(
     },
 )
 async def delete_download(
-    uid: str,
     media_id: str,
+    uid: str = Depends(dependencies.get_uid),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
