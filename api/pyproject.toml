@@ -52,6 +52,7 @@ deta = "^0.7"
 pytube = "*"
 ffmpeg-python = "^0.2.0"
 confz = "^1.6.1"
+pyhumps = "^3.7.2"
 
 [tool.poetry.dev-dependencies]
 black = "*"

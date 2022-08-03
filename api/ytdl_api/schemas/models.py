@@ -1,14 +1,15 @@
 from pathlib import Path
 from typing import List, Optional, Union
 
-from pydantic import AnyHttpUrl, BaseModel, Field
+from pydantic import AnyHttpUrl, Field
 
+from .base import BaseModel_
 from ..constants import DonwloadStatus, MediaFormat
 from ..types import VideoURL
 from ..utils import get_unique_id
 
 
-class BaseStream(BaseModel):
+class BaseStream(BaseModel_):
     id: str = Field(..., description="Stream ID", example="123")
     mimetype: str = Field(..., description="Stream mime-type", example="audio/webm")
 
@@ -21,7 +22,7 @@ class AudioStream(BaseStream):
     bitrate: str = Field(..., description="Audio average bitrate", example="160kbps")
 
 
-class Download(BaseModel):
+class Download(BaseModel_):
     client_id: str = Field(..., description="Client ID")
     media_id: str = Field(description="Download id", default_factory=get_unique_id)
     title: str = Field(..., description="Video title")
@@ -59,7 +60,7 @@ class Download(BaseModel):
         return f"{self.title}.{self.media_format}"
 
 
-class DownloadProgress(BaseModel):
+class DownloadProgress(BaseModel_):
     client_id: str = Field(..., description="Id of client")
     media_id: str = Field(..., description="Id of downloaded media")
     status: DonwloadStatus = Field(

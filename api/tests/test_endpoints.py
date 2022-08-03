@@ -1,4 +1,3 @@
-from plistlib import UID
 import pkg_resources
 from fastapi.testclient import TestClient
 
@@ -13,9 +12,9 @@ def test_version_endpoint(app_client: TestClient):
     response = app_client.get("/api/version")
     json_response = response.json()
     assert response.status_code == 200
-    assert "api_version" in json_response
+    assert "apiVersion" in json_response
     expected_api_version = pkg_resources.get_distribution("ytdl_api").version
-    assert json_response["api_version"] == expected_api_version
+    assert json_response["apiVersion"] == expected_api_version
 
 
 def test_get_downloads(
@@ -28,7 +27,7 @@ def test_get_downloads(
     assert len(json_response) == 1
     assert json_response["downloads"][0]["title"] == mock_persisted_download.title
     assert json_response["downloads"][0]["url"] == mock_persisted_download.url
-    assert json_response["downloads"][0]["media_id"] == mock_persisted_download.media_id
+    assert json_response["downloads"][0]["mediaId"] == mock_persisted_download.media_id
 
 
 def test_get_preview(app_client: TestClient, mock_url: str):
@@ -40,11 +39,11 @@ def test_get_preview(app_client: TestClient, mock_url: str):
         for field in [
             "url",
             "title",
-            "thumbnail_url",
+            "thumbnailUrl",
             "duration",
-            "media_formats",
-            "audio_streams",
-            "video_streams",
+            "mediaFormats",
+            "audioStreams",
+            "videoStreams",
         ]
     )
 
@@ -175,7 +174,7 @@ def test_delete_existing_downloaded_file(
     )
     assert response.status_code == 200
     json_response = response.json()
-    assert "media_id" in json_response
-    assert json_response["media_id"] == mocked_downloaded_media.media_id
+    assert "mediaId" in json_response
+    assert json_response["mediaId"] == mocked_downloaded_media.media_id
     assert "status" in json_response
     assert json_response["status"] == "deleted"

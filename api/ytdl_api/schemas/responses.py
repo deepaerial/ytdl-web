@@ -1,34 +1,35 @@
 from typing import List
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
+from .base import BaseModel_
 from ..constants import DonwloadStatus, MediaFormat
 from ..types import VideoURL
 from .models import AudioStream, Download, VideoStream
 
 
-class ErrorResponse(BaseModel):
+class ErrorResponse(BaseModel_):
     detail: str = Field(..., description="Message detail")
     code: str = Field(..., description="Custom error identifying code")
 
 
-class DownloadsResponse(BaseModel):
+class DownloadsResponse(BaseModel_):
     downloads: List[Download] = Field(
         ...,
         description="List of pending and finished downloads",
     )
 
 
-class VersionResponse(BaseModel):
+class VersionResponse(BaseModel_):
     api_version: str
 
 
-class DeleteResponse(BaseModel):
+class DeleteResponse(BaseModel_):
     media_id: str = Field(..., description="Id of downloaded media")
     status: DonwloadStatus = Field(..., description="Download status")
 
 
-class VideoInfoResponse(BaseModel):
+class VideoInfoResponse(BaseModel_):
     url: VideoURL = Field(..., title="URL", description="URL to video")
     title: str = Field(..., description="Video title")
     duration: int = Field(..., description="Video length in seconds")
