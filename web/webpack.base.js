@@ -51,6 +51,7 @@ module.exports = {
         new WorkboxPlugin.GenerateSW({
             clientsClaim: true,
             skipWaiting: true,
+            maximumFileSizeToCacheInBytes: 4194304,
             runtimeCaching: [{
                 // Match any request that ends with .png, .jpg, .jpeg or .svg.
                 urlPattern: /\.(?:png|jpg|jpeg|svg|js)$/,
