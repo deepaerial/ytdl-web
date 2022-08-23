@@ -33,9 +33,9 @@ const LoaderSpinner = styled.svg`
   }
 `;
 
-export default function Loader({ heightAndWidth }) {
+const Loader = ({ heightAndWidth }) => {
   return (
-    <LoaderSpinner size={heightAndWidth || 50} viewBox="0 0 50 50">
+    <LoaderSpinner size={heightAndWidth || 50} viewBox="0 0 50 50" >
       <circle
         className="path"
         cx="25"
@@ -44,6 +44,8 @@ export default function Loader({ heightAndWidth }) {
         fill="none"
         strokeWidth="2"
       />
-    </LoaderSpinner>
+    </LoaderSpinner >
   )
-}
+};
+
+export default Loader;

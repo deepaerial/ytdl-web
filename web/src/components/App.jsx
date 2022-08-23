@@ -10,15 +10,14 @@ import Header from './Header.jsx'
 import SearchBar from './SearchBar.jsx';
 
 import API from '../api';
-import { parametrizeUrl, mapDownloads } from '../utils';
-import { DOWNLOADS } from '../constants';
+import { parametrizeUrl } from '../utils';
 import DownloadsContext from '../context/DownloadsContext';
 import LoadingContext from '../context/LoadingContext.js';
-import DownloadsList from './DownloadsList.jsx';
 import Loader from './Loader.jsx';
 
 import "../../public/styles.css";
 import 'react-toastify/dist/ReactToastify.css';
+import Preview from './Preview.jsx';
 
 
 const Content = styled.div`
@@ -46,9 +45,12 @@ const App = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         return viewportWidth > 1024;
     };
-    const { isDesktop, setIsDesktop } = useState(checkIsDesktop());
-    const { isLoading, setIsLoading } = useState(false);
-    const { downloads, setDownloads } = useState({});
+    const [isDesktop, setIsDesktop] = useState(checkIsDesktop());
+    const [version, setVersion] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
+    const [downloads, setDownloads] = useState({});
+    const [preview, setPreview] = useState(null);
+    const loaderSize = 50;
 
     const onProgressUpdate = (download) => {
         const { media_id, status, progress } = download;
@@ -58,73 +60,54 @@ const App = () => {
                 status, progress
             });
             downloads[media_id] = downloadItem;
-            this.setDownloads(prevDownloads => {
+            setDownloads(prevDownloads => {
                 return { ...prevDownloads, ...downloads }
             });
         }
     };
     useEffect(() => {
-        window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
-        try {
-            setIsLoading(true);
-            const { api_version, media_options, uid, downloads } = await API.getClientInfo();
-            this.setState({ version: api_version, mediaOptions: media_options, downloads: mapDownloads(downloads) });
-            if (uid) {
-                const eventSource = new EventSource(parametrizeUrl(`${API_URL}/fetch/stream`, { uid }));
+        const onAppStart = async () => {
+            window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
+            try {
+                const { apiVersion } = await API.getApiVersion();
+                setVersion(apiVersion);
+                const eventSource = new EventSource(parametrizeUrl(`${API_URL}/download/stream`), { withCredentials: true });
                 eventSource.addEventListener("message", (event) => {
                     onProgressUpdate(JSON.parse(event.data));
                 });
                 eventSource.addEventListener("end", (event) => {
                     eventSource.close();
                 });
+            } catch (error) {
+                toast.error(error.message);
+                throw error;
+            } finally {
+                setIsLoading(false);
             }
-        } catch (error) {
-            toast.error(error.message);
-        } finally {
-            this.setIsLoading(false);
-        }
-    });
-
-    render() {
-        const { version, mediaOptions, isDesktop, isLoading } = this.state;
-        let downloads = this.state.downloads;
-        const { setDownloads, setIsLoading } = this;
-        if (!Object.keys(downloads).length) {
-            downloads = localStorage.getItem(DOWNLOADS);
-            if (downloads) downloads = JSON.parse(downloads);
-            else downloads = {}
-        }
-        const loaderSize = 50;
-        return (
-            <Content>
-                <ToastContainer
-                    position={isDesktop ? "top-right" : "top-center"}
-                    autoClose={3000}
-                    hideProgressBar={false}
-                    newestOnTop={true}
-                    transition={Slide}
-                    draggable
-                    pauseOnHover
-                />
-                {isLoading && <LoaderContainer size={loaderSize}><Loader heightAndWidth={loaderSize} /> </LoaderContainer>}
-                <Header version={version} />
-                <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
-                    <DownloadsContext.Provider value={{ downloads, setDownloads }}>
-                        <LoadingContext.Consumer>
-                            {({ setIsLoading }) => <React.Fragment>
-                                <DownloadsContext.Consumer>
-                                    {({ setDownloads }) => <React.Fragment>
-                                        <SearchBar mediaOptions={mediaOptions} isDesktop={isDesktop} setDownloads={setDownloads} setIsLoading={setIsLoading} />
-                                        <DownloadsList isDesktop={isDesktop} />
-                                    </React.Fragment>}
-                                </DownloadsContext.Consumer>
-                            </React.Fragment>}
-                        </LoadingContext.Consumer>
-                    </DownloadsContext.Provider>
-                </LoadingContext.Provider>
-            </Content>
-        )
-    }
+        };
+        onAppStart();
+    }, []);
+    return (
+        <Content>
+            <ToastContainer
+                position={isDesktop ? "top-right" : "top-center"}
+                autoClose={3000}
+                hideProgressBar={false}
+                newestOnTop={true}
+                transition={Slide}
+                draggable
+                pauseOnHover
+            />
+            {isLoading && <LoaderContainer size={loaderSize}><Loader heightAndWidth={loaderSize} /> </LoaderContainer>}
+            <Header version={version} />
+            <LoadingContext.Provider value={isLoading}>
+                <DownloadsContext.Provider value={downloads}>
+                    <SearchBar isDesktop={isDesktop} />
+                    {/* {preview && <Preview preview={preview} isDesktop={isDesktop} />} */}
+                </DownloadsContext.Provider>
+            </LoadingContext.Provider>
+        </Content >
+    );
 }
 
 library.add(faSearch, faDownload, faTrashAlt);

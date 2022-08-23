@@ -1,3 +1,4 @@
+import React from "react";
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
@@ -31,11 +32,7 @@ const Description = styled.p`
     margin-top: 10px;
 `;
 
-Header.propTypes = {
-    version: PropTypes.string.isRequired
-}
-
-export default function Header({ version }) {
+const Header = ({ version }) => {
     return (
         <header>
             <HeaderTitle>
@@ -46,5 +43,11 @@ export default function Header({ version }) {
         </header>
     )
 }
+
+Header.propTypes = {
+    version: PropTypes.string.isRequired
+}
+
+export default Header;
 
 

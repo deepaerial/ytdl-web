@@ -46,7 +46,7 @@ const ButtonWrapper = styled.button`
 `;
 
 
-export default function IconButton({ size, colorOnHover, icon, onClick }) {
+const IconButton = ({ size, colorOnHover, icon, onClick }) => {
     return (
         <ButtonWrapper onClick={async (event) => {
             const AsyncFunction = (async () => { }).constructor;
@@ -64,3 +64,5 @@ IconButton.propTypes = {
     icon: PropTypes.string,
     onClick: PropTypes.func
 }
+
+export default IconButton;
