@@ -26,6 +26,15 @@ class BaseDataSourceConfig(ConfZ, abc.ABC):
     def get_datasource(self) -> IDataSource:  # pragma: no cover
         raise NotImplementedError
 
+    # In order to avoid TypeError: unhashable type: 'Settings' when overidding
+    # dependencies.get_settings in tests.py __hash__ should be implemented
+    def __hash__(self):  # make hashable BaseModel subclass
+        attrs = tuple(
+            attr if not isinstance(attr, list) else ",".join(attr)
+            for attr in self.__dict__.values()
+        )
+        return hash((type(self),) + attrs)
+
 
 class InMemoryDataSourceConfig(BaseDataSourceConfig):
     """
@@ -36,15 +45,6 @@ class InMemoryDataSourceConfig(BaseDataSourceConfig):
 
     def get_datasource(self) -> IDataSource:
         return InMemoryDB()
-
-    # In order to avoid TypeError: unhashable type: 'Settings' when overidding
-    # dependencies.get_settings in tests.py __hash__ should be implemented
-    def __hash__(self):  # make hashable BaseModel subclass
-        attrs = tuple(
-            attr if not isinstance(attr, list) else ",".join(attr)
-            for attr in self.__dict__.values()
-        )
-        return hash((type(self),) + attrs)
 
 
 class DetaBaseDataSourceConfig(BaseDataSourceConfig):
