@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import styled from 'styled-components';
 import LoadingContext from '../context/LoadingContext.js';
 import PreviewContext from '../context/PreviewContext.js';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
 import API from '../api';
 
@@ -99,7 +99,7 @@ const SearchBar = (isDesktop) => {
 
     return (
         <SearchBarWrapper isDesktop={isDesktop}>
-            <FontAwesomeIcon icon="search" />
+            <SearchIcon />
             <SearchBarInput name='search' type="text" placeholder="https://www.youtube.com/watch?v=..." value={url} onChange={onChange} />
             <SearchBarButton onClick={onSearch}>Search</SearchBarButton>
         </SearchBarWrapper>

@@ -11,7 +11,6 @@ import { Statuses } from '../constants.js';
 
 import API from '../api';
 import { toast } from 'react-toastify';
-import LoadingContext from '../context/LoadingContext';
 
 const CardBox = styled.div`
     position: relative;
@@ -79,29 +78,23 @@ const LoaderContainer = styled.div`
     left: 8.9em;
     top: 3.9em;
 `;
-export default class MediaItem extends Component {
+const MediaItem ({ downloadItem, isDesktop }) => {
 
-    static contextType = LoadingContext;
+    const { media_id, title, thumbnail, video_url, duration, progress, status } = downloadItem;
 
-    static propTypes = {
-        downloadItem: PropTypes.object,
-        isDesktop: PropTypes.bool,
-        downloadsContext: PropTypes.object
-    }
-
-    downloadMedia = async (mediaId) => {
+    const downloadMedia = async (mediaId) => {
         const { setIsLoading } = this.context;
         setIsLoading(true);
         API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
     }
 
-    deleteMedia = async (mediaId) => {
+    const deleteMedia = async (mediaId) => {
         const { downloadsContext } = this.props;
         const { downloads, setDownloads } = downloadsContext;
         const { setIsLoading } = this.context;
         try {
             setIsLoading(true);
-            const {media_id, status} = await API.deleteMediaFile(mediaId);
+            const { media_id, status } = await API.deleteMediaFile(mediaId);
             if (status === Statuses.DELETED) {
                 delete downloads[media_id];
             }
@@ -114,28 +107,30 @@ export default class MediaItem extends Component {
         }
     }
 
-    render() {
-        const { downloadItem, isDesktop, downloadsContext } = this.props;
-        const { media_id, title, thumbnail, video_url, duration, progress, status } = downloadItem;
-        const { downloadMedia, deleteMedia } = this;
-        return (
-            <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
-                <Title><Url href={video_url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
-                {
-                    status === 'downloading' && <LoaderContainer>
-                        <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
-                            textColor: "#FFFFFF",
-                            trailColor: "rgb(214, 214, 214, 0.6)",
-                            pathColor: "#7953d2",
-                        })} />
-                    </LoaderContainer>
-                }
-                <Duration>{millisecToHumanReadable(duration)}</Duration>
-                <ButtonsBox>
-                    {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)}/>}
-                    {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, media_id)}/>}
-                </ButtonsBox>
-            </CardBox>
-        )
-    }
+    return (
+        <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
+            <Title><Url href={video_url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
+            {
+                status === 'downloading' && <LoaderContainer>
+                    <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
+                        textColor: "#FFFFFF",
+                        trailColor: "rgb(214, 214, 214, 0.6)",
+                        pathColor: "#7953d2",
+                    })} />
+                </LoaderContainer>
+            }
+            <Duration>{millisecToHumanReadable(duration)}</Duration>
+            <ButtonsBox>
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)} />}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, media_id)} />}
+            </ButtonsBox>
+        </CardBox>
+    )
 }
+
+MediaItem.propTypes = {
+    downloadItem: PropTypes.object,
+    isDesktop: PropTypes.bool
+}
+
+export default MediaItem;

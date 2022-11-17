@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 import styled from 'styled-components';
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faSearch, faDownload, faTrashAlt } from '@fortawesome/free-solid-svg-icons'
 import { toast, ToastContainer } from 'react-toastify';
 import { Slide } from 'react-toastify';
 
@@ -40,6 +38,77 @@ const LoaderContainer = styled.div`
     background-color: #ffffff;
 `;
 
+const FIXTURE = {
+    "url": "https://www.youtube.com/watch?v=dCCYALKSZEs",
+    "title": "This is a good intermediate react interview challenge",
+    "duration": 2309,
+    "thumbnailUrl": "https://i.ytimg.com/vi/dCCYALKSZEs/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGGUgZShlMA8=&rs=AOn4CLA0qWOH8BgIp9bRX5vYnOxDuSB6oQ",
+    "audioStreams": [
+        {
+            "id": "251",
+            "mimetype": "audio/webm",
+            "bitrate": "160kbps"
+        },
+        {
+            "id": "250",
+            "mimetype": "audio/webm",
+            "bitrate": "70kbps"
+        },
+        {
+            "id": "249",
+            "mimetype": "audio/webm",
+            "bitrate": "50kbps"
+        },
+        {
+            "id": "140",
+            "mimetype": "audio/mp4",
+            "bitrate": "128kbps"
+        },
+        {
+            "id": "139",
+            "mimetype": "audio/mp4",
+            "bitrate": "48kbps"
+        }
+    ],
+    "videoStreams": [
+        {
+            "id": "278",
+            "mimetype": "video/webm",
+            "resolution": "144p"
+        },
+        {
+            "id": "242",
+            "mimetype": "video/webm",
+            "resolution": "240p"
+        },
+        {
+            "id": "243",
+            "mimetype": "video/webm",
+            "resolution": "360p"
+        },
+        {
+            "id": "244",
+            "mimetype": "video/webm",
+            "resolution": "480p"
+        },
+        {
+            "id": "247",
+            "mimetype": "video/webm",
+            "resolution": "720p"
+        },
+        {
+            "id": "248",
+            "mimetype": "video/webm",
+            "resolution": "1080p"
+        }
+    ],
+    "mediaFormats": [
+        "mp4",
+        "mp3",
+        "wav"
+    ]
+}
+
 const App = () => {
     const checkIsDesktop = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
@@ -49,7 +118,7 @@ const App = () => {
     const [version, setVersion] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [downloads, setDownloads] = useState({});
-    const [preview, setPreview] = useState(null);
+    const [preview, setPreview] = useState(FIXTURE);
     const loaderSize = 50;
 
     const onProgressUpdate = (download) => {
@@ -75,7 +144,7 @@ const App = () => {
                 eventSource.addEventListener("message", (event) => {
                     onProgressUpdate(JSON.parse(event.data));
                 });
-                eventSource.addEventListener("end", (event) => {
+                eventSource.addEventListener("end", (_) => {
                     eventSource.close();
                 });
             } catch (error) {
@@ -103,13 +172,11 @@ const App = () => {
             <LoadingContext.Provider value={isLoading}>
                 <DownloadsContext.Provider value={downloads}>
                     <SearchBar isDesktop={isDesktop} />
-                    {/* {preview && <Preview preview={preview} isDesktop={isDesktop} />} */}
+                    {preview && <Preview preview={preview} isDesktop={isDesktop} />}
                 </DownloadsContext.Provider>
             </LoadingContext.Provider>
         </Content >
     );
 }
-
-library.add(faSearch, faDownload, faTrashAlt);
 
 export default App;
