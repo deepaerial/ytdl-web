@@ -31,5 +31,10 @@ module.exports = {
         new webpack.DefinePlugin({
             API_URL: JSON.stringify(process.env.API_URL)
         })
-    ]
+    ],
+    resolve: {
+        alias: {
+            '@mui/styled-engine': '@mui/styled-engine-sc'
+        },
+    },
 };

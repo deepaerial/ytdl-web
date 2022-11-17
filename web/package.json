@@ -11,11 +11,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.x.x",
-    "@fortawesome/free-solid-svg-icons": "^6.x.x",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "@mui/material": "^5.9.3",
-    "@mui/styled-engine-sc": "^5.9.3",
+    "@mui/icons-material": "^5.10.9",
+    "@mui/material": "^5.10.3",
+    "@mui/styled-engine": "^5.10.8",
+    "@mui/styled-engine-sc": "^5.10.6",
     "axios": "^0.27.2",
     "prop-types": "^15.7.2",
     "react": "^18.x.x",
@@ -43,8 +42,6 @@
     "webpack": "^5.x.x",
     "webpack-cli": "^4.x.x",
     "webpack-dev-server": "^4.9.3",
-    "webpack-merge": "^5.7.3",
-    "webpack-pwa-manifest": "^4.3.0",
-    "workbox-webpack-plugin": "^6.0.2"
+    "webpack-merge": "^5.7.3"
   }
 }
