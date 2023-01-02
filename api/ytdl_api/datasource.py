@@ -96,9 +96,9 @@ class InMemoryDB(IDataSource):
         )
 
     def update_download(self, download: Download):
-        donwloads = self.storage[download.client_id]
+        downloads = self.storage[download.client_id]
         index = next(
-            (idx for idx, d in enumerate(donwloads) if d.media_id == download.media_id),
+            (idx for idx, d in enumerate(downloads) if d.media_id == download.media_id),
             None,
         )
         if index is None:
