@@ -1,8 +1,8 @@
 export const mapDownloads = (downloads) => {
     if (downloads instanceof Array) {
         downloads = Object.assign({}, ...downloads.map(d => {
-            const { media_id } = d;
-            return { [media_id]: d }
+            const { mediaId } = d;
+            return { [mediaId]: d }
         }));
     }
     return downloads;

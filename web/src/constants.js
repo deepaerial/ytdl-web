@@ -5,3 +5,8 @@ export const Statuses = {
     DOWNLOADED: "downloaded",
     DELETED: "deleted"
 }
+
+export const ACTION = {
+    FETCH_ALL: "FETCH_ALL",
+    STATUS_UPDATE: "STATUS_UPDATE"
+}

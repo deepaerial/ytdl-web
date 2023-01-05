@@ -14,7 +14,6 @@ import { toast } from 'react-toastify';
 
 const CardBox = styled.div`
     position: relative;
-    margin: ${props => props.isDesktop ? 20 : 10}px ${props => props.isDesktop ? 20 : 5}px;
     background-image: linear-gradient(
           rgba(0, 0, 0, 0.3), 
           rgba(0, 0, 0, 0.5)
@@ -78,9 +77,9 @@ const LoaderContainer = styled.div`
     left: 8.9em;
     top: 3.9em;
 `;
-const MediaItem ({ downloadItem, isDesktop }) => {
+const MediaItem = ({ downloadItem, isDesktop }) => {
 
-    const { media_id, title, thumbnail, video_url, duration, progress, status } = downloadItem;
+    const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
 
     const downloadMedia = async (mediaId) => {
         const { setIsLoading } = this.context;
@@ -108,8 +107,8 @@ const MediaItem ({ downloadItem, isDesktop }) => {
     }
 
     return (
-        <CardBox isDesktop={isDesktop} backgroundUrl={thumbnail.url}>
-            <Title><Url href={video_url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
+        <CardBox isDesktop={isDesktop} backgroundUrl={thumbnailUrl}>
+            <Title><Url href={url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
             {
                 status === 'downloading' && <LoaderContainer>
                     <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
@@ -121,8 +120,8 @@ const MediaItem ({ downloadItem, isDesktop }) => {
             }
             <Duration>{millisecToHumanReadable(duration)}</Duration>
             <ButtonsBox>
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, media_id)} />}
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, media_id)} />}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, mediaId)} />}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, mediaId)} />}
             </ButtonsBox>
         </CardBox>
     )

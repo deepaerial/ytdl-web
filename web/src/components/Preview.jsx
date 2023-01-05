@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -12,37 +11,32 @@ import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import Typography from '@mui/material/Typography';
+import { styled } from '@mui/material';
+
+import API from '../api';
 
 
-const PreviewBox = styled.div`
-    position: relative;
-    display: flex;
-    padding: 10px;
-    background-size: cover;
-    background-color: #FFF;
-    min-width: 50%;
-    max-height: 250px;
-    border-radius: 0.4rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-    transition: all 0.3s cubic-bezier(.25,.8,.25,1);
-`;
+const CustomisedCardActions = styled(CardActions)(() => ({
+    justifyContent: "center",
+    margin: "0"
+}));
 
-const Thumbnail = styled.div`
-  position: relative;
-  background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url("https://i.ytimg.com/vi/AWkqqGFyebY/hqdefault.jpg");
-  background-size: cover;
-  background-color: #fff;
-  border-radius: 0.4rem;
-  height: 200px;
-  width: 300px;
-  `;
 
-const Preview = ({ preview, isDesktop }) => {
+const Preview = ({ preview, onDonwloadEnqueue }) => {
     const [audioStream, setAudioStream] = useState(preview.audioStreams[0].id)
     const [videoStream, setVideoStream] = useState(preview.videoStreams[0].id)
     const [mediaFormat, setMediaFormat] = useState(preview.mediaFormats[0])
 
     const { audioStreams, videoStreams, mediaFormats } = preview;
+
+    const onDownloadClick = async () => {
+        const url = preview.url;
+        API.enqueueDownload(url, videoStream, audioStream, mediaFormat).catch((error) => {
+            console.log(error);
+        }).then((result) => {
+            onDonwloadEnqueue(result);
+        });
+    }
 
     return (
         <Card sx={{ maxWidth: 300 }}>
@@ -56,7 +50,7 @@ const Preview = ({ preview, isDesktop }) => {
                 <Typography gutterBottom variant="p" fontWeight="bold" component="div">
                     {preview.title}
                 </Typography>
-                <FormControl sx={{ m: 1, width: 200 }}>
+                <FormControl sx={{ m: 1, width: "100%" }}>
                     <InputLabel id="audio-bitrate-select-label">Audio bitrate</InputLabel>
                     <Select
                         labelId="audio-sbitrate-select-label"
@@ -70,7 +64,7 @@ const Preview = ({ preview, isDesktop }) => {
                         )}
                     </Select>
                 </FormControl>
-                <FormControl sx={{ m: 1, width: 200 }}>
+                <FormControl sx={{ m: 1, width: "100%" }}>
                     <InputLabel id="video-stream-select-label">Video stream</InputLabel>
                     <Select
                         labelId="video-stream-select-label"
@@ -84,7 +78,7 @@ const Preview = ({ preview, isDesktop }) => {
                         )}
                     </Select>
                 </FormControl>
-                <FormControl sx={{ m: 1, width: 200 }}>
+                <FormControl sx={{ m: 1, width: "100%" }}>
                     <InputLabel id="media-format-select-label">Media format</InputLabel>
                     <Select
                         labelId="media-format-select-label"
@@ -99,12 +93,12 @@ const Preview = ({ preview, isDesktop }) => {
                     </Select>
                 </FormControl>
             </CardContent>
-            <CardActions>
-                <Button variant="contained" startIcon={<FileDownloadIcon />}>
+            <CustomisedCardActions>
+                <Button variant="contained" startIcon={<FileDownloadIcon />} onClick={onDownloadClick}>
                     Download
                 </Button>
-            </CardActions>
-        </Card>
+            </CustomisedCardActions>
+        </Card >
     )
 }
 
@@ -125,8 +119,7 @@ Preview.propTypes = {
             resolution: PropTypes.string.isRequired
         })),
         mediaFormats: PropTypes.arrayOf(PropTypes.string)
-    }),
-    isDesktop: PropTypes.bool.isRequired
+    })
 }
 
 export default Preview;

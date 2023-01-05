@@ -1,9 +1,8 @@
-import React, { useState, useContext } from 'react'
+import React, { useContext, useState } from 'react'
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
-import LoadingContext from '../context/LoadingContext.js';
-import PreviewContext from '../context/PreviewContext.js';
+import { LoadingContext } from '../context/LoadingContext.js';
 import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
 import API from '../api';
@@ -73,11 +72,10 @@ const SearchBarButton = styled.button`
 `
 
 
-const SearchBar = (isDesktop) => {
+const SearchBar = ({ isDesktop, setPreview }) => {
 
     const [url, setUrl] = useState("");
-    const { isLoading, setIsLoading } = useContext(LoadingContext);
-    const { preview, setPreview } = useContext(PreviewContext);
+    const setIsLoading = useContext(LoadingContext);
 
     const onSearch = async (event) => {
         event.preventDefault();
@@ -86,6 +84,7 @@ const SearchBar = (isDesktop) => {
             const preview = await API.getPreview(url);
             setPreview(preview);
         } catch (error) {
+            console.error(error);
             toast.error(error.message)
         } finally {
             setIsLoading(false);
@@ -107,6 +106,7 @@ const SearchBar = (isDesktop) => {
 }
 
 SearchBar.propTypes = {
-    isDesktop: PropTypes.bool
+    isDesktop: PropTypes.bool,
+    setPreview: PropTypes.func
 }
 export default SearchBar;

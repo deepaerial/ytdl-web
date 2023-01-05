@@ -1,13 +1,13 @@
 import { getFilenameFromContentDisposition } from './utils'
 import axios from 'axios';
 
-const api = axios.create({ baseURL: API_URL });
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 class API {
 
     static async getApiVersion() {
         try {
-            const response = await api.get('version', { withCredentials: true });
+            const response = await api.get('version');
             return response.data;
         } catch (exc) {
             let error_message = null;
@@ -22,7 +22,7 @@ class API {
 
     static async getPreview(url) {
         try {
-            const response = await api.get('preview', { withCredentials: true, params: { url: encodeURIComponent(url) } });
+            const response = await api.get('preview', { params: { url } });
             return response.data;
         } catch (exc) {
             let error_message = null;
@@ -38,7 +38,27 @@ class API {
     static async getDownloads() {
         try {
             const response = await api.get('downloads');
-            return response.data;
+            return response.data["downloads"];
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                error_message = exc.response.data.detail;
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
+    static async enqueueDownload(url, videoStream, audioStream, mediaFormat) {
+        try {
+            const response = await api.put('download', {
+                url,
+                videoStreamId: videoStream,
+                audioStreamId: audioStream,
+                mediaFormat
+            });
+            return response.data["downloads"];
         } catch (exc) {
             let error_message = null;
             if (exc.response) {
