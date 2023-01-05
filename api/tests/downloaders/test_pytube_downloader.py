@@ -28,12 +28,6 @@ def pytube_downloader(fake_media_path: Path, mock_datasource: IDataSource):
     )
 
 
-@pytest.fixture
-def video_info(mock_url: str, pytube_downloader: PytubeDownloader) -> VideoInfoResponse:
-    review = pytube_downloader.get_video_info(mock_url)
-    return review
-
-
 @pytest.fixture()
 def mock_download_params(
     mock_url: str, video_info: VideoInfoResponse
@@ -62,16 +56,16 @@ def mock_persisted_download(
     yield mock_download
 
 
-def test_pytube_downloader_get_video_info(video_info):
-    """
-    Testing downloader for fetching info data about video
-    """
-    assert isinstance(video_info, VideoInfoResponse)
-    assert video_info.title is not None
+@pytest.mark.parametrize(("url"), ["https://www.youtube.com/watch?v=17jbCUR4IeQ"])
+def test_pytube_downloader(pytube_downloader: PytubeDownloader, url: str):
+    """Test fetching basic video info."""
+    video_info = pytube_downloader.get_video_info(url=url)
+    assert video_info is not None
+    assert video_info.url == url
     assert video_info.thumbnail_url is not None
-    assert video_info.audio_streams is not None
-    assert video_info.video_streams is not None
-    assert isinstance(video_info.media_formats, list)
+    assert video_info.title is not None
+    assert len(video_info.audio_streams) > 0
+    assert len(video_info.video_streams) > 0
 
 
 def test_pytube_downloader_download_video(

@@ -106,7 +106,7 @@ class PytubeDownloader(IDownloader):
                 resolution=stream.resolution,
                 mimetype=stream.mime_type,
             )
-            for stream in streams.filter(only_video=True, subtype="webm")
+            for stream in streams.filter(only_video=True)
         ]
         video_info = VideoInfoResponse(
             url=url,

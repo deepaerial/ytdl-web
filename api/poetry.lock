@@ -605,7 +605,7 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pytube"
-version = "12.1.0"
+version = "12.1.2"
 description = "Python 3 library for downloading YouTube Videos."
 category = "main"
 optional = false
