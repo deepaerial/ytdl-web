@@ -1,8 +1,44 @@
 import pkg_resources
+from typing import Generator
+from pydantic import parse_obj_as
+import pytest
 from fastapi.testclient import TestClient
 
 from ytdl_api.schemas.models import Download
 from ytdl_api.schemas.requests import DownloadParams
+from ytdl_api.datasource import IDataSource
+from ytdl_api.constants import MediaFormat
+
+
+@pytest.fixture()
+def mock_download_params() -> DownloadParams:
+    return DownloadParams(
+        url="https://www.youtube.com/watch?v=NcBjx_eyvxc",
+        video_stream_id="136",
+        audio_stream_id="251",
+        media_format=MediaFormat.MP4,
+    )
+
+
+@pytest.fixture()
+def mock_persisted_download(
+    app_client: TestClient,
+    uid: str,
+    datasource: IDataSource,
+    mock_download_params: DownloadParams,
+) -> Generator[Download, None, None]:
+    response = app_client.put(
+        "/api/download", cookies={"uid": uid}, json=mock_download_params.dict()
+    )
+    download = next(
+        download
+        for download in response.json()["downloads"]
+        if download["url"] == mock_download_params.url
+    )
+    download = parse_obj_as(Download, download)
+    yield download
+    datasource.delete_download(download)
+
 
 
 def test_version_endpoint(app_client: TestClient):
@@ -30,8 +66,15 @@ def test_get_downloads(
     assert json_response["downloads"][0]["mediaId"] == mock_persisted_download.media_id
 
 
-def test_get_preview(app_client: TestClient, mock_url: str):
-    response = app_client.get("/api/preview", params={"url": mock_url})
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.youtube.com/watch?v=NcBjx_eyvxc",
+        "https://www.youtube.com/watch?v=TNhaISOUy6Q",
+    ],
+)
+def test_get_preview(app_client: TestClient, url: str):
+    response = app_client.get("/api/preview", params={"url": url})
     assert response.status_code == 200
     json_response = response.json()
     assert all(
