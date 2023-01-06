@@ -74,7 +74,7 @@ class LocalStorageConfig(BaseStorageConfig):
     Local filesystem storage config.
     """
 
-    path: Path
+    path: Path = MEDIA_PATH
 
     @validator("path")
     def validate_path(cls, value):

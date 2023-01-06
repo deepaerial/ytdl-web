@@ -169,7 +169,7 @@ sketch
 .vscode/
 # End of https://www.gitignore.io/api/linux,macos,python
 .venv/
-.*env
+.env*
 media/
 
 # Ignore .pem files

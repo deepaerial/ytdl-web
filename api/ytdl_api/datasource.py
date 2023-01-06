@@ -67,6 +67,12 @@ class IDataSource(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def delete_download(self, download: Download):  # pragma: no cover
+        """
+        Abstract method for deleting download in media database.
+        """
+
 
 class InMemoryDB(IDataSource):
     """
@@ -124,6 +130,9 @@ class InMemoryDB(IDataSource):
             None,
         )
 
+    def delete_download(self, download: Download):
+        raise NotImplementedError()
+
 
 class DetaDB(IDataSource):
     """
@@ -150,6 +159,8 @@ class DetaDB(IDataSource):
     def put_download(self, download: Download):
         data = download.dict()
         key = data["media_id"]
+        if download.file_path is not None:
+            data["file_path"] = download.file_path.resolve().as_posix()
         self.base.put(data, key)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
@@ -168,6 +179,9 @@ class DetaDB(IDataSource):
 
     def update_download(self, download: Download):
         data = download.dict()
+        # quick fix for error TypeError: Object of type PosixPath is not JSON serializable
+        if download.file_path is not None:
+            data["file_path"] = download.file_path.resolve().as_posix()
         self.base.update(data, download.media_id)
 
     def update_download_progress(self, progress_obj: DownloadProgress):
@@ -188,3 +202,6 @@ class DetaDB(IDataSource):
             filtered_download = filtered_download[0]
         download: Download = parse_obj_as(Download, filtered_download)
         return download
+
+    def delete_download(self, download: Download):
+        self.base.delete(download.media_id)
