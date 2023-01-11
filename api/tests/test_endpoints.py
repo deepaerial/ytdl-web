@@ -1,44 +1,10 @@
 import pkg_resources
-from typing import Generator
-from pydantic import parse_obj_as
 import pytest
+from pytest_mock.plugin import MockerFixture
 from fastapi.testclient import TestClient
 
 from ytdl_api.schemas.models import Download
 from ytdl_api.schemas.requests import DownloadParams
-from ytdl_api.datasource import IDataSource
-from ytdl_api.constants import MediaFormat
-
-
-@pytest.fixture()
-def mock_download_params() -> DownloadParams:
-    return DownloadParams(
-        url="https://www.youtube.com/watch?v=NcBjx_eyvxc",
-        video_stream_id="136",
-        audio_stream_id="251",
-        media_format=MediaFormat.MP4,
-    )
-
-
-@pytest.fixture()
-def mock_persisted_download(
-    app_client: TestClient,
-    uid: str,
-    datasource: IDataSource,
-    mock_download_params: DownloadParams,
-) -> Generator[Download, None, None]:
-    response = app_client.put(
-        "/api/download", cookies={"uid": uid}, json=mock_download_params.dict()
-    )
-    download = next(
-        download
-        for download in response.json()["downloads"]
-        if download["url"] == mock_download_params.url
-    )
-    download = parse_obj_as(Download, download)
-    yield download
-    datasource.delete_download(download)
-
 
 
 def test_version_endpoint(app_client: TestClient):
@@ -92,8 +58,14 @@ def test_get_preview(app_client: TestClient, url: str):
 
 
 def test_submit_download(
-    app_client: TestClient, uid: str, mock_download_params: DownloadParams
+    app_client: TestClient,
+    uid: str,
+    mock_download_params: DownloadParams,
+    mocker: MockerFixture,
+    clear_datasource,
 ):
+    # Mocking BackgroundTasks because we don't actually want to start process of downloading video
+    mocker.patch("ytdl_api.endpoints.BackgroundTasks.add_task")
     response = app_client.put(
         "/api/download", cookies={"uid": uid}, json=mock_download_params.dict()
     )

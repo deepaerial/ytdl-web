@@ -1,16 +1,81 @@
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Iterable
+from typing import Generator, Iterable, Optional
 
 import pytest
 from confz import ConfZEnvSource
 from fastapi.testclient import TestClient
+from pydantic import parse_obj_as
+
 from ytdl_api.config import Settings
+from ytdl_api.constants import DownloadStatus, MediaFormat
+from ytdl_api.datasource import DetaDB, IDataSource
 from ytdl_api.dependencies import get_settings
-from ytdl_api.datasource import DetaDB
+from ytdl_api.schemas.models import Download
+from ytdl_api.schemas.requests import DownloadParams
 from ytdl_api.utils import get_unique_id
 
-TEST_ENV_FILE = (Path(__file__).parent / ".." / ".env.test").resolve()
+EXAMPLE_VIDEO_PREVIEW = {
+    "url": "https://www.youtube.com/watch?v=NcBjx_eyvxc",
+    "title": "Madeira | Cinematic FPV",
+    "duration": 224,
+    "thumbnailUrl": "https://i.ytimg.com/vi/NcBjx_eyvxc/sddefault.jpg",
+    "audioStreams": [
+        {"id": "251", "mimetype": "audio/webm", "bitrate": "160kbps"},
+        {"id": "250", "mimetype": "audio/webm", "bitrate": "70kbps"},
+        {"id": "249", "mimetype": "audio/webm", "bitrate": "50kbps"},
+        {"id": "140", "mimetype": "audio/mp4", "bitrate": "128kbps"},
+        {"id": "139", "mimetype": "audio/mp4", "bitrate": "48kbps"},
+    ],
+    "videoStreams": [
+        {"id": "394", "mimetype": "video/mp4", "resolution": "144p"},
+        {"id": "278", "mimetype": "video/webm", "resolution": "144p"},
+        {"id": "160", "mimetype": "video/mp4", "resolution": "144p"},
+        {"id": "395", "mimetype": "video/mp4", "resolution": "240p"},
+        {"id": "242", "mimetype": "video/webm", "resolution": "240p"},
+        {"id": "133", "mimetype": "video/mp4", "resolution": "240p"},
+        {"id": "396", "mimetype": "video/mp4", "resolution": "360p"},
+        {"id": "243", "mimetype": "video/webm", "resolution": "360p"},
+        {"id": "134", "mimetype": "video/mp4", "resolution": "360p"},
+        {"id": "397", "mimetype": "video/mp4", "resolution": "480p"},
+        {"id": "244", "mimetype": "video/webm", "resolution": "480p"},
+        {"id": "135", "mimetype": "video/mp4", "resolution": "480p"},
+        {"id": "398", "mimetype": "video/mp4", "resolution": "720p"},
+        {"id": "247", "mimetype": "video/webm", "resolution": "720p"},
+        {"id": "136", "mimetype": "video/mp4", "resolution": "720p"},
+        {"id": "399", "mimetype": "video/mp4", "resolution": "1080p"},
+        {"id": "248", "mimetype": "video/webm", "resolution": "1080p"},
+        {"id": "137", "mimetype": "video/mp4", "resolution": "1080p"},
+        {"id": "400", "mimetype": "video/mp4", "resolution": "1440p"},
+        {"id": "271", "mimetype": "video/webm", "resolution": "1440p"},
+        {"id": "401", "mimetype": "video/mp4", "resolution": "2160p"},
+        {"id": "313", "mimetype": "video/webm", "resolution": "2160p"},
+    ],
+    "mediaFormats": ["mp4", "mp3", "wav"],
+}
+
+
+def get_example_download_instance(
+    client_id: str,
+    media_format: MediaFormat = MediaFormat.MP4,
+    duration: int = 10000,
+    filesize: int = 10000,
+    status: DownloadStatus = DownloadStatus.STARTED,
+    file_path: Optional[Path] = None,
+    progress: int = 0,
+) -> Download:
+    download_data = {
+        **EXAMPLE_VIDEO_PREVIEW,
+        "client_id": client_id,
+        "media_format": media_format,
+        "duration": duration,
+        "filesize": filesize,
+        "status": status,
+        "file_path": file_path,
+        "progress": progress,
+    }
+    return parse_obj_as(Download, download_data)
 
 
 @pytest.fixture()
@@ -31,16 +96,22 @@ def fake_media_path(temp_directory: TemporaryDirectory) -> Path:
 
 
 @pytest.fixture()
-def settings(fake_media_path: Path, monkeypatch) -> Iterable[Settings]:
+def fake_media_file_path(fake_media_path: Path) -> Path:
+    filename = get_unique_id()
+    fake_media_file_path = fake_media_path / filename
+    with fake_media_file_path.open("wb") as f:
+        file_size_in_bytes = 1024
+        f.write(os.urandom(file_size_in_bytes))
+    return fake_media_file_path
+
+
+@pytest.fixture()
+def settings(
+    fake_media_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> Iterable[Settings]:
     monkeypatch.setenv("MEDIA_PATH", fake_media_path.as_posix())
-    config = ConfZEnvSource(
-        allow_all=True,
-        deny=["title", "description", "version"],
-        file=TEST_ENV_FILE,
-        nested_separator="__",
-    )
-    with Settings.change_config_sources(config):
-        yield Settings()  # type: ignore
+    settings = Settings()  # type: ignore
+    yield settings
 
 
 @pytest.fixture()
@@ -56,3 +127,47 @@ def app_client(settings: Settings):
     app = settings.init_app()
     app.dependency_overrides[get_settings] = lambda: settings
     return TestClient(app)
+
+
+@pytest.fixture()
+def mock_download_params() -> DownloadParams:
+    return DownloadParams(
+        url=EXAMPLE_VIDEO_PREVIEW["url"],
+        video_stream_id=EXAMPLE_VIDEO_PREVIEW["videoStreams"][12]["id"],
+        audio_stream_id=EXAMPLE_VIDEO_PREVIEW["audioStreams"][0]["id"],
+        media_format=MediaFormat.MP4,
+    )
+
+
+@pytest.fixture()
+def clear_datasource(datasource: IDataSource):
+    yield
+    datasource.clear_downloads()
+
+
+@pytest.fixture()
+def mock_persisted_download(
+    uid: str, datasource: IDataSource, clear_datasource
+) -> Generator[Download, None, None]:
+    download = get_example_download_instance(
+        client_id=uid, media_format=MediaFormat.MP4, status=DownloadStatus.DOWNLOADING
+    )
+    datasource.put_download(download)
+    yield download
+
+
+@pytest.fixture()
+def mocked_downloaded_media(
+    uid: str, datasource: IDataSource, fake_media_file_path: Path, clear_datasource
+) -> Generator[Download, None, None]:
+    download = get_example_download_instance(
+        client_id=uid,
+        media_format=MediaFormat.MP4,
+        duration=1000,
+        filesize=1024,
+        status=DownloadStatus.FINISHED,
+        file_path=fake_media_file_path,
+        progress=100,
+    )
+    datasource.put_download(download)
+    yield download
