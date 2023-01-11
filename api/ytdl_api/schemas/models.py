@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from pydantic import AnyHttpUrl, Field
 
 from .base import BaseModel_
-from ..constants import DonwloadStatus, MediaFormat
+from ..constants import DownloadStatus, MediaFormat
 from ..types import VideoURL
 from ..utils import get_unique_id
 
@@ -46,8 +46,8 @@ class Download(BaseModel_):
     duration: int = Field(..., description="Video duration (in milliseconds)")
     filesize: int = Field(None, description="Video/audio filesize (in bytes)")
     thumbnail_url: Union[AnyHttpUrl, str] = Field(..., description="Video thumbnail")
-    status: DonwloadStatus = Field(
-        DonwloadStatus.STARTED, description="Download status"
+    status: DownloadStatus = Field(
+        DownloadStatus.STARTED, description="Download status"
     )
     file_path: Optional[Path] = Field(None, description="Path to file")
     progress: int = Field(0, description="Download progress in %")
@@ -63,7 +63,7 @@ class Download(BaseModel_):
 class DownloadProgress(BaseModel_):
     client_id: str = Field(..., description="Id of client")
     media_id: str = Field(..., description="Id of downloaded media")
-    status: DonwloadStatus = Field(
-        ..., description="Download status", example=DonwloadStatus.DOWNLOADING
+    status: DownloadStatus = Field(
+        ..., description="Download status", example=DownloadStatus.DOWNLOADING
     )
     progress: int = Field(..., description="Download progress of a file", example=10)

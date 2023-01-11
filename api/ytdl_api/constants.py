@@ -10,7 +10,7 @@ class DownloaderType(str, Enum):
         return self.value
 
 
-class DonwloadStatus(str, Enum):
+class DownloadStatus(str, Enum):
     STARTED = "started"
     DOWNLOADING = "downloading"
     CONVERTING = "converting"

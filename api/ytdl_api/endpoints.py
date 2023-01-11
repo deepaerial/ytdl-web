@@ -8,7 +8,7 @@ from starlette import status
 
 from . import config, datasource, dependencies
 from .callbacks import on_finish_callback, on_start_converting
-from .constants import DonwloadStatus
+from .constants import DownloadStatus
 from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
@@ -138,7 +138,7 @@ async def download_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
         )
-    if media_file.status != DonwloadStatus.FINISHED:
+    if media_file.status != DownloadStatus.FINISHED:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
         )
@@ -146,7 +146,7 @@ async def download_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
         )
-    media_file.status = DonwloadStatus.DOWNLOADED
+    media_file.status = DownloadStatus.DOWNLOADED
     datasource.put_download(media_file)
     return FileResponse(
         media_file.file_path,
@@ -212,7 +212,7 @@ async def delete_download(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
         )
-    if media_file.status != DonwloadStatus.FINISHED:
+    if media_file.status != DownloadStatus.FINISHED:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Media file is not downloaded yet",
@@ -223,6 +223,6 @@ async def delete_download(
         )
     if media_file.file_path.exists():
         media_file.file_path.unlink()
-    media_file.status = DonwloadStatus.DELETED
+    media_file.status = DownloadStatus.DELETED
     datasource.update_download(media_file)
     return {"media_id": media_file.media_id, "status": media_file.status}
