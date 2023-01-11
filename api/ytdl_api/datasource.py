@@ -73,64 +73,7 @@ class IDataSource(ABC):
         Abstract method for deleting download in media database.
         """
 
-
-class InMemoryDB(IDataSource):
-    """
-    In-memory database implementation for DAOInterface.
-    """
-
-    storage: typing.DefaultDict[str, typing.List[Download]] = defaultdict(list)
-
-    def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        return (
-            list(
-                filter(
-                    lambda d: d.status != DownloadStatus.DELETED,
-                    self.storage[client_id],
-                )
-            )
-            or []
-        )
-
-    def put_download(self, download: Download):
-        self.storage[download.client_id].append(download)
-
-    def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
-        return next(
-            filter(lambda d: d.media_id == media_id, self.storage[client_id]),
-            None,
-        )
-
-    def update_download(self, download: Download):
-        downloads = self.storage[download.client_id]
-        index = next(
-            (idx for idx, d in enumerate(downloads) if d.media_id == download.media_id),
-            None,
-        )
-        if index is None:
-            self.storage[download.client_id].append(download)
-        else:
-            self.storage[download.client_id][index] = download
-
-    def update_download_progress(self, progress_obj: DownloadProgress):
-        download = self.get_download(progress_obj.client_id, progress_obj.media_id)
-        if download is not None:
-            download.progress = progress_obj.progress
-            download.status = progress_obj.status
-
-    def get_download_if_exists(
-        self, url: AnyHttpUrl, media_format: MediaFormat
-    ) -> typing.Optional[Download]:
-        downloads = list(itertools.chain.from_iterable(self.storage.values()))
-        return next(
-            filter(
-                lambda d: d.url == url and d.media_format == media_format,
-                downloads,
-            ),
-            None,
-        )
-
-    def delete_download(self, download: Download):
+    def clear_downloads(self):
         raise NotImplementedError()
 
 
@@ -149,11 +92,9 @@ class DetaDB(IDataSource):
             self.base = deta.Base(self.__base_name)
 
     def fetch_downloads(self, client_id: str) -> typing.List[Download]:
-        downloads = next(
-            self.base.fetch(
-                {"client_id": client_id, "status?ne": DownloadStatus.DELETED}
-            )
-        )
+        downloads = self.base.fetch(
+            {"client_id": client_id, "status?ne": DownloadStatus.DELETED}
+        ).items
         return parse_obj_as(typing.List[Download], downloads)
 
     def put_download(self, download: Download):
@@ -165,11 +106,7 @@ class DetaDB(IDataSource):
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:
         data = next(
-            iter(
-                next(
-                    self.base.fetch({"client_id": client_id, "media_id": media_id}), []
-                )
-            ),
+            iter(self.base.fetch({"client_id": client_id, "media_id": media_id}).items),
             None,
         )
         if data is None:
@@ -193,9 +130,9 @@ class DetaDB(IDataSource):
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormat
     ) -> typing.Optional[Download]:
-        filtered_download = next(
-            self.base.fetch({"video_url": url, "media_format": media_format})
-        )
+        filtered_download = self.base.fetch(
+            {"video_url": url, "media_format": media_format}
+        ).items
         if isinstance(filtered_download, list):
             if not filtered_download:
                 return None
@@ -205,3 +142,9 @@ class DetaDB(IDataSource):
 
     def delete_download(self, download: Download):
         self.base.delete(download.media_id)
+
+    def clear_downloads(self):
+        all_downloads = self.base.fetch().items
+        for download in all_downloads:
+            self.base.delete(download["key"])
+        self.base.client.close()

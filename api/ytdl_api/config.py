@@ -11,7 +11,7 @@ from pydantic import validator
 from starlette.middleware import Middleware
 
 from .constants import DownloaderType
-from .datasource import DetaDB, IDataSource, InMemoryDB
+from .datasource import IDataSource, DetaDB
 from .storage import IStorage, LocalFileStorage
 
 MEDIA_PATH = (Path(__file__).parent / ".." / ".." / "media").resolve()
@@ -34,17 +34,6 @@ class BaseDataSourceConfig(ConfZ, abc.ABC):
             for attr in self.__dict__.values()
         )
         return hash((type(self),) + attrs)
-
-
-class InMemoryDataSourceConfig(BaseDataSourceConfig):
-    """
-    Data source that stores downloads in memory.
-    """
-
-    in_memory: bool = False
-
-    def get_datasource(self) -> IDataSource:
-        return InMemoryDB()
 
 
 class DetaBaseDataSourceConfig(BaseDataSourceConfig):
@@ -109,7 +98,7 @@ class Settings(ConfZ):
 
     downloader: DownloaderType
     media_path: Path = MEDIA_PATH
-    datasource: Union[DetaBaseDataSourceConfig, InMemoryDataSourceConfig]
+    datasource: DetaBaseDataSourceConfig
 
     CONFIG_SOURCES = ConfZEnvSource(
         allow_all=True, deny=["title", "description", "version"], nested_separator="__"
