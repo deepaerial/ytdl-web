@@ -143,8 +143,8 @@ toml = ["toml"]
 
 [[package]]
 name = "deta"
-version = "0.7"
-description = "Deta lib for Python 3"
+version = "1.1.0"
+description = "Python SDK for Deta Base & Deta Drive."
 category = "main"
 optional = false
 python-versions = "*"
@@ -560,6 +560,20 @@ toml = "*"
 testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
 
 [[package]]
+name = "pytest-mock"
+version = "3.10.0"
+description = "Thin-wrapper around the mock package for easier use with pytest"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pytest = ">=5.0"
+
+[package.extras]
+dev = ["pre-commit", "tox", "pytest-asyncio"]
+
+[[package]]
 name = "pytest-mypy"
 version = "0.9.1"
 description = "Mypy static type checker plugin for Pytest"
@@ -773,7 +787,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "98e7f8a8cd24a35d07a4c1440d3a80a0df59790ff5be2896fea1764b39771ac8"
+content-hash = "25cd3bdce233cce297e5d94759dabdaf36ff75e9a50381b989aac4756b99944d"
 
 [metadata.files]
 aiofiles = [
@@ -880,10 +894,7 @@ coverage = [
     {file = "coverage-5.5-pp37-none-any.whl", hash = "sha256:2a3859cb82dcbda1cfd3e6f71c27081d18aa251d20a17d87d26d4cd216fb0af4"},
     {file = "coverage-5.5.tar.gz", hash = "sha256:ebe78fe9a0e874362175b02371bdfbee64d8edc42a044253ddf4ee7d3c15212c"},
 ]
-deta = [
-    {file = "deta-0.7-py3-none-any.whl", hash = "sha256:1e802aa3808bad9e38c8b9e38e8a91979869a5a1e80d109d2db95adb25d412dd"},
-    {file = "deta-0.7.tar.gz", hash = "sha256:1f5d694f470c019b99525fa7a88706b6c24c65c969cc1ba535bd8d6d80ccdca9"},
-]
+deta = []
 distlib = []
 execnet = [
     {file = "execnet-1.9.0-py2.py3-none-any.whl", hash = "sha256:a295f7cc774947aac58dde7fdc85f4aa00c42adf5d8f5468fc630c1acf30a142"},
@@ -1033,6 +1044,7 @@ pytest-cov = [
     {file = "pytest-cov-2.12.1.tar.gz", hash = "sha256:261ceeb8c227b726249b376b8526b600f38667ee314f910353fa318caa01f4d7"},
     {file = "pytest_cov-2.12.1-py2.py3-none-any.whl", hash = "sha256:261bb9e47e65bd099c89c3edf92972865210c36813f80ede5277dceb77a4a62a"},
 ]
+pytest-mock = []
 pytest-mypy = []
 pytest-pep8 = [
     {file = "pytest-pep8-1.0.6.tar.gz", hash = "sha256:032ef7e5fa3ac30f4458c73e05bb67b0f036a8a5cb418a534b3170f89f120318"},
