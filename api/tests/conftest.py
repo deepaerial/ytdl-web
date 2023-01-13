@@ -4,7 +4,6 @@ from tempfile import TemporaryDirectory
 from typing import Generator, Iterable, Optional
 
 import pytest
-from confz import ConfZEnvSource
 from fastapi.testclient import TestClient
 from pydantic import parse_obj_as
 
@@ -168,6 +167,21 @@ def mocked_downloaded_media(
         status=DownloadStatus.FINISHED,
         file_path=fake_media_file_path,
         progress=100,
+    )
+    datasource.put_download(download)
+    yield download
+
+
+@pytest.fixture()
+def mock_persisted_download_with_finished_status(
+    uid: str, datasource: IDataSource, clear_datasource
+):
+    download = get_example_download_instance(
+        client_id=uid,
+        media_format=MediaFormat.MP4,
+        duration=1000,
+        filesize=1024,
+        status=DownloadStatus.FINISHED,
     )
     datasource.put_download(download)
     yield download

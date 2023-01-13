@@ -15,7 +15,7 @@ def settings(fake_media_path: Path) -> Iterable[Settings]:
         data={
             "allow_origins": ["*"],
             "downloader": "mocked",
-            "datasource": {"in_memory": True},
+            "datasource": {"deta_key": "*****", "deta_base": "*****"},
             "storage": {"path": fake_media_path},
             "disable_docs": True,
         }
