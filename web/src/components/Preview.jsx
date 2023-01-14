@@ -14,6 +14,8 @@ import Typography from '@mui/material/Typography';
 import { styled } from '@mui/material';
 
 import API from '../api';
+import { useContext } from 'react';
+import { LoadingContext } from '../context/LoadingContext';
 
 
 const CustomisedCardActions = styled(CardActions)(() => ({
@@ -23,6 +25,7 @@ const CustomisedCardActions = styled(CardActions)(() => ({
 
 
 const Preview = ({ preview, onDonwloadEnqueue }) => {
+    const setIsLoading = useContext(LoadingContext);
     const [audioStream, setAudioStream] = useState(preview.audioStreams[0].id)
     const [videoStream, setVideoStream] = useState(preview.videoStreams[0].id)
     const [mediaFormat, setMediaFormat] = useState(preview.mediaFormats[0])
@@ -31,10 +34,12 @@ const Preview = ({ preview, onDonwloadEnqueue }) => {
 
     const onDownloadClick = async () => {
         const url = preview.url;
+        setIsLoading(true);
         API.enqueueDownload(url, videoStream, audioStream, mediaFormat).catch((error) => {
             console.log(error);
         }).then((result) => {
             onDonwloadEnqueue(result);
+            setIsLoading(false);
         });
     }
 
