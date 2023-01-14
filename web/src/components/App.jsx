@@ -90,7 +90,7 @@ const App = () => {
                 {downloads && Object.entries(downloads).map(entry => {
                     const [key, download] = entry;
                     return <Grid item xs={3} key={key}>
-                        <MediaItem downloadItem={download} isDesktop={isDesktop} />
+                        <MediaItem downloadItem={download} />
                     </Grid>
                 })}
             </Grid>

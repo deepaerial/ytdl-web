@@ -1,16 +1,18 @@
-import React, { Component } from 'react'
+import React, { Component, useContext } from 'react'
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
-import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
-import 'react-circular-progressbar/dist/styles.css';
 
-import IconButton from './IconButton.jsx';
-import { millisecToHumanReadable, wrapFunc } from '../utils';
+import DownloadIcon from '@mui/icons-material/Download';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { millisecToHumanReadable } from '../utils';
 import { Statuses } from '../constants.js';
 
+import DownloadSpinner from "./DownloadSpinner.jsx";
 import API from '../api';
 import { toast } from 'react-toastify';
+import { LoadingContext } from '../context/LoadingContext.js';
+import { IconButton } from '@mui/material';
 
 const CardBox = styled.div`
     position: relative;
@@ -55,42 +57,31 @@ const Duration = styled.span`
     color: #FFF;
     text-shadow: 2px 2px 3px #000;
     left: 5px;
-    bottom: 10px;
+    bottom: 15px;
 `;
 
 const ButtonsBox = styled.div`
     position: absolute;
-    width: 50px;
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     flex-grow: 1;
     right: 5px;
     bottom: 10px;
-    margin: 5px;
-    margin-bottom: 1px;
 `;
 
-const LoaderContainer = styled.div`
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    left: 8.9em;
-    top: 3.9em;
-`;
-const MediaItem = ({ downloadItem, isDesktop }) => {
 
+const MediaItem = ({ downloadItem }) => {
+
+    const setIsLoading = useContext(LoadingContext);
     const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
 
-    const downloadMedia = async (mediaId) => {
-        const { setIsLoading } = this.context;
+    const downloadMedia = async () => {
         setIsLoading(true);
         API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
     }
 
-    const deleteMedia = async (mediaId) => {
-        const { downloadsContext } = this.props;
+    const deleteMedia = async () => {
         const { downloads, setDownloads } = downloadsContext;
-        const { setIsLoading } = this.context;
         try {
             setIsLoading(true);
             const { media_id, status } = await API.deleteMediaFile(mediaId);
@@ -107,23 +98,17 @@ const MediaItem = ({ downloadItem, isDesktop }) => {
     }
 
     return (
-        <CardBox isDesktop={isDesktop} backgroundUrl={thumbnailUrl}>
+        <CardBox backgroundUrl={thumbnailUrl}>
             <Title><Url href={url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
             {
-                status === 'downloading' && <LoaderContainer>
-                    <CircularProgressbar value={progress} text={`${progress}%`} styles={buildStyles({
-                        textColor: "#FFFFFF",
-                        trailColor: "rgb(214, 214, 214, 0.6)",
-                        pathColor: "#7953d2",
-                    })} />
-                </LoaderContainer>
+                status === 'downloading' && <DownloadSpinner progress={progress} />
             }
             <Duration>{millisecToHumanReadable(duration)}</Duration>
             <ButtonsBox>
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#00FF7F"} icon="download" onClick={wrapFunc(downloadMedia, mediaId)} />}
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton size={15} colorOnHover={"#FF7377"} icon="trash-alt" onClick={wrapFunc(deleteMedia, mediaId)} />}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
             </ButtonsBox>
-        </CardBox>
+        </CardBox >
     )
 }
 
