@@ -109,7 +109,6 @@ async def submit_download(
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
-# TODO: write unittest for endpoint
 @router.get(
     "/download",
     responses={

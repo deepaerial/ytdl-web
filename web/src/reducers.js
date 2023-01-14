@@ -20,6 +20,7 @@ export const downloadsReducer = (downloads, action) => {
             }
             break;
         }
+        // TODO:  Add action for deleting deonwload from list
         default:
             throw Error(`Unknown action ${action.type}`);
     }
