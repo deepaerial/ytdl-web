@@ -173,7 +173,7 @@ async def fetch_stream(
             except asyncio.QueueEmpty:
                 continue
             else:
-                yield data.json()
+                yield data.json(by_alias=True)
 
     return EventSourceResponse(_stream())
 
