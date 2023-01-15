@@ -41,9 +41,19 @@ const App = () => {
     };
 
     const onDownloadsFetched = (downloads) => {
+        setPreview(null);
         dispatch({
             type: ACTION.FETCH_ALL,
             downloads
+        });
+    };
+
+    const onDownloadDelete = (download) => {
+        const { mediaId, status } = download;
+        dispatch({
+            type: ACTION.DELETE,
+            mediaId,
+            status
         });
     };
 
@@ -90,7 +100,7 @@ const App = () => {
                 {downloads && Object.entries(downloads).map(entry => {
                     const [key, download] = entry;
                     return <Grid item xs={3} key={key}>
-                        <MediaItem downloadItem={download} />
+                        <MediaItem downloadItem={download} onDeleteAction={onDownloadDelete} />
                     </Grid>
                 })}
             </Grid>

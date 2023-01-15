@@ -1,6 +1,6 @@
 import { mapDownloads } from './utils'
 
-import { ACTION } from './constants';
+import { ACTION, Statuses } from './constants';
 
 export const downloadsReducer = (downloads, action) => {
     switch (action.type) {
@@ -15,12 +15,18 @@ export const downloadsReducer = (downloads, action) => {
                 downloadItem = Object.assign(downloadItem, {
                     status: action.status, progress: action.progress
                 });
-                downloadsCopy[media_id] = downloadItem;
+                downloadsCopy[action.mediaId] = downloadItem;
                 return downloadsCopy;
             }
-            break;
+            return downloadsCopy;
         }
-        // TODO:  Add action for deleting deonwload from list
+        case ACTION.DELETE: {
+            const downloadsCopy = { ...downloads };
+            if (action.status === Statuses.DELETED) {
+                delete downloadsCopy[action.mediaId];
+            }
+            return downloadsCopy;
+        }
         default:
             throw Error(`Unknown action ${action.type}`);
     }

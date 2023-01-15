@@ -70,7 +70,7 @@ const ButtonsBox = styled.div`
 `;
 
 
-const MediaItem = ({ downloadItem }) => {
+const MediaItem = ({ downloadItem, onDeleteAction }) => {
 
     const setIsLoading = useContext(LoadingContext);
     const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
@@ -81,14 +81,10 @@ const MediaItem = ({ downloadItem }) => {
     }
 
     const deleteMedia = async () => {
-        const { downloads, setDownloads } = downloadsContext;
         try {
             setIsLoading(true);
-            const { media_id, status } = await API.deleteMediaFile(mediaId);
-            if (status === Statuses.DELETED) {
-                delete downloads[media_id];
-            }
-            setDownloads(downloads);
+            const response = await API.deleteMediaFile(mediaId);
+            onDeleteAction(response);
         } catch (error) {
             toast.error(error.message)
             console.error(error);
@@ -101,12 +97,12 @@ const MediaItem = ({ downloadItem }) => {
         <CardBox backgroundUrl={thumbnailUrl}>
             <Title><Url href={url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
             {
-                status === 'downloading' && <DownloadSpinner progress={progress} />
+                [Statuses.DOWNLOADING, Statuses.CONVERTING].includes(status) && <DownloadSpinner progress={progress} />
             }
             <Duration>{millisecToHumanReadable(duration)}</Duration>
             <ButtonsBox>
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={deleteMedia}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
             </ButtonsBox>
         </CardBox >
     )
