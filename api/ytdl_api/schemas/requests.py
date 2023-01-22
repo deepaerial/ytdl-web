@@ -3,9 +3,9 @@ from typing import Optional
 
 from pydantic import Field, root_validator, validator
 
-from .base import BaseModel_
 from ..constants import YOUTUBE_URI_REGEX, MediaFormat
 from ..types import VideoURL
+from .base import BaseModel_
 
 
 class DownloadParams(BaseModel_):

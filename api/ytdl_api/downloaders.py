@@ -7,12 +7,12 @@ from typing import Dict, Literal, Optional
 import ffmpeg
 from pytube import StreamQuery, YouTube
 
-from .types import OnDownloadCallback, VideoURL
 from .constants import DownloadStatus
 from .datasource import IDataSource
 from .queue import NotificationQueue
 from .schemas.models import AudioStream, Download, VideoStream
 from .schemas.responses import VideoInfoResponse
+from .types import OnDownloadCallback, VideoURL
 
 
 class IDownloader(ABC):

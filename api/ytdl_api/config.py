@@ -1,8 +1,8 @@
 import abc
 import json
-from pathlib import Path
 import logging
 from functools import partial
+from pathlib import Path
 from typing import Any, Dict, List
 
 import pkg_resources
@@ -13,7 +13,7 @@ from pydantic import validator
 from starlette.middleware import Middleware
 
 from .constants import DownloaderType
-from .datasource import IDataSource, DetaDB
+from .datasource import DetaDB, IDataSource
 from .storage import IStorage, LocalFileStorage
 
 MEDIA_PATH = (Path(__file__).parent / ".." / ".." / "media").resolve()

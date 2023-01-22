@@ -1,9 +1,9 @@
 import re
 import socket
-from logging import Logger
-from fastapi.requests import Request
 from http.client import RemoteDisconnected
+from logging import Logger
 
+from fastapi.requests import Request
 from starlette.responses import JSONResponse
 
 
