@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Dict, Any, Type, Optional
+from pathlib import Path
 
 from pydantic import Field
 
@@ -13,8 +14,19 @@ class ErrorResponse(BaseModel_):
     code: str = Field(..., description="Custom error identifying code")
 
 
+class DownloadResponse(Download):
+    file_path: Optional[Path] = Field(..., exclude=True)
+
+    class Config(BaseModel_.Config):
+        @staticmethod
+        def schema_extra(
+            schema: Dict[str, Any], model: Type["DownloadResponse"]
+        ) -> None:
+            schema.get("properties", {}).pop("filePath", None)
+
+
 class DownloadsResponse(BaseModel_):
-    downloads: List[Download] = Field(
+    downloads: List[DownloadResponse] = Field(
         ...,
         description="List of pending and finished downloads",
     )
