@@ -1,7 +1,9 @@
 import abc
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Union
+import logging
+from functools import partial
+from typing import Any, Dict, List
 
 import pkg_resources
 from confz import ConfZ, ConfZEnvSource
@@ -149,8 +151,10 @@ class Settings(ConfZ):
     def __setup_exception_handlers(__pydantic_self__, app: FastAPI):
         from .exceptions import ERROR_HANDLERS
 
+        logger = logging.getLogger()
+
         for error, handler in ERROR_HANDLERS:
-            app.add_exception_handler(error, handler)
+            app.add_exception_handler(error, partial(handler, logger))
 
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented

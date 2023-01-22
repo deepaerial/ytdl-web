@@ -1,10 +1,10 @@
 import re
 import socket
+from logging import Logger
+from fastapi.requests import Request
 from http.client import RemoteDisconnected
 
 from starlette.responses import JSONResponse
-
-_ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
 
 
 def make_internal_error(error_code: str = "internal-server-error") -> JSONResponse:
@@ -17,15 +17,20 @@ def make_internal_error(error_code: str = "internal-server-error") -> JSONRespon
     )
 
 
-async def on_remote_disconnected(request, exc: RemoteDisconnected):
+async def on_remote_disconnected(
+    logger: Logger, request: Request, exc: RemoteDisconnected
+):
+    logger.exception(exc)
     return make_internal_error("external-service-network-error")
 
 
-async def on_socket_timeout(request, exc: socket.timeout):
+async def on_socket_timeout(logger: Logger, request: Request, exc: socket.timeout):
+    logger.exception(exc)
     return make_internal_error("external-service-timeout-error")
 
 
-async def on_runtimeerror(request, exc: RuntimeError):
+async def on_runtimeerror(logger: Logger, request: Request, exc: RuntimeError):
+    logger.exception(exc)
     return make_internal_error()
 
 
