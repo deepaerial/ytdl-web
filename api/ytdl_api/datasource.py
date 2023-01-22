@@ -100,6 +100,7 @@ class DetaDB(IDataSource):
     def put_download(self, download: Download):
         data = download.dict()
         key = data["media_id"]
+        data["date_submitted"] = download.date_submitted.isoformat()
         if download.file_path is not None:
             data["file_path"] = download.file_path.resolve().as_posix()
         self.base.put(data, key)

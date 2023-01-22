@@ -1,12 +1,13 @@
+import datetime
 from pathlib import Path
 from typing import List, Optional, Union
 
 from pydantic import AnyHttpUrl, Field
 
-from .base import BaseModel_
 from ..constants import DownloadStatus, MediaFormat
 from ..types import VideoURL
 from ..utils import get_unique_id
+from .base import BaseModel_
 
 
 class BaseStream(BaseModel_):
@@ -51,6 +52,10 @@ class Download(BaseModel_):
     )
     file_path: Optional[Path] = Field(None, description="Path to file")
     progress: int = Field(0, description="Download progress in %")
+    date_submitted: datetime.datetime = Field(
+        default_factory=datetime.datetime.utcnow,
+        description="Date & time in UTC when download was submitted to API.",
+    )
 
     @property
     def filename(self) -> str:

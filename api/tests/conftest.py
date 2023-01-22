@@ -105,10 +105,16 @@ def fake_media_file_path(fake_media_path: Path) -> Path:
 
 
 @pytest.fixture()
+def deta_testbase() -> str:
+    return "ytdl_test"
+
+
+@pytest.fixture()
 def settings(
-    fake_media_path: Path, monkeypatch: pytest.MonkeyPatch
+    fake_media_path: Path, monkeypatch: pytest.MonkeyPatch, deta_testbase: str
 ) -> Iterable[Settings]:
     monkeypatch.setenv("MEDIA_PATH", fake_media_path.as_posix())
+    monkeypatch.setenv("DATASOURCE__DETA_BASE", deta_testbase)
     settings = Settings()  # type: ignore
     yield settings
 
