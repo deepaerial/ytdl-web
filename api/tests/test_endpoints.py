@@ -111,6 +111,7 @@ def test_download_file_endpoint(
     download = datasource.get_download(
         mocked_downloaded_media.client_id, mocked_downloaded_media.media_id
     )
+    assert download is not None
     assert download.status == "downloaded"
     assert download.when_file_downloaded is not None
 
@@ -156,6 +157,7 @@ def test_download_file_but_download_not_finished(
     download = datasource.get_download(
         mock_persisted_download.client_id, mock_persisted_download.media_id
     )
+    assert download is not None
     assert download.when_started_download is not None
 
 
@@ -210,5 +212,6 @@ def test_delete_existing_downloaded_file(
     download = datasource.get_download(
         mocked_downloaded_media.client_id, mocked_downloaded_media.media_id
     )
+    assert download is not None
     assert download.status == "deleted"
     assert download.when_deleted is not None

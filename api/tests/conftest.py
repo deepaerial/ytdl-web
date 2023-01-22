@@ -137,9 +137,9 @@ def app_client(settings: Settings):
 @pytest.fixture()
 def mock_download_params() -> DownloadParams:
     return DownloadParams(
-        url=EXAMPLE_VIDEO_PREVIEW["url"],
-        video_stream_id=EXAMPLE_VIDEO_PREVIEW["videoStreams"][12]["id"],
-        audio_stream_id=EXAMPLE_VIDEO_PREVIEW["audioStreams"][0]["id"],
+        url=EXAMPLE_VIDEO_PREVIEW["url"],  # type: ignore
+        video_stream_id=EXAMPLE_VIDEO_PREVIEW["videoStreams"][12]["id"],  # type: ignore
+        audio_stream_id=EXAMPLE_VIDEO_PREVIEW["audioStreams"][0]["id"],  # type: ignore
         media_format=MediaFormat.MP4,
     )
 

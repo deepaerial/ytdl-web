@@ -109,7 +109,7 @@ class Settings(ConfZ):
     @validator("allow_origins", pre=True)
     def validate_allow_origins(cls, value):
         if isinstance(value, str):
-            return json.loads(value)
+            return value.split(",")
         return value
 
     def init_app(__pydantic_self__) -> FastAPI:
@@ -154,7 +154,7 @@ class Settings(ConfZ):
         logger = logging.getLogger()
 
         for error, handler in ERROR_HANDLERS:
-            app.add_exception_handler(error, partial(handler, logger))
+            app.add_exception_handler(error, partial(handler, logger))  # type: ignore
 
     # In order to avoid TypeError: unhashable type: 'Settings' when overidding
     # dependencies.get_settings in tests.py __hash__ should be implemented
