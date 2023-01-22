@@ -60,14 +60,14 @@ async def on_finish_callback(
     """
     Callback which is executed once ffmpeg finished converting files.
     """
-    download.status = DownloadStatus.FINISHED
-    datasource.put_download(download)
+    status = DownloadStatus.FINISHED
+    datasource.update_status(download.media_id, status)
     await queue.put(
         download.client_id,
         DownloadProgress(
             client_id=download.client_id,
             media_id=download.media_id,
-            status=download.status,
+            status=status,
             progress=100,
         ),
     )

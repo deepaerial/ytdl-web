@@ -145,8 +145,7 @@ async def download_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
         )
-    media_file.status = DownloadStatus.DOWNLOADED
-    datasource.put_download(media_file)
+    datasource.update_status(media_id, DownloadStatus.DOWNLOADED)
     return FileResponse(
         media_file.file_path,
         media_type="application/octet-stream",
@@ -211,17 +210,13 @@ async def delete_download(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
         )
-    if media_file.status != DownloadStatus.FINISHED:
+    if media_file.status not in (DownloadStatus.FINISHED, DownloadStatus.DOWNLOADED):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Media file is not downloaded yet",
         )
-    if media_file.file_path is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
-        )
-    if media_file.file_path.exists():
-        media_file.file_path.unlink()
-    media_file.status = DownloadStatus.DELETED
-    datasource.update_download(media_file)
-    return {"media_id": media_file.media_id, "status": media_file.status}
+    if media_file.file_path is not None:
+        if media_file.file_path.exists():
+            media_file.file_path.unlink()
+    datasource.update_status(media_id, DownloadStatus.DELETED)
+    return {"media_id": media_file.media_id, "status": DownloadStatus.DELETED}

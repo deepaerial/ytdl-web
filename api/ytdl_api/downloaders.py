@@ -7,8 +7,8 @@ from typing import Dict, Literal, Optional
 import ffmpeg
 from pytube import StreamQuery, YouTube
 
-from ytdl_api.types import OnDownloadCallback, VideoURL
-
+from .types import OnDownloadCallback, VideoURL
+from .constants import DownloadStatus
 from .datasource import IDataSource
 from .queue import NotificationQueue
 from .schemas.models import AudioStream, Download, VideoStream
@@ -153,6 +153,10 @@ class PytubeDownloader(IDownloader):
             ] = lambda stream, chunk, bytes_remaining: asyncio.run(
                 on_progress_callback(stream, chunk, bytes_remaining)
             )
+        modified_timestamp = self.datasource.update_status(
+            download.media_id, DownloadStatus.DOWNLOADING
+        )
+        download.when_started_download = modified_timestamp
         streams = YouTube(download.url, **kwargs).streams.filter(is_dash=True).desc()
         downloaded_streams_file_paths: Dict[str, Path] = {}
         # Downloading audio stream if chosen
@@ -191,6 +195,7 @@ class PytubeDownloader(IDownloader):
             .run(capture_stdout=True, capture_stderr=True)
         )
         download.file_path = converted_file_path
+        self.datasource.put_download(download)
         if on_finish_callback is not None:
             asyncio.run(on_finish_callback(self.datasource, self.event_queue, download))
         # Cleaning downloaded streams

@@ -1,7 +1,6 @@
-import itertools
+import datetime
 import typing
 from abc import ABC, abstractmethod
-from collections import defaultdict
 
 from deta import Deta
 from pydantic import AnyHttpUrl, parse_obj_as
@@ -58,6 +57,18 @@ class IDataSource(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def update_status(
+        self,
+        media_id: str,
+        download_status: DownloadStatus,
+        datetime_modified: typing.Optional[datetime.datetime] = None,
+    ) -> typing.Optional[datetime.datetime]:
+        """
+        Abstract method for performing data changes when download changes its status. Returns modification datetime.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormat
     ) -> typing.Optional[Download]:  # pragma: no cover
@@ -74,7 +85,11 @@ class IDataSource(ABC):
         """
 
     def clear_downloads(self):
-        raise NotImplementedError()
+        """
+        Method for clearing all downloads. If intended to be used in specific implementation then it should be
+        reimplemented.
+        """
+        raise NotImplementedError
 
 
 class DetaDB(IDataSource):
@@ -100,7 +115,15 @@ class DetaDB(IDataSource):
     def put_download(self, download: Download):
         data = download.dict()
         key = data["media_id"]
-        data["date_submitted"] = download.date_submitted.isoformat()
+        data["when_submitted"] = download.when_submitted.isoformat()
+        if download.when_started_download:
+            data["when_started_download"] = download.when_started_download.isoformat()
+        if download.when_download_finished:
+            data["when_download_finished"] = download.when_download_finished.isoformat()
+        if download.when_file_downloaded:
+            data["when_file_downloaded"] = download.when_file_downloaded.isoformat()
+        if download.when_deleted:
+            data["when_deleted"] = download.when_deleted.isoformat()
         if download.file_path is not None:
             data["file_path"] = download.file_path.resolve().as_posix()
         self.base.put(data, key)
@@ -127,6 +150,37 @@ class DetaDB(IDataSource):
         status = progress_obj.status
         progress = progress_obj.progress
         self.base.update({"status": status, "progress": progress}, media_id)
+
+    def update_status(
+        self,
+        media_id: str,
+        download_status: DownloadStatus,
+        datetime_modified: typing.Optional[datetime.datetime] = None,
+    ) -> typing.Optional[datetime.datetime]:
+        when_modified = datetime_modified or datetime.datetime.utcnow()
+        when_modified_iso = when_modified.isoformat()
+        if download_status == DownloadStatus.DOWNLOADING:
+            arguments = {
+                "status": download_status,
+                "when_started_download": when_modified_iso,
+            }
+        elif download_status == DownloadStatus.FINISHED:
+            arguments = {
+                "status": download_status,
+                "when_download_finished": when_modified_iso,
+            }
+        elif download_status == DownloadStatus.DOWNLOADED:
+            arguments = {
+                "status": download_status,
+                "when_file_downloaded": when_modified_iso,
+            }
+        elif download_status == DownloadStatus.DELETED:
+            arguments = {"status": download_status, "when_deleted": when_modified_iso}
+        else:
+            # Updated for other statuses not needed for now.
+            return None
+        self.base.update(arguments, key=media_id)
+        return when_modified
 
     def get_download_if_exists(
         self, url: AnyHttpUrl, media_format: MediaFormat

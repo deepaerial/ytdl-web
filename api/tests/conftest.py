@@ -158,6 +158,9 @@ def mock_persisted_download(
         client_id=uid, media_format=MediaFormat.MP4, status=DownloadStatus.DOWNLOADING
     )
     datasource.put_download(download)
+    datasource.update_status(
+        download.media_id, DownloadStatus.DOWNLOADING
+    )  # simulating updating when_started_download field.
     yield download
 
 
@@ -175,6 +178,9 @@ def mocked_downloaded_media(
         progress=100,
     )
     datasource.put_download(download)
+    datasource.update_status(
+        download.media_id, download_status=DownloadStatus.FINISHED
+    )  # simulating updating when_download_finished field.
     yield download
 
 
