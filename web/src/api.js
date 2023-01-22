@@ -97,7 +97,7 @@ class API {
     static async downloadMediaFile(mediaId) {
         try {
             const params = { media_id: mediaId }
-            const response = await api.get('fetch', { params, responseType: 'blob' });
+            const response = await api.get('download', { params, responseType: 'blob' });
             const filename = getFilenameFromContentDisposition(response);
             const link = document.createElement('a');
             link.href = URL.createObjectURL(response.data);
