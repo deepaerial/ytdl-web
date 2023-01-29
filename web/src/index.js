@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDom from 'react-dom/client';
 import styled from 'styled-components';
 
-import App from './components/App.jsx';
+import App from './App.jsx';
 import { LoadingContextProvider } from './context/LoadingContext.js';
 
 import "../public/styles.css";

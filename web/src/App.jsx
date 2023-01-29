@@ -4,17 +4,17 @@ import { Grid } from '@mui/material';
 import { ToastContainer } from 'react-toastify';
 import { Slide } from 'react-toastify';
 
-import Header from './Header.jsx'
-import SearchBar from './SearchBar.jsx';
+import Header from './components/Header.jsx'
+import SearchBar from './components/SearchBar.jsx';
 
-import API from '../api';
-import { parametrizeUrl } from '../utils';
-import { LoadingContext } from '../context/LoadingContext.js';
-import { downloadsReducer } from '../reducers'
-import Preview from "./Preview.jsx"
+import API from './api.js';
+import { parametrizeUrl } from './utils.js';
+import { LoadingContext } from './context/LoadingContext.js';
+import { downloadsReducer } from './reducers.js'
+import Preview from "./components/Preview.jsx"
 import 'react-toastify/dist/ReactToastify.css';
-import MediaItem from './MediaItem.jsx';
-import { ACTION } from '../constants.js';
+import MediaItem from './components/MediaItem.jsx';
+import { ACTION } from './constants.js';
 
 
 
