@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 
-import { Grid } from '@mui/material';
+import { Grid, Stack } from '@mui/material';
+import { Item } from "@mui/material/"
 import { ToastContainer } from 'react-toastify';
 import { Slide } from 'react-toastify';
 
@@ -82,6 +83,26 @@ const App = () => {
         };
         donwloadListLoad();
     }, [version]);
+
+    const renderDownloads = () => {
+        if (isDesktop) {
+            return (<Grid container spacing={3} justifyContent="center">
+                {downloads && Object.entries(downloads).map(entry => {
+                    const [key, download] = entry;
+                    return <Grid item xs={3} key={key}>
+                        <MediaItem downloadItem={download} onDeleteAction={onDownloadDelete} />
+                    </Grid>
+                })}
+            </Grid>);
+        }
+        return (<Stack direction="column" justifyContent="center" alignItems="flex-start" spacing={2}>
+            {downloads && Object.entries(downloads).map(entry => {
+                const [key, download] = entry;
+                return (<MediaItem key={key} downloadItem={download} onDeleteAction={onDownloadDelete} />);
+            })
+            }
+        </Stack >);
+    };
     return (
         <React.Fragment>
             <ToastContainer
@@ -96,14 +117,7 @@ const App = () => {
             <Header version={version} />
             <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
             {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} />}
-            <Grid container spacing={3} justifyContent="center">
-                {downloads && Object.entries(downloads).map(entry => {
-                    const [key, download] = entry;
-                    return <Grid item xs={3} key={key}>
-                        <MediaItem downloadItem={download} onDeleteAction={onDownloadDelete} />
-                    </Grid>
-                })}
-            </Grid>
+            {renderDownloads()}
         </React.Fragment>
     );
 }
