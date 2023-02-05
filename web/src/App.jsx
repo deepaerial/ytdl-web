@@ -56,7 +56,7 @@ const App = () => {
             mediaId,
             status
         });
-        toast.info(`${isAudio ? "Audio" : "Video"} file \"${title}\" was successfully deleted.`)
+        toast.success(`${isAudio ? "Audio" : "Video"} file \"${title}\" was successfully deleted.`)
     };
 
     useEffect(() => {
@@ -117,7 +117,7 @@ const App = () => {
             />
             <Header version={version} />
             <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
-            {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} />}
+            {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}
             {renderDownloads()}
         </React.Fragment>
     );

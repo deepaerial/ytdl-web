@@ -10,12 +10,15 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import CloseIcon from '@mui/icons-material/Close';
+import LinkIcon from '@mui/icons-material/Link';
 import Typography from '@mui/material/Typography';
-import { styled } from '@mui/material';
+import { Box, IconButton, styled } from '@mui/material';
 
 import API from '../api';
 import { useContext } from 'react';
 import { LoadingContext } from '../context/LoadingContext';
+import { Container } from '@mui/system';
 
 
 const CustomisedCardActions = styled(CardActions)(() => ({
@@ -24,7 +27,7 @@ const CustomisedCardActions = styled(CardActions)(() => ({
 }));
 
 
-const Preview = ({ preview, onDonwloadEnqueue }) => {
+const Preview = ({ preview, onDonwloadEnqueue, setPreview }) => {
     const setIsLoading = useContext(LoadingContext);
     const [audioStream, setAudioStream] = useState(preview.audioStreams[0].id)
     const [videoStream, setVideoStream] = useState(preview.videoStreams[0].id)
@@ -43,6 +46,14 @@ const Preview = ({ preview, onDonwloadEnqueue }) => {
         });
     }
 
+    const onDiscardClick = async () => {
+        setPreview(null);
+    }
+
+    const onLinkClick = () => {
+        window.open(preview.url);
+    };
+
     return (
         <Card sx={{ maxWidth: 300 }}>
             <CardMedia
@@ -55,6 +66,9 @@ const Preview = ({ preview, onDonwloadEnqueue }) => {
                 <Typography gutterBottom variant="p" fontWeight="bold" component="div">
                     {preview.title}
                 </Typography>
+                <IconButton aria-label="link" onClick={onLinkClick}>
+                    <LinkIcon />
+                </IconButton>
                 <FormControl sx={{ m: 1, width: "100%" }}>
                     <InputLabel id="audio-bitrate-select-label">Audio bitrate</InputLabel>
                     <Select
@@ -99,8 +113,11 @@ const Preview = ({ preview, onDonwloadEnqueue }) => {
                 </FormControl>
             </CardContent>
             <CustomisedCardActions>
-                <Button variant="contained" startIcon={<FileDownloadIcon />} onClick={onDownloadClick}>
+                <Button variant="contained" color="primary" startIcon={<FileDownloadIcon />} onClick={onDownloadClick}>
                     Download
+                </Button>
+                <Button variant="outlined" color="error" startIcon={<CloseIcon />} onClick={onDiscardClick}>
+                    Discard
                 </Button>
             </CustomisedCardActions>
         </Card >
