@@ -27,7 +27,10 @@ class API {
         } catch (exc) {
             let error_message = null;
             if (exc.response) {
-                error_message = exc.response.data.detail;
+                if (exc.response.status == 422) {
+                    const error = exc.response.data.detail[0]
+                    error_message = error.msg
+                } else error_message = exc.response.data.detail;
             } else {
                 error_message = exc.message;
             }
