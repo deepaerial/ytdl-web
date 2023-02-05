@@ -13,7 +13,7 @@ from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
 from .schemas import requests, responses
-from .types import OnDownloadCallback
+from .types import VideoURL, OnDownloadCallback
 
 router = APIRouter(tags=["base"])
 
@@ -66,7 +66,7 @@ async def get_downloads(
     },
 )
 async def preview(
-    url: AnyHttpUrl,
+    url: VideoURL,
     downloader: IDownloader = Depends(dependencies.get_downloader),
 ):
     """

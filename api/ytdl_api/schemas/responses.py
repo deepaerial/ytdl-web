@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Type, Optional
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, AnyHttpUrl
 
 from ..constants import DownloadStatus, MediaFormat
 from ..types import VideoURL
@@ -45,7 +45,7 @@ class VideoInfoResponse(BaseModel_):
     url: VideoURL = Field(..., title="URL", description="URL to video")
     title: str = Field(..., description="Video title")
     duration: int = Field(..., description="Video length in seconds")
-    thumbnail_url: VideoURL = Field(..., description="Video thumbnail")
+    thumbnail_url: AnyHttpUrl = Field(..., description="Video thumbnail")
     audio_streams: List[AudioStream] = Field([], description="Available audio streams")
     video_streams: List[VideoStream] = Field([], description="Available video streams")
     media_formats: List[MediaFormat] = Field(
