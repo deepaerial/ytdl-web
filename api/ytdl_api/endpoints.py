@@ -219,4 +219,9 @@ async def delete_download(
         if media_file.file_path.exists():
             media_file.file_path.unlink()
     datasource.update_status(media_id, DownloadStatus.DELETED)
-    return {"media_id": media_file.media_id, "status": DownloadStatus.DELETED}
+    return responses.DeleteResponse(
+        media_id=media_file.media_id,
+        status=DownloadStatus.DELETED,
+        isAudio=media_file.media_format.is_audio,
+        title=media_file.title,
+    )

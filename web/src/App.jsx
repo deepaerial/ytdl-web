@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
 
 import { Grid, Stack } from '@mui/material';
-import { Item } from "@mui/material/"
 import { ToastContainer } from 'react-toastify';
 import { Slide } from 'react-toastify';
 
 import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx';
 
+import { toast } from 'react-toastify';
 import API from './api.js';
 import { parametrizeUrl } from './utils.js';
 import { LoadingContext } from './context/LoadingContext.js';
@@ -50,12 +50,13 @@ const App = () => {
     };
 
     const onDownloadDelete = (download) => {
-        const { mediaId, status } = download;
+        const { mediaId, status, isAudio, title } = download;
         dispatch({
             type: ACTION.DELETE,
             mediaId,
             status
         });
+        toast.info(`${isAudio ? "Audio" : "Video"} file \"${title}\" was successfully deleted.`)
     };
 
     useEffect(() => {

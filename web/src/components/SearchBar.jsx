@@ -84,7 +84,6 @@ const SearchBar = ({ isDesktop, setPreview }) => {
             const preview = await API.getPreview(url);
             setPreview(preview);
         } catch (error) {
-            console.error(error);
             toast.error(error.message)
         } finally {
             setIsLoading(false);

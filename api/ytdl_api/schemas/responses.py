@@ -39,6 +39,8 @@ class VersionResponse(BaseModel_):
 class DeleteResponse(BaseModel_):
     media_id: str = Field(..., description="Id of downloaded media")
     status: DownloadStatus = Field(..., description="Download status")
+    isAudio: bool = Field(..., description="Is deleted file was audio file")
+    title: str = Field(..., description="Deleted media file title")
 
 
 class VideoInfoResponse(BaseModel_):
