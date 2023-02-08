@@ -1,5 +1,4 @@
-from typing import List, Dict, Any, Type, Optional
-from pathlib import Path
+from typing import List, Dict, Any, Union, Optional
 
 from pydantic import Field, AnyHttpUrl
 
@@ -14,15 +13,33 @@ class ErrorResponse(BaseModel_):
     code: str = Field(..., description="Custom error identifying code")
 
 
-class DownloadResponse(Download):
-    file_path: Optional[Path] = Field(..., exclude=True)
-
-    class Config(BaseModel_.Config):
-        @staticmethod
-        def schema_extra(
-            schema: Dict[str, Any], model: Type["DownloadResponse"]
-        ) -> None:
-            schema.get("properties", {}).pop("filePath", None)
+class DownloadResponse(BaseModel_):
+    client_id: str = Field(..., description="Client ID")
+    media_id: str = Field(..., description="Download id")
+    title: str = Field(..., description="Video title")
+    url: VideoURL = Field(..., description="URL of video")
+    video_streams: List[VideoStream] = Field(
+        description="List of video streams", default_factory=list
+    )
+    audio_streams: List[AudioStream] = Field(
+        description="List of audio streams", default_factory=list
+    )
+    video_stream_id: Optional[str] = Field(
+        None, description="Video stream ID (downloaded)"
+    )
+    audio_stream_id: Optional[str] = Field(
+        None, description="Audio stream ID (downloaded)"
+    )
+    media_format: MediaFormat = Field(
+        None,
+        description="Video or audio (when extracting) format of file",
+    )
+    duration: int = Field(..., description="Video duration (in milliseconds)")
+    filesize: int = Field(None, description="Video/audio filesize (in bytes)")
+    thumbnail_url: Union[AnyHttpUrl, str] = Field(..., description="Video thumbnail")
+    status: DownloadStatus = Field(
+        DownloadStatus.STARTED, description="Download status"
+    )
 
 
 class DownloadsResponse(BaseModel_):
