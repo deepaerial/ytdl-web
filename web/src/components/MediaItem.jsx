@@ -5,7 +5,7 @@ import styled from 'styled-components';
 
 import DownloadIcon from '@mui/icons-material/Download';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { millisecToHumanReadable } from '../utils';
+import { secondsToHumanReadable } from '../utils';
 import { Statuses } from '../constants.js';
 
 import DownloadSpinner from "./DownloadSpinner.jsx";
@@ -99,7 +99,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
             {
                 [Statuses.DOWNLOADING, Statuses.CONVERTING].includes(status) && <DownloadSpinner progress={progress} />
             }
-            <Duration>{millisecToHumanReadable(duration)}</Duration>
+            <Duration>{secondsToHumanReadable(duration)}</Duration>
             <ButtonsBox>
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={deleteMedia}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
