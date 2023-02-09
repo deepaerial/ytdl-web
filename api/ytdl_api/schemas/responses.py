@@ -1,6 +1,6 @@
-from typing import List, Dict, Any, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from pydantic import Field, AnyHttpUrl
+from pydantic import AnyHttpUrl, Field
 
 from ..constants import DownloadStatus, MediaFormat
 from ..types import VideoURL
