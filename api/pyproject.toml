@@ -65,7 +65,7 @@ pytest-pep8 = "^1.0.6"
 pytest-cov = "^2.11.1"
 coverage = {extras = ["toml"], version = "^5.5"}
 pre-commit = "^2.18.1"
-mypy = "^0.961"
+mypy = "1.0.0"
 types-setuptools = "^62.6.1"
 pytest-mypy = "^0.9.1"
 pyclean = "^2.2.0"
