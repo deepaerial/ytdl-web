@@ -19,26 +19,7 @@ from .storage import IStorage, LocalFileStorage
 MEDIA_PATH = (Path(__file__).parent / ".." / ".." / "media").resolve()
 
 
-class BaseDataSourceConfig(ConfZ, abc.ABC):
-    """
-    Base abstract class for datasource config class.
-    """
-
-    @abc.abstractmethod
-    def get_datasource(self) -> IDataSource:  # pragma: no cover
-        raise NotImplementedError
-
-    # In order to avoid TypeError: unhashable type: 'Settings' when overidding
-    # dependencies.get_settings in tests.py __hash__ should be implemented
-    def __hash__(self):  # make hashable BaseModel subclass
-        attrs = tuple(
-            attr if not isinstance(attr, list) else ",".join(attr)
-            for attr in self.__dict__.values()
-        )
-        return hash((type(self),) + attrs)
-
-
-class DetaBaseDataSourceConfig(BaseDataSourceConfig):
+class DetaBaseDataSourceConfig(ConfZ):
     """
     Deta Base DB datasource config.
     """
@@ -50,17 +31,7 @@ class DetaBaseDataSourceConfig(BaseDataSourceConfig):
         return DetaDB(self.deta_key, self.deta_base)
 
 
-class BaseStorageConfig(ConfZ, abc.ABC):
-    """
-    Base abstract class for storage config class.
-    """
-
-    @abc.abstractmethod
-    def get_storage(self) -> IStorage:  # pragma: no cover
-        raise NotImplementedError
-
-
-class LocalStorageConfig(BaseStorageConfig):
+class LocalStorageConfig(ConfZ):
     """
     Local filesystem storage config.
     """

@@ -2,7 +2,6 @@ import asyncio
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
-from pydantic.networks import AnyHttpUrl
 from sse_starlette.sse import EventSourceResponse
 from starlette import status
 
@@ -13,7 +12,7 @@ from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
 from .schemas import requests, responses
-from .types import VideoURL, OnDownloadCallback
+from .types import OnDownloadCallback, VideoURL
 
 router = APIRouter(tags=["base"])
 
