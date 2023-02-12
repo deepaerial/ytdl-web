@@ -24,4 +24,4 @@ API_URL=http://localhost:8080
 $ npm run devserver
 ```
 
-App should be automatically opened on http://localhost:3000
+App should be automatically opened on http://localhost:8080
