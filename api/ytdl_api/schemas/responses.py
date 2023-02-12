@@ -1,11 +1,12 @@
-from typing import Any, Dict, List, Optional, Union
+import datetime
+from typing import List, Optional, Union
 
 from pydantic import AnyHttpUrl, Field
 
 from ..constants import DownloadStatus, MediaFormat
 from ..types import VideoURL
 from .base import BaseModel_
-from .models import AudioStream, Download, VideoStream
+from .models import AudioStream, VideoStream
 
 
 class ErrorResponse(BaseModel_):
@@ -39,6 +40,22 @@ class DownloadResponse(BaseModel_):
     thumbnail_url: Union[AnyHttpUrl, str] = Field(..., description="Video thumbnail")
     status: DownloadStatus = Field(
         DownloadStatus.STARTED, description="Download status"
+    )
+    when_submitted: datetime.datetime = Field(
+        default_factory=datetime.datetime.utcnow,
+        description="Date & time in UTC when download was submitted to API.",
+    )
+    when_started_download: Optional[datetime.datetime] = Field(
+        None, description="Date & time in UTC when download started."
+    )
+    when_download_finished: Optional[datetime.datetime] = Field(
+        None, description="Date & time in UTC when download finished."
+    )
+    when_file_downloaded: Optional[datetime.datetime] = Field(
+        None, description="Date & time in UTC when file was downloaded."
+    )
+    when_deleted: Optional[datetime.datetime] = Field(
+        None, description="Date & time in UTC when download was soft-deleted."
     )
 
 

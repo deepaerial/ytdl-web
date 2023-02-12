@@ -30,6 +30,13 @@ class DetaBaseDataSourceConfig(ConfZ):
     def get_datasource(self) -> IDataSource:
         return DetaDB(self.deta_key, self.deta_base)
 
+    def __hash__(self):  # make hashable BaseModel subclass
+        attrs = tuple(
+            attr if not isinstance(attr, list) else ",".join(attr)
+            for attr in self.__dict__.values()
+        )
+        return hash((type(self),) + attrs)
+
 
 class LocalStorageConfig(ConfZ):
     """
