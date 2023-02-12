@@ -1,6 +1,6 @@
 # YTDL WEB
 
-![YTDL WEB](https://gfycat.com/keenneatamericancrow)
+![YTDL WEB](./images/webapp.gif)
 
 Yet another Web application for downloading Youtube videos. Can download videos using different formats and in different quality.
 
