@@ -76,7 +76,7 @@ class Settings(ConfZ):
     cookie_secure: bool = True
     cookie_httponly: bool = True
 
-    downloader: DownloaderType
+    downloader: DownloaderType = DownloaderType.PYTUBE
     media_path: Path = MEDIA_PATH
     datasource: DetaBaseDataSourceConfig
 

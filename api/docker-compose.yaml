@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  ytdl-api:
+    container_name: "ytdl-api"
+    build:
+      context: .
+      target: dev
+    ports:
+      - 8000:80
+    env_file:
+      - .env
+    volumes:
+      - "./ytdl_api/:/app/ytdl_api"
+      - "./media/:/app/media"
+    restart: always
+    stdin_open: true
+    tty: true
+    networks:
+      - default
+  ytdl-api-pytest:
+    container_name: "ytdl-api-pytest"
+    build:
+      context: ./api/
+      target: test
+    ports:
+      - 5678:5678
+    volumes:
+      - "./api/ytdl_api/:/app/ytdl_api"
+      - "./htmlcov:/app/htmlcov"
+    restart: "no"
+    stdin_open: true
+    tty: true
