@@ -1,11 +1,14 @@
-
-export const UID_KEY = "uid";
-export const DOWNLOADS = "downloads";
-
 export const Statuses = {
     STARTED: "started",
     DOWNLOADING: "downloading",
+    CONVERTING: "converting",
     FINISHED: "finished",
     DOWNLOADED: "downloaded",
     DELETED: "deleted"
+}
+
+export const ACTION = {
+    FETCH_ALL: "FETCH_ALL",
+    STATUS_UPDATE: "STATUS_UPDATE",
+    DELETE: "DELETE"
 }

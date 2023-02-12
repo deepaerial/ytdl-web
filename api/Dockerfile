@@ -6,7 +6,7 @@ ENV PYTHONFAULTHANDLER=1 \
     PIP_NO_CACHE_DIR=off \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     PIP_DEFAULT_TIMEOUT=100 \
-    POETRY_VERSION=1.1.4
+    POETRY_VERSION=1.1.15
 
 RUN pip install --upgrade pip
 
@@ -33,11 +33,6 @@ CMD ["uvicorn", "ytdl_api.asgi:app", "--host", "0.0.0.0", "--port", "80", "--log
 ############ Test ###################
 FROM dev as test
 WORKDIR /app
-
-COPY tox.ini .
-COPY .coveragerc .
-
-RUN pip install debugpy
 
 CMD ["pytest", "--cov-report", "html"]
 ############ Prod ###################

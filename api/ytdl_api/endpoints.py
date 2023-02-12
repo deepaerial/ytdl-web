@@ -1,137 +1,150 @@
 import asyncio
-import typing
-import socket
-import re
-from http.client import RemoteDisconnected
-from fastapi import APIRouter, Request, Depends, HTTPException
-from starlette.responses import FileResponse, JSONResponse
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
-from youtube_dl.utils import YoutubeDLError
+from starlette import status
 
-from . import dependencies, schemas, config, queue, db
-from .downloaders import DownloaderInterface, get_unique_id
+from . import config, datasource, dependencies
+from .callbacks import on_finish_callback, on_start_converting
+from .constants import DownloadStatus
+from .converters import create_download_from_download_params
+from .downloaders import IDownloader
+from .queue import NotificationQueue
+from .schemas import requests, responses
+from .types import OnDownloadCallback, VideoURL
 
-router = APIRouter()
+router = APIRouter(tags=["base"])
 
-
-_ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
-
-
-def make_internal_error(error_code: str = "internal-server-error") -> JSONResponse:
-    return JSONResponse(
-        {
-            "detail": "Remote server encountered problem, please try again...",
-            "code": error_code,
-        },
-        status_code=500,
-    )
-
-
-async def on_youtube_dl_error(request, exc: YoutubeDLError):
-    return JSONResponse(
-        {"detail": _ansi_escape.sub("", str(exc)), "code": "downloader-error"},
-        status_code=500,
-    )
-
-
-async def on_remote_disconnected(request, exc: RemoteDisconnected):
-    return make_internal_error("external-service-network-error")
-
-
-async def on_socket_timeout(request, exc: socket.timeout):
-    return make_internal_error("external-service-timeout-error")
-
-
-async def on_runtimeerror(request, exc: RuntimeError):
-    return make_internal_error()
-
-
-DOWNLOAD_NOT_FOUND = HTTPException(status_code=404, detail="Download not found")
+get_uid = dependencies.get_uid_dependency_factory()
+get_uid_or_403 = dependencies.get_uid_dependency_factory(raise_error_on_empty=True)
 
 
 @router.get(
-    "/info",
-    response_model=schemas.VersionResponse,
-    status_code=200,
-    responses={500: {"model": schemas.DetailMessage,}},
+    "/version",
+    response_model=responses.VersionResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(get_uid)],
 )
-async def info(
-    uid: typing.Optional[str] = None,
+async def get_api_version(
     settings: config.Settings = Depends(dependencies.get_settings),
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
 ):
     """
-    Endpoint for getting info about server API.
+    Endpoint for getting info about server API and fetching list of downloaded videos.
     """
-    if uid is None:
-        uid = get_unique_id()
     return {
-        "youtube_dl_version": settings.youtube_dl_version,
         "api_version": settings.version,
-        "media_options": [
-            media_format.value for media_format in schemas.MediaFormatOptions
-        ],
-        "uid": uid,
-        "downloads": datasource.fetch_downloads(uid),
     }
 
 
-@router.put(
-    "/fetch",
-    response_model=schemas.FetchedListResponse,
-    status_code=201,
-    responses={500: {"model": schemas.DetailMessage,}},
+@router.get(
+    "/downloads",
+    response_model=responses.DownloadsResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
 )
-async def fetch_media(
-    uid: str,
-    json_params: schemas.YTDLParams,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
-    downloader: DownloaderInterface = Depends(dependencies.get_downloader),
+async def get_downloads(
+    uid: str = Depends(get_uid_or_403),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
+):
+    """
+    Endpoint for fetching list of downloaded videos for current client/user.
+    """
+    downloads = datasource.fetch_downloads(uid)
+    return {"downloads": downloads}
+
+
+@router.get(
+    "/preview",
+    response_model=responses.VideoInfoResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
+)
+async def preview(
+    url: VideoURL,
+    downloader: IDownloader = Depends(dependencies.get_downloader),
+):
+    """
+    Endpoint for getting info about video.
+    """
+    download = downloader.get_video_info(url)
+    return download
+
+
+@router.put(
+    "/download",
+    response_model=responses.DownloadsResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(dependencies.validate_download_params)],
+    responses={
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse}
+    },
+)
+async def submit_download(
+    download_params: requests.DownloadParams,
+    background_tasks: BackgroundTasks,
+    uid: str = Depends(get_uid_or_403),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
+    downloader: IDownloader = Depends(dependencies.get_downloader),
+    progress_hook: OnDownloadCallback = Depends(dependencies.get_on_progress_hook),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
     specified format.
     """
-    download = downloader.get_video_info(json_params)
-    datasource.put_download(uid, download)
-    downloader.submit_download_task(
-        uid, download.media_id, json_params,
+    download = create_download_from_download_params(uid, download_params, downloader)
+    datasource.put_download(download)
+    background_tasks.add_task(
+        downloader.download,
+        download,
+        progress_hook,
+        on_start_converting,
+        on_finish_callback,
     )
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
 @router.get(
-    "/fetch",
+    "/download",
     responses={
-        200: {
+        status.HTTP_200_OK: {
             "content": {"application/octet-stream": {}},
             "description": "Downloaded media file",
         },
-        404: {
+        status.HTTP_404_NOT_FOUND: {
             "content": {"application/json": {}},
-            "model": schemas.DetailMessage,
+            "model": responses.ErrorResponse,
             "description": "Download not found",
             "example": {"detail": "Download not found"},
         },
     },
 )
-async def download_media(
-    uid: str,
+async def download_file(
     media_id: str,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
-    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
+    uid: str = Depends(get_uid_or_403),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     Endpoint for downloading fetched video from Youtube.
     """
     media_file = datasource.get_download(uid, media_id)
-    if not media_file:
-        raise DOWNLOAD_NOT_FOUND
-    if not media_file._file_path.exists():
-        raise HTTPException(status_code=404, detail="Downloaded file not found")
-    media_file.status = schemas.ProgressStatusEnum.DOWNLOADED
-    datasource.put_download(uid, media_file)
-    await event_queue.put(uid, media_file)
+    if media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
+    if media_file.status != DownloadStatus.FINISHED:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
+        )
+    if media_file.file_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
+        )
+    datasource.update_status(media_id, DownloadStatus.DOWNLOADED)
     return FileResponse(
         media_file.file_path,
         media_type="application/octet-stream",
@@ -139,12 +152,11 @@ async def download_media(
     )
 
 
-@router.get("/fetch/stream")
+@router.get("/download/stream", response_class=EventSourceResponse)
 async def fetch_stream(
-    uid: str,
     request: Request,
-    event_queue: queue.NotificationQueue = Depends(dependencies.get_notification_queue),
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    uid: str = Depends(get_uid_or_403),
+    event_queue: NotificationQueue = Depends(dependencies.get_notification_queue),
 ):
     """
     SSE endpoint for recieving download status of media items.
@@ -159,39 +171,56 @@ async def fetch_stream(
             except asyncio.QueueEmpty:
                 continue
             else:
-                datasource.update_download_progress(data)
-                yield data.json()
+                yield data.json(by_alias=True)
 
     return EventSourceResponse(_stream())
 
 
 @router.delete(
     "/delete",
-    response_model=schemas.DeleteResponse,
-    status_code=200,
+    response_model=responses.DeleteResponse,
+    status_code=status.HTTP_200_OK,
     responses={
-        404: {
+        status.HTTP_404_NOT_FOUND: {
             "content": {"application/json": {}},
-            "model": schemas.DetailMessage,
+            "model": responses.ErrorResponse,
             "description": "Download not found",
             "example": {"detail": "Download not found"},
         },
-        500: {"model": schemas.DetailMessage},
+        status.HTTP_400_BAD_REQUEST: {
+            "content": {"application/json": {}},
+            "model": responses.ErrorResponse,
+            "description": "Media is not downloaded",
+            "example": {"detail": "Media is not downloaded"},
+        },
+        status.HTTP_500_INTERNAL_SERVER_ERROR: {"model": responses.ErrorResponse},
     },
 )
-async def delete_media(
-    uid: str,
+async def delete_download(
     media_id: str,
-    datasource: db.DAOInterface = Depends(dependencies.get_database),
+    uid: str = Depends(get_uid_or_403),
+    datasource: datasource.IDataSource = Depends(dependencies.get_database),
 ):
     """
     Endpoint for deleting downloaded media.
     """
     media_file = datasource.get_download(uid, media_id)
-    if not media_file:
-        raise DOWNLOAD_NOT_FOUND
-    if media_file._file_path.exists():
-        media_file._file_path.unlink()
-    media_file.status = schemas.ProgressStatusEnum.DELETED
-    datasource.update_download(uid, media_file)
-    return {"media_id": media_file.media_id, "status": media_file.status}
+    if media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
+    if media_file.status not in (DownloadStatus.FINISHED, DownloadStatus.DOWNLOADED):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Media file is not downloaded yet",
+        )
+    if media_file.file_path is not None:
+        if media_file.file_path.exists():
+            media_file.file_path.unlink()
+    datasource.update_status(media_id, DownloadStatus.DELETED)
+    return responses.DeleteResponse(
+        media_id=media_file.media_id,
+        status=DownloadStatus.DELETED,
+        isAudio=media_file.media_format.is_audio,
+        title=media_file.title,
+    )

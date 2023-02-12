@@ -1,17 +1,67 @@
 import { getFilenameFromContentDisposition } from './utils'
 import axios from 'axios';
-import { UID_KEY, Statuses } from './constants';
 
-const api = axios.create({ baseURL: API_URL });
+const api = axios.create({ baseURL: API_URL, withCredentials: true });
 
 class API {
 
-    static async getClientInfo() {
+    static async getApiVersion() {
         try {
-            const uid = localStorage.getItem(UID_KEY);
-            const response = await api.get('info', { params: uid ? { uid } : {} });
-            localStorage.setItem(UID_KEY, response.data.uid);
+            const response = await api.get('version');
             return response.data;
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                error_message = exc.response.data.detail;
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
+    static async getPreview(url) {
+        try {
+            const response = await api.get('preview', { params: { url } });
+            return response.data;
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                if (exc.response.status == 422) {
+                    const error = exc.response.data.detail[0]
+                    error_message = error.msg
+                } else error_message = exc.response.data.detail;
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
+    static async getDownloads() {
+        try {
+            const response = await api.get('downloads');
+            return response.data["downloads"];
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                error_message = exc.response.data.detail;
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
+    static async enqueueDownload(url, videoStream, audioStream, mediaFormat) {
+        try {
+            const response = await api.put('download', {
+                url,
+                videoStreamId: videoStream,
+                audioStreamId: audioStream,
+                mediaFormat
+            });
+            return response.data["downloads"];
         } catch (exc) {
             let error_message = null;
             if (exc.response) {
@@ -25,11 +75,10 @@ class API {
 
     static async fetchMediaInfo(videoUrl, mediaFormat) {
         try {
-            const uid = localStorage.getItem(UID_KEY);
             const response = await api.put('fetch', {
                 url: videoUrl,
                 media_format: mediaFormat
-            }, { params: (uid) ? { uid } : {} });
+            });
             return response.data.downloads;
         } catch (exc) {
             let error_message = null;
@@ -50,12 +99,8 @@ class API {
 
     static async downloadMediaFile(mediaId) {
         try {
-            const uid = localStorage.getItem(UID_KEY);
             const params = { media_id: mediaId }
-            if (uid) {
-                params.uid = uid;
-            }
-            const response = await api.get('fetch', { params, responseType: 'blob' });
+            const response = await api.get('download', { params, responseType: 'blob' });
             const filename = getFilenameFromContentDisposition(response);
             const link = document.createElement('a');
             link.href = URL.createObjectURL(response.data);
@@ -82,11 +127,7 @@ class API {
 
     static async deleteMediaFile(mediaId) {
         try {
-            const uid = localStorage.getItem(UID_KEY);
             const params = { media_id: mediaId }
-            if (uid) {
-                params.uid = uid;
-            }
             const response = await api.delete('delete', { params });
             return response.data
         } catch (exc) {

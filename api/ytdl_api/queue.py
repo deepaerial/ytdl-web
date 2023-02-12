@@ -1,9 +1,8 @@
-import typing
 import asyncio
+import typing
 from collections import defaultdict
 
-
-from .schemas import Download, DownloadProgress, DownloadDataInfo
+from .schemas.models import DownloadProgress
 
 
 class NotificationQueue:
@@ -14,14 +13,6 @@ class NotificationQueue:
         queue = self.queues[client_id]
         return await queue.get()
 
-    def get_put(self, client_id: str, media_id: str) -> typing.Coroutine:
+    async def put(self, client_id: str, download_progress: DownloadProgress):
         queue = self.queues[client_id]
-
-        async def inner_put(data: DownloadDataInfo):
-            return await queue.put(DownloadProgress.from_data(client_id, media_id, data))
-
-        return inner_put
-
-    async def put(self, client_id: str, download: Download):
-        queue = self.queues[client_id]
-        return await queue.put(DownloadProgress.from_download(client_id, download))
+        return await queue.put(download_progress)

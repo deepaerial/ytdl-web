@@ -1,17 +1,28 @@
 import React from 'react';
-import ReactDom from 'react-dom';
+import ReactDom from 'react-dom/client';
+import styled from 'styled-components';
 
-import App from './components/App.jsx';
+import App from './App.jsx';
+import { LoadingContextProvider } from './context/LoadingContext.js';
+
+import "../public/styles.css";
 
 
-ReactDom.render(<App />, document.getElementById('app'));
+const Content = styled.div`
+    display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+    align-content: center;
+`;
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/service-worker.js').then(registration => {
-            console.log('[YTDL] service worker registered');
-        }).catch(registrationError => {
-            console.log('[YTDL] service worker registration failed: ', registrationError);
-        });
-    });
-}
+const container = document.getElementById('app');
+const root = ReactDom.createRoot(container);
+root.render(
+    <Content>
+        <LoadingContextProvider>
+            <App />
+        </LoadingContextProvider>
+    </Content>
+);

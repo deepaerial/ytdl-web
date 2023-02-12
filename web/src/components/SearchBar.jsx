@@ -1,9 +1,9 @@
-import React, { Component } from 'react'
+import React, { useContext, useState } from 'react'
 import PropTypes from "prop-types";
 
-import styled, { keyframes } from 'styled-components';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import DownloadsContext from '../context/DownloadsContext';
+import styled from 'styled-components';
+import { LoadingContext } from '../context/LoadingContext.js';
+import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
 import API from '../api';
 
@@ -72,40 +72,18 @@ const SearchBarButton = styled.button`
 `
 
 
-export default class SearchBar extends Component {
+const SearchBar = ({ isDesktop, setPreview }) => {
 
-    static propTypes = {
-        mediaOptions: PropTypes.arrayOf(PropTypes.string),
-        isDesktop: PropTypes.bool,
-        setDownloads: PropTypes.func,
-        setIsLoading: PropTypes.func
-    }
+    const [url, setUrl] = useState("");
+    const setIsLoading = useContext(LoadingContext);
 
-    state = {
-        url: '',
-        isDesktop: false,
-        selectedMediaOption: null,
-    }
-
-    componentDidUpdate = (prevProps) => {
-        const { mediaOptions } = this.props;
-        if (mediaOptions !== prevProps.mediaOptions) {
-            if (mediaOptions) {
-                this.setState({ selectedMediaOption: mediaOptions[0] });
-            }
-        }
-    }
-
-    onSearch = async (event) => {
+    const onSearch = async (event) => {
         event.preventDefault();
-        const {setDownloads, setIsLoading} = this.props;
         try {
             setIsLoading(true);
-            const downloads = await API.fetchMediaInfo(this.state.url, this.state.selectedMediaOption, (message) => toast(message));
-            if (downloads.length) {
-                setDownloads(downloads);
-                this.setState({ url: '' });
-            }
+            const preview = await API.getPreview(url);
+            setPreview(preview);
+            setUrl("");
         } catch (error) {
             toast.error(error.message)
         } finally {
@@ -113,35 +91,22 @@ export default class SearchBar extends Component {
         }
     };
 
-    onChange = (event) => {
+    const onChange = (event) => {
         const value = event.target.value;
-        if (event.target.name === 'search') {
-            this.setState({ url: value })
-        } else {
-            this.setState({ selectedMediaOption: value });
-        }
-    }
+        setUrl(value)
+    };
 
-
-    render() {
-        const { mediaOptions, isDesktop, setDownloads, setIsLoading } = this.props;
-        const { selectedMediaOption } = this.state;
-        const selectProps = {
-            name: mediaOptions,
-            onChange: this.onChange
-        }
-        if (selectedMediaOption) {
-            selectProps.value = selectedMediaOption;
-        }
-        return (
-            <SearchBarWrapper isDesktop={isDesktop}>
-                <FontAwesomeIcon icon="search" />
-                <SearchBarInput name='search' type="text" placeholder="https://www.youtube.com/watch?v=..." value={this.state.url} onChange={this.onChange} />
-                <SearchBarMediaSelect {...selectProps}>
-                    {mediaOptions.map((option, index) => <option key={option} value={option}>{option}</option>)}
-                </SearchBarMediaSelect>
-                <SearchBarButton onClick={this.onSearch}>Search</SearchBarButton>
-            </SearchBarWrapper>
-        )
-    }
+    return (
+        <SearchBarWrapper isDesktop={isDesktop}>
+            <SearchIcon />
+            <SearchBarInput name='search' type="text" placeholder="https://www.youtube.com/watch?v=..." value={url} onChange={onChange} />
+            <SearchBarButton onClick={onSearch}>Search</SearchBarButton>
+        </SearchBarWrapper>
+    );
 }
+
+SearchBar.propTypes = {
+    isDesktop: PropTypes.bool,
+    setPreview: PropTypes.func
+}
+export default SearchBar;

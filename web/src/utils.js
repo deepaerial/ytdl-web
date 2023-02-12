@@ -1,3 +1,13 @@
+export const mapDownloads = (downloads) => {
+    if (downloads instanceof Array) {
+        downloads = Object.assign({}, ...downloads.map(d => {
+            const { mediaId } = d;
+            return { [mediaId]: d }
+        }));
+    }
+    return downloads;
+};
+
 export const millisecToHumanReadable = (millisec) => {
     var seconds = (millisec / 1000).toFixed(0);
     var minutes = Math.floor(seconds / 60);
@@ -16,6 +26,24 @@ export const millisecToHumanReadable = (millisec) => {
     }
     return minutes + ":" + seconds;
 };
+
+export const secondsToHumanReadable = (seconds) => {
+    var minutes = Math.floor(seconds / 60);
+    var hours = "";
+    if (minutes > 59) {
+        hours = Math.floor(minutes / 60);
+        hours = (hours >= 10) ? hours : "0" + hours;
+        minutes = minutes - (hours * 60);
+        minutes = (minutes >= 10) ? minutes : "0" + minutes;
+    }
+
+    seconds = Math.floor(seconds % 60);
+    seconds = (seconds >= 10) ? seconds : "0" + seconds;
+    if (hours != "") {
+        return hours + ":" + minutes + ":" + seconds;
+    }
+    return minutes + ":" + seconds;
+}
 
 
 export const bytesToHumanReadableFileSize = (bytes) => {
@@ -39,16 +67,9 @@ export const getFilenameFromContentDisposition = (xhrResponse) => {
     if (disposition) {
         const filenameRegex = /filename[^;=\n]*=utf-8''((['"]).*?\2|[^;\n]*)/;
         const matches = filenameRegex.exec(disposition);
-        if (matches != null && matches[1]) { 
-          return decodeURIComponent(matches[1]);
+        if (matches != null && matches[1]) {
+            return decodeURIComponent(matches[1]);
         }
     }
     throw `Failed to get filename from ${disposition}`;
 }
-
-
-export const wrapFunc = (func, ...args) => {
-    const AsyncFunction = (async () => {}).constructor;
-    if (func instanceof AsyncFunction) return async () => await func(...args);
-    return () => func(...args);
-};
