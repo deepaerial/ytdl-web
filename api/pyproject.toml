@@ -19,7 +19,7 @@ omit = [
 ]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.10"
 plugins = [
     "pydantic.mypy"
 ]
@@ -42,13 +42,13 @@ authors = ["Nazar Oleksiuk <nazarii.oleksiuk@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 youtube-dl = "*"
 fastapi = "*"
 uvicorn = "^0.18.2"
 sse-starlette = "^0.6.1"
 aiofiles = "^0.6.0"
-deta = "^1.1.*"
+deta = "^1.1.0"
 pytube = "*"
 ffmpeg-python = "^0.2.0"
 confz = "^1.6.1"
