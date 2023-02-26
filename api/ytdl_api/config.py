@@ -1,5 +1,3 @@
-import abc
-import json
 import logging
 from functools import partial
 from pathlib import Path
@@ -16,7 +14,9 @@ from .constants import DownloaderType
 from .datasource import DetaDB, IDataSource
 from .storage import IStorage, LocalFileStorage
 
-MEDIA_PATH = (Path(__file__).parent / ".." / ".." / "media").resolve()
+REPO_PATH = (Path(__file__).parent / ".." / "..").resolve()
+MEDIA_PATH = (REPO_PATH / "media").resolve()
+ENV_PATH = (REPO_PATH / ".env").resolve()
 
 
 class DetaBaseDataSourceConfig(ConfZ):
@@ -81,7 +81,10 @@ class Settings(ConfZ):
     datasource: DetaBaseDataSourceConfig
 
     CONFIG_SOURCES = ConfZEnvSource(
-        allow_all=True, deny=["title", "description", "version"], nested_separator="__"
+        allow_all=True,
+        deny=["title", "description", "version"],
+        file=ENV_PATH,
+        nested_separator="__",
     )
 
     @validator("allow_origins", pre=True)

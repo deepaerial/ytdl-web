@@ -1,4 +1,3 @@
-import re
 import socket
 from http.client import RemoteDisconnected
 from logging import Logger

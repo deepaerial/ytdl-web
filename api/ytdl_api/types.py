@@ -1,5 +1,5 @@
 import re
-from typing import Any, Callable, Coroutine, Optional, TypedDict, Union
+from typing import Any, Callable, Coroutine, Optional, TypedDict
 
 from pydantic import AnyHttpUrl
 
