@@ -54,7 +54,7 @@ ffmpeg-python = "^0.2.0"
 confz = "^1.6.1"
 pyhumps = "^3.7.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = "*"
 isort = "^5.10.1"
 pytest = "*"
@@ -72,5 +72,5 @@ pyclean = "^2.2.0"
 pytest-mock = "^3.10.0"
 
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.masonry.api"
