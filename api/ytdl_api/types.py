@@ -3,8 +3,6 @@ from typing import Any, Callable, Coroutine, Optional, TypedDict
 
 from pydantic import AnyHttpUrl
 
-OnDownloadCallback = Callable[..., Coroutine[Any, Any, Any]]
-
 YOUTUBE_REGEX = re.compile(
     r"^((https?)?:(\/\/))?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
 )

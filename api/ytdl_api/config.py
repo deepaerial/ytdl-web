@@ -1,18 +1,18 @@
 import logging
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import pkg_resources
 from confz import ConfZ, ConfZEnvSource
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import validator
+from pydantic import validator, root_validator
 from starlette.middleware import Middleware
 
 from .constants import DownloaderType
 from .datasource import DetaDB, IDataSource
-from .storage import IStorage, LocalFileStorage
+from .storage import IStorage, LocalFileStorage, DetaDriveStorage
 
 REPO_PATH = (Path(__file__).parent / ".." / "..").resolve()
 MEDIA_PATH = (REPO_PATH / "media").resolve()
@@ -43,6 +43,7 @@ class LocalStorageConfig(ConfZ):
     Local filesystem storage config.
     """
 
+    storage_type: str = "local"
     path: Path = MEDIA_PATH
 
     @validator("path")
@@ -55,6 +56,26 @@ class LocalStorageConfig(ConfZ):
 
     def get_storage(self) -> IStorage:
         return LocalFileStorage(self.path)
+
+
+class DetaDriveStorageConfig(ConfZ):
+    """
+    Deta Drive storage config.
+    """
+
+    type: str = "deta"
+    deta_key: Optional[str]
+    drive_name: str = "downloads"
+
+    @root_validator
+    def validate_path(cls, values):
+        type_, deta_key = values["type"], values["deta_key"]
+        if type_ is not None and deta_key is None:
+            raise ValueError("Deta key for Deta Drive Storage should be provided...")
+        return values
+
+    def get_storage(self) -> IStorage:
+        return DetaDriveStorage(self.deta_key, self.drive_name)
 
 
 class Settings(ConfZ):
@@ -79,6 +100,7 @@ class Settings(ConfZ):
     downloader: DownloaderType = DownloaderType.PYTUBE
     media_path: Path = MEDIA_PATH
     datasource: DetaBaseDataSourceConfig
+    storage: Union[LocalStorageConfig, DetaBaseDataSourceConfig] = LocalStorageConfig()
 
     CONFIG_SOURCES = ConfZEnvSource(
         allow_all=True,

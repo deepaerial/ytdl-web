@@ -1,5 +1,7 @@
+from pathlib import Path
 from .constants import DownloadStatus
 from .datasource import IDataSource
+from .storage import IStorage
 from .queue import NotificationQueue
 from .schemas.models import Download, DownloadProgress
 
@@ -62,6 +64,9 @@ async def on_finish_callback(
     """
     status = DownloadStatus.FINISHED
     datasource.update_status(download.media_id, status)
+    in_storage_filename = storage.save_download_from_file(download, local_media_path)
+    download.storage_file_name = in_storage_filename
+    datasource.update_download(download)
     await queue.put(
         download.client_id,
         DownloadProgress(

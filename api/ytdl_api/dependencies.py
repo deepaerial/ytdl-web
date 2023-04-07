@@ -8,9 +8,8 @@ from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 from starlette import status
 
-from ytdl_api.types import OnDownloadCallback
 
-from . import datasource, downloaders, queue
+from . import datasource, downloaders, queue, storage
 from .callbacks import noop_callback, on_pytube_progress_callback
 from .config import Settings
 from .constants import DownloaderType
@@ -33,6 +32,10 @@ def get_database(settings: Settings = Depends(get_settings)) -> datasource.IData
     return settings.datasource.get_datasource()
 
 
+def get_storage(settings: Settings = Depends(get_settings)) -> storage.IStorage:
+    return settings.storage.get_storage()
+
+
 @lru_cache
 def get_downloader(
     settings: Settings = Depends(get_settings),
@@ -48,7 +51,7 @@ def get_downloader(
 
 def get_on_progress_hook(
     settings: Settings = Depends(get_settings),
-) -> OnDownloadCallback:
+) -> downloaders.OnDownloadCallback:
     if settings.downloader == DownloaderType.PYTUBE:
         return on_pytube_progress_callback
     return noop_callback

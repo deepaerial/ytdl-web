@@ -12,7 +12,7 @@ from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
 from .schemas import requests, responses
-from .types import OnDownloadCallback, VideoURL
+from .types import VideoURL
 
 router = APIRouter(tags=["base"])
 
@@ -90,7 +90,6 @@ async def submit_download(
     uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
     downloader: IDownloader = Depends(dependencies.get_downloader),
-    progress_hook: OnDownloadCallback = Depends(dependencies.get_on_progress_hook),
 ):
     """
     Endpoint for fetching video from Youtube and converting it to
@@ -98,13 +97,7 @@ async def submit_download(
     """
     download = create_download_from_download_params(uid, download_params, downloader)
     datasource.put_download(download)
-    background_tasks.add_task(
-        downloader.download,
-        download,
-        progress_hook,
-        on_start_converting,
-        on_finish_callback,
-    )
+    background_tasks.add_task(downloader.download, download)
     return {"downloads": datasource.fetch_downloads(uid)}
 
 
