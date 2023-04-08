@@ -113,7 +113,9 @@ class PytubeDownloader(IDownloader):
         )
         kwargs = {
             "on_progress_callback": lambda stream, chunk, bytes_remaining: asyncio.run(
-                on_progress_callback(stream, chunk, bytes_remaining)
+                on_progress_callback(
+                    stream=stream, chunk=chunk, bytes_remaining=bytes_remaining
+                )
             )
         }
         asyncio.run(self.on_download_callback_start(download))
