@@ -9,7 +9,14 @@ from pytube import StreamQuery, YouTube
 
 from .constants import DownloadStatus
 from .datasource import IDataSource
+
 from .queue import NotificationQueue
+from .callbacks import (
+    OnDownloadProgressCallback,
+    OnDownloadStartCallback,
+    OnConvertingCallback,
+    OnFinishCallback,
+)
 from .schemas.models import AudioStream, Download, VideoStream
 from .schemas.responses import VideoInfoResponse
 from .types import VideoURL
@@ -42,12 +49,6 @@ class IDownloader(ABC):
         raise NotImplementedError()
 
 
-# typing for callback
-OnDownloadCallback = Callable[
-    [IDataSource, NotificationQueue, Download], Coroutine[Any, Any, Any]
-]
-
-
 class PytubeDownloader(IDownloader):
     """
     Downloader based on pytube library
@@ -58,11 +59,13 @@ class PytubeDownloader(IDownloader):
         media_path: Path,
         datasource: IDataSource,
         event_queue: NotificationQueue,
-        on_progress_callback: Optional[OnDownloadCallback] = None,
-        on_converting_callback: Optional[OnDownloadCallback] = None,
-        on_finish_callback: Optional[OnDownloadCallback] = None,
+        on_download_callback_start: Optional[OnDownloadStartCallback] = None,
+        on_progress_callback: Optional[OnDownloadProgressCallback] = None,
+        on_converting_callback: Optional[OnConvertingCallback] = None,
+        on_finish_callback: Optional[OnFinishCallback] = None,
     ):
         super().__init__(media_path, datasource, event_queue)
+        self.on_download_callback_start = on_download_callback_start
         self.on_progress_callback = on_progress_callback
         self.on_converting_callback = on_converting_callback
         self.on_finish_callback = on_finish_callback
