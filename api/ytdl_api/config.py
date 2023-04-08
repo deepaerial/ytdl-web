@@ -43,7 +43,6 @@ class LocalStorageConfig(ConfZ):
     Local filesystem storage config.
     """
 
-    storage_type: str = "local"
     path: Path = MEDIA_PATH
 
     @validator("path")
@@ -63,7 +62,6 @@ class DetaDriveStorageConfig(ConfZ):
     Deta Drive storage config.
     """
 
-    type: str = "deta"
     deta_key: Optional[str]
     drive_name: str = "downloads"
 

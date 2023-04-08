@@ -40,6 +40,5 @@ RUN poetry install
 CMD ["pytest", "--cov-report", "html"]
 ############ Prod ###################
 FROM project-base as prod
-# COPY --from=project-base /app/.venv /app/.venv
 RUN poetry install --without dev
 CMD ["poetry", "run", "uvicorn", "ytdl_api.asgi:app", "--host", "0.0.0.0", "--port", "80", "--log-level", "debug"]

@@ -31,3 +31,25 @@ This will launch `uvicorn` server with app on http://localhost:8080. You will al
 ```shell
 $ docker-compose up -d ytdl_api
 ```
+
+## Deploy on Fly.io
+1. Set up machine for app container
+```shell
+$ fly launch --no-deploy
+```    
+
+2. Set environmental variables
+```shell
+$ fly secrets import
+# your secrets are passed below
+DEBUG=True
+ALLOW_ORIGINS="http://localhost,http://localhost:8080,http://localhost:8081,http://127.0.0.1,http://127.0.0.1:8080,http://127.0.0.1:8081"
+DATASOURCE__DETA_KEY=<your Deta key should inserted here>
+DATASOURCE__DETA_BASE=<your deta base name should be inserted here>
+EOL
+```
+
+3. Deploy app
+```shell
+$ fly deploy
+```
