@@ -51,6 +51,7 @@ class Download(BaseModel_):
         DownloadStatus.STARTED, description="Download status"
     )
     file_path: Optional[Path] = Field(None, description="Path to file")
+    storage_file_name: Optional[str] = Field(None, description="Storage file name")
     progress: int = Field(0, description="Download progress in %")
     when_submitted: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,
@@ -68,6 +69,13 @@ class Download(BaseModel_):
     when_deleted: Optional[datetime.datetime] = Field(
         None, description="Date & time in UTC when download was soft-deleted."
     )
+
+    @property
+    def storage_filename(self) -> str:
+        """
+        File name used when storing download in file storage.
+        """
+        return f"{self.media_id}.{self.media_format}"
 
     @property
     def filename(self) -> str:

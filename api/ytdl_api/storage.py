@@ -1,5 +1,6 @@
 import abc
 from pathlib import Path
+import shutil
 
 from deta import Deta
 from .schemas.models import Download
@@ -11,27 +12,25 @@ class IStorage(abc.ABC):
     """
 
     @abc.abstractmethod
-    def save_download(
-        self, download: Download, data: bytes, path: str
-    ) -> str:  # pragma: no cover
+    def save_download(self, download: Download, data: bytes) -> str:  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod
     def save_download_from_file(
-        self, download: Download, path: str
+        self, download: Download, path: Path
     ) -> str:  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod
-    def download_exists(self, path: str) -> bool:  # pragma: no cover
+    def download_exists(self, storage_file_name: str) -> bool:  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_download(self, path: str) -> bytes:  # pragma: no cover
+    def get_download(self, storage_file_name: str) -> bytes:  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod
-    def remove_download(self, path: str):  # pragma: no cover
+    def remove_download(self, storage_file_name: str):  # pragma: no cover
         raise NotImplementedError
 
 
@@ -44,20 +43,24 @@ class LocalFileStorage(IStorage):
         self.dowloads_dir = downloads_dir
 
     def save_download(self, download: Download, data: bytes) -> str:
-        return download.storage_filename
+        storage_file_path = self.dowloads_dir / download.storage_filename
+        with storage_file_path.open("+wb") as f:
+            f.write(data)
+        return storage_file_path.as_posix()
 
-    def save_download_from_file(self, download: Download, path: str) -> str:
-        return download.storage_filename
+    def save_download_from_file(self, download: Download, path: Path) -> str:
+        dest_path = self.dowloads_dir / download.storage_filename
+        shutil.copy(path, dest_path)
+        return dest_path.as_posix()
 
-    def download_exists(self, path: str) -> bool:
+    def download_exists(self, storage_file_name: str) -> bool:
+        return Path(storage_file_name).exists()
+
+    def get_download(self, storage_file_name: str) -> bytes:
         # TODO: finish implementation
         ...
 
-    def get_download(self, path: str) -> bytes:
-        # TODO: finish implementation
-        ...
-
-    def remove_download(self, path: str):
+    def remove_download(self, storage_file_name: str):
         # TODO: finish implementation
         ...
 
@@ -75,6 +78,6 @@ class DetaDriveStorage(IStorage):
         self.drive.put(download.storage_filename, data=data)
         return download.storage_filename
 
-    def save_download_from_file(self, download: Download, path: str) -> str:
+    def save_download_from_file(self, download: Download, path: Path) -> str:
         self.drive.put(download.storage_filename, path=path)
         return download.storage_filename

@@ -1,5 +1,6 @@
 import secrets
-from functools import lru_cache
+import asyncio
+from functools import lru_cache, partial
 from typing import Optional
 
 from fastapi import Cookie, Depends, HTTPException, Response
@@ -10,7 +11,14 @@ from starlette import status
 
 
 from . import datasource, downloaders, queue, storage
-from .callbacks import noop_callback, on_pytube_progress_callback
+from .callbacks import (
+    noop_callback,
+    on_pytube_progress_callback,
+    on_download_start_callback,
+    on_finish_callback,
+    on_start_converting,
+    OnDownloadStateChangedCallback,
+)
 from .config import Settings
 from .constants import DownloaderType
 from .schemas.requests import DownloadParams
@@ -38,23 +46,33 @@ def get_storage(settings: Settings = Depends(get_settings)) -> storage.IStorage:
 
 @lru_cache
 def get_downloader(
-    settings: Settings = Depends(get_settings),
     datasource: datasource.IDataSource = Depends(get_database),
     event_queue: queue.NotificationQueue = Depends(get_notification_queue),
+    storage: storage.IStorage = Depends(get_storage),
 ) -> downloaders.IDownloader:
-    if settings.downloader == DownloaderType.PYTUBE:
-        return downloaders.PytubeDownloader(
-            settings.media_path, datasource, event_queue
+    on_download_started_hook = asyncio.coroutine(
+        partial(on_download_start_callback, datasource=datasource, queue=event_queue)
+    )
+    on_progress_hook = asyncio.coroutine(
+        partial(on_pytube_progress_callback, datasource=datasource, queue=event_queue)
+    )
+    on_converting_hook = asyncio.coroutine(
+        partial(on_start_converting, datasource=datasource, queue=event_queue)
+    )
+    on_finish_hook = asyncio.coroutine(
+        partial(
+            on_finish_callback,
+            datasource=datasource,
+            queue=event_queue,
+            storage=storage,
         )
-    return downloaders.MockDownloader(settings.media_path, datasource, event_queue)
-
-
-def get_on_progress_hook(
-    settings: Settings = Depends(get_settings),
-) -> downloaders.OnDownloadCallback:
-    if settings.downloader == DownloaderType.PYTUBE:
-        return on_pytube_progress_callback
-    return noop_callback
+    )
+    return downloaders.PytubeDownloader(
+        on_download_started_callback=on_download_started_hook,
+        on_progress_callback=on_progress_hook,
+        on_converting_callback=on_converting_hook,
+        on_finish_callback=on_finish_hook,
+    )
 
 
 def validate_download_params(

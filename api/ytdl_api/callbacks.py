@@ -14,6 +14,27 @@ async def noop_callback(*args, **kwargs):  # pragma: no cover
     pass
 
 
+async def on_download_start_callback(
+    download: Download,
+    datasource: IDataSource,
+    queue: NotificationQueue,
+):
+    modified_timestamp = datasource.update_status(
+        download.media_id, DownloadStatus.DOWNLOADING
+    )
+    download.when_started_download = modified_timestamp
+    datasource.update_download(download)
+    await queue.put(
+        download.client_id,
+        DownloadProgress(
+            client_id=download.client_id,
+            media_id=download.media_id,
+            status=DownloadStatus.STARTED,
+            progress=0,
+        ),
+    )
+
+
 async def on_pytube_progress_callback(
     download: Download,
     datasource: IDataSource,
@@ -57,6 +78,7 @@ async def on_start_converting(
 
 async def on_finish_callback(
     download: Download,
+    download_tmp_path: Path,
     datasource: IDataSource,
     queue: NotificationQueue,
     storage: IStorage,
@@ -66,7 +88,7 @@ async def on_finish_callback(
     """
     status = DownloadStatus.FINISHED
     datasource.update_status(download.media_id, status)
-    in_storage_filename = storage.save_download_from_file(download)
+    in_storage_filename = storage.save_download_from_file(download, download_tmp_path)
     download.storage_file_name = in_storage_filename
     datasource.update_download(download)
     await queue.put(
@@ -80,23 +102,9 @@ async def on_finish_callback(
     )
 
 
-OnDownloadStartCallback = Callable[
-    [Download, IDataSource, NotificationQueue],
+OnDownloadStateChangedCallback = Callable[
+    [Download],
     Coroutine[Any, Any, Any],
 ]
 
-
-OnDownloadProgressCallback = Callable[
-    [Download, IDataSource, NotificationQueue],
-    Coroutine[Any, Any, Any],
-]
-
-OnConvertingCallback = Callable[
-    [Download, IDataSource, NotificationQueue],
-    Coroutine[Any, Any, Any],
-]
-
-OnFinishCallback = Callable[
-    [Download, IDataSource, NotificationQueue, IStorage],
-    Coroutine[Any, Any, Any],
-]
+OnDownloadFinishedCallback = Callable[[Download, Path], Coroutine[Any, Any, Any]]
