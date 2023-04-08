@@ -88,7 +88,7 @@ async def on_finish_callback(
     """
     status = DownloadStatus.FINISHED
     in_storage_filename = storage.save_download_from_file(download, download_tmp_path)
-    download.storage_file_name = in_storage_filename
+    download.file_path = in_storage_filename
     download.status = status
     datasource.update_download(download)
     await queue.put(

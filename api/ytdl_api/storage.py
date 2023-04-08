@@ -1,4 +1,5 @@
 import abc
+from typing import Optional
 from pathlib import Path
 import shutil
 
@@ -26,7 +27,9 @@ class IStorage(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_download(self, storage_file_name: str) -> bytes:  # pragma: no cover
+    def get_download(
+        self, storage_file_name: str
+    ) -> Optional[bytes]:  # pragma: no cover
         raise NotImplementedError
 
     @abc.abstractmethod

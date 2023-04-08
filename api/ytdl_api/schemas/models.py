@@ -50,8 +50,7 @@ class Download(BaseModel_):
     status: DownloadStatus = Field(
         DownloadStatus.STARTED, description="Download status"
     )
-    file_path: Optional[Path] = Field(None, description="Path to file")
-    storage_file_name: Optional[str] = Field(None, description="Storage file name")
+    file_path: Optional[str] = Field(None, description="Path to file")
     progress: int = Field(0, description="Download progress in %")
     when_submitted: datetime.datetime = Field(
         default_factory=datetime.datetime.utcnow,

@@ -1,16 +1,17 @@
 import asyncio
-
+from pathlib import Path
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from fastapi.responses import FileResponse
 from sse_starlette.sse import EventSourceResponse
+from fastapi.responses import StreamingResponse
 from starlette import status
 
-from . import config, datasource, dependencies
+from . import config, datasource, dependencies, storage
 from .constants import DownloadStatus
 from .converters import create_download_from_download_params
 from .downloaders import IDownloader
 from .queue import NotificationQueue
-from .schemas import requests, responses
+from .schemas import requests, responses, models
 from .types import VideoURL
 
 router = APIRouter(tags=["base"])
@@ -117,30 +118,20 @@ async def submit_download(
 )
 async def download_file(
     media_id: str,
-    uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
+    download_pair: tuple[models.Download, Path] = Depends(
+        dependencies.get_download_file
+    ),
 ):
     """
     Endpoint for downloading fetched video from Youtube.
     """
-    media_file = datasource.get_download(uid, media_id)
-    if media_file is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
-        )
-    if media_file.status != DownloadStatus.FINISHED:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
-        )
-    if media_file.file_path is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Downloaded file is not found"
-        )
+    download, file_path = download_pair
     datasource.update_status(media_id, DownloadStatus.DOWNLOADED)
     return FileResponse(
-        media_file.file_path,
+        file_path,
         media_type="application/octet-stream",
-        filename=media_file.filename,
+        filename=download.filename,
     )
 
 

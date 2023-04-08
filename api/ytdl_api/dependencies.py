@@ -1,7 +1,9 @@
 import secrets
 import asyncio
+import tempfile
+from pathlib import Path
 from functools import lru_cache, partial
-from typing import Optional
+from typing import Optional, Generator
 
 from fastapi import Cookie, Depends, HTTPException, Response
 from fastapi.exceptions import RequestValidationError
@@ -12,16 +14,15 @@ from starlette import status
 
 from . import datasource, downloaders, queue, storage
 from .callbacks import (
-    noop_callback,
     on_pytube_progress_callback,
     on_download_start_callback,
     on_finish_callback,
     on_start_converting,
-    OnDownloadStateChangedCallback,
 )
 from .config import Settings
-from .constants import DownloaderType
+from .constants import DownloaderType, DownloadStatus
 from .schemas.requests import DownloadParams
+from .schemas.models import Download
 
 
 # Ignoring get_settings dependency in coverage because it will be
@@ -123,3 +124,30 @@ def get_uid_dependency_factory(raise_error_on_empty: bool = False):
         return uid
 
     return get_uid
+
+
+def get_download_file(
+    media_id: str,
+    uid: str = Depends(get_uid_dependency_factory(raise_error_on_empty=True)),
+    datasource: datasource.IDataSource = Depends(get_database),
+    storage: storage.IStorage = Depends(get_storage),
+) -> Generator[tuple[Download, Path], None, None]:
+    media_file = datasource.get_download(uid, media_id)
+    if media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Download not found"
+        )
+    if media_file.status != DownloadStatus.FINISHED:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
+        )
+    download_bytes = storage.get_download(media_file.file_path)
+    if download_bytes is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download is finished but file not found",
+        )
+    with tempfile.NamedTemporaryFile() as download_file:
+        download_file.write(download_bytes)
+        download_file.seek(0)
+        yield media_file, Path(download_file.name)

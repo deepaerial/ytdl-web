@@ -141,8 +141,6 @@ class DetaDB(IDataSource):
     def update_download(self, download: Download):
         data = download.dict()
         # quick fix for error TypeError: Object of type PosixPath is not JSON serializable
-        if download.file_path is not None:
-            data["file_path"] = download.file_path.resolve().as_posix()
         if download.when_submitted is not None:
             data["when_submitted"] = download.when_submitted.isoformat()
         if download.when_download_finished is not None:
