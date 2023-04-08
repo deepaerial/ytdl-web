@@ -14,7 +14,7 @@ from .constants import DownloaderType
 from .datasource import DetaDB, IDataSource
 from .storage import IStorage, LocalFileStorage, DetaDriveStorage
 
-REPO_PATH = (Path(__file__).parent / ".." / "..").resolve()
+REPO_PATH = (Path(__file__).parent / "..").resolve()
 MEDIA_PATH = (REPO_PATH / "media").resolve()
 ENV_PATH = (REPO_PATH / ".env").resolve()
 

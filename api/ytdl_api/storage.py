@@ -23,10 +23,6 @@ class IStorage(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def download_exists(self, storage_file_name: str) -> bool:  # pragma: no cover
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def get_download(
         self, storage_file_name: str
     ) -> Optional[bytes]:  # pragma: no cover
@@ -56,16 +52,16 @@ class LocalFileStorage(IStorage):
         shutil.copy(path, dest_path)
         return dest_path.as_posix()
 
-    def download_exists(self, storage_file_name: str) -> bool:
-        return Path(storage_file_name).exists()
-
-    def get_download(self, storage_file_name: str) -> bytes:
-        # TODO: finish implementation
-        ...
+    def get_download(self, storage_file_name: str) -> Optional[bytes]:
+        download_file = Path(storage_file_name)
+        if not download_file.exists():
+            return None
+        return download_file.read_bytes()
 
     def remove_download(self, storage_file_name: str):
-        # TODO: finish implementation
-        ...
+        download_file = Path(storage_file_name)
+        if download_file.exists():
+            download_file.unlink()
 
 
 class DetaDriveStorage(IStorage):

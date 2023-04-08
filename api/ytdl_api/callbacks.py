@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime
 from typing import Callable, Coroutine, Any
 from .constants import DownloadStatus
 from .datasource import IDataSource
@@ -19,10 +20,8 @@ async def on_download_start_callback(
     datasource: IDataSource,
     queue: NotificationQueue,
 ):
-    modified_timestamp = datasource.update_status(
-        download.media_id, DownloadStatus.DOWNLOADING
-    )
-    download.when_started_download = modified_timestamp
+    download.status = DownloadStatus.DOWNLOADING
+    download.when_started_download = datetime.utcnow()
     datasource.update_download(download)
     await queue.put(
         download.client_id,
@@ -90,6 +89,7 @@ async def on_finish_callback(
     in_storage_filename = storage.save_download_from_file(download, download_tmp_path)
     download.file_path = in_storage_filename
     download.status = status
+    download.progress = 100
     datasource.update_download(download)
     await queue.put(
         download.client_id,
@@ -97,7 +97,7 @@ async def on_finish_callback(
             client_id=download.client_id,
             media_id=download.media_id,
             status=status,
-            progress=100,
+            progress=download.progress,
         ),
     )
 

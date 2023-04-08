@@ -183,6 +183,7 @@ async def delete_download(
     media_id: str,
     uid: str = Depends(get_uid_or_403),
     datasource: datasource.IDataSource = Depends(dependencies.get_database),
+    storage: storage.IStorage = Depends(dependencies.get_storage),
 ):
     """
     Endpoint for deleting downloaded media.
@@ -197,9 +198,7 @@ async def delete_download(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Media file is not downloaded yet",
         )
-    if media_file.file_path is not None:
-        if media_file.file_path.exists():
-            media_file.file_path.unlink()
+    storage.remove_download(media_file.file_path)
     datasource.update_status(media_id, DownloadStatus.DELETED)
     return responses.DeleteResponse(
         media_id=media_file.media_id,
