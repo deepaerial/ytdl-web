@@ -98,7 +98,6 @@ class Settings(ConfZ):
     cookie_httponly: bool = True
 
     downloader: DownloaderType = DownloaderType.PYTUBE
-    media_path: Path = MEDIA_PATH
     datasource: DetaBaseDataSourceConfig
     storage: Union[LocalStorageConfig, DetaBaseDataSourceConfig] = LocalStorageConfig()
 

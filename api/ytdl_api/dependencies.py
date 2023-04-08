@@ -141,6 +141,11 @@ def get_download_file(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not downloaded yet"
         )
+    if media_file.file_path is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Download is finished but file not found",
+        )
     download_bytes = storage.get_download(media_file.file_path)
     if download_bytes is None:
         raise HTTPException(

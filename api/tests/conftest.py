@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Generator, Iterable, Optional
@@ -63,6 +64,7 @@ def get_example_download_instance(
     status: DownloadStatus = DownloadStatus.STARTED,
     file_path: Optional[Path] = None,
     progress: int = 0,
+    when_started_download: Optional[datetime] = None,
 ) -> Download:
     download_data = {
         **EXAMPLE_VIDEO_PREVIEW,
@@ -73,6 +75,7 @@ def get_example_download_instance(
         "status": status,
         "file_path": file_path,
         "progress": progress,
+        "when_started_download": when_started_download,
     }
     return parse_obj_as(Download, download_data)
 
@@ -113,7 +116,6 @@ def deta_testbase() -> str:
 def settings(
     fake_media_path: Path, monkeypatch: pytest.MonkeyPatch, deta_testbase: str
 ) -> Iterable[Settings]:
-    monkeypatch.setenv("MEDIA_PATH", fake_media_path.as_posix())
     monkeypatch.setenv("DATASOURCE__DETA_BASE", deta_testbase)
     settings = Settings()  # type: ignore
     yield settings
@@ -155,12 +157,12 @@ def mock_persisted_download(
     uid: str, datasource: IDataSource, clear_datasource
 ) -> Generator[Download, None, None]:
     download = get_example_download_instance(
-        client_id=uid, media_format=MediaFormat.MP4, status=DownloadStatus.DOWNLOADING
+        client_id=uid,
+        media_format=MediaFormat.MP4,
+        status=DownloadStatus.DOWNLOADING,
+        when_started_download=datetime.utcnow() - timedelta(minutes=1),
     )
     datasource.put_download(download)
-    datasource.update_status(
-        download.media_id, DownloadStatus.DOWNLOADING
-    )  # simulating updating when_started_download field.
     yield download
 
 
@@ -174,26 +176,25 @@ def mocked_downloaded_media(
         duration=1000,
         filesize=1024,
         status=DownloadStatus.FINISHED,
-        file_path=fake_media_file_path,
+        file_path=fake_media_file_path.as_posix(),
         progress=100,
     )
     datasource.put_download(download)
-    datasource.update_status(
-        download.media_id, download_status=DownloadStatus.FINISHED
-    )  # simulating updating when_download_finished field.
     yield download
 
 
 @pytest.fixture()
-def mock_persisted_download_with_finished_status(
-    uid: str, datasource: IDataSource, clear_datasource
-):
+def mocked_downloaded_media_no_file(
+    uid: str, datasource: IDataSource, fake_media_file_path: Path, clear_datasource
+) -> Generator[Download, None, None]:
     download = get_example_download_instance(
         client_id=uid,
         media_format=MediaFormat.MP4,
         duration=1000,
         filesize=1024,
         status=DownloadStatus.FINISHED,
+        file_path=None,
+        progress=100,
     )
     datasource.put_download(download)
     yield download

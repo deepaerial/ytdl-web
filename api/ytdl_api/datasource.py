@@ -124,8 +124,6 @@ class DetaDB(IDataSource):
             data["when_file_downloaded"] = download.when_file_downloaded.isoformat()
         if download.when_deleted:
             data["when_deleted"] = download.when_deleted.isoformat()
-        if download.file_path is not None:
-            data["file_path"] = download.file_path.resolve().as_posix()
         self.base.put(data, key)
 
     def get_download(self, client_id: str, media_id: str) -> typing.Optional[Download]:

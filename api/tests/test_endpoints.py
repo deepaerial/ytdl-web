@@ -69,7 +69,7 @@ def test_submit_download(
     uid: str,
     mock_download_params: DownloadParams,
     mocker: MockerFixture,
-    clear_datasource,
+    clear_datasource: None,
 ):
     # Mocking BackgroundTasks because we don't actually want to start process of downloading video
     mocker.patch("ytdl_api.endpoints.BackgroundTasks.add_task")
@@ -163,15 +163,15 @@ def test_download_file_but_download_not_finished(
 
 
 def test_download_file_but_no_file_present(
-    app_client: TestClient, mock_persisted_download_with_finished_status: Download
+    app_client: TestClient, mocked_downloaded_media_no_file: Download
 ):
     response = app_client.get(
         "/api/download",
-        params={"media_id": mock_persisted_download_with_finished_status.media_id},
-        cookies={"uid": mock_persisted_download_with_finished_status.client_id},
+        params={"media_id": mocked_downloaded_media_no_file.media_id},
+        cookies={"uid": mocked_downloaded_media_no_file.client_id},
     )
     assert response.status_code == 404
-    assert response.json()["detail"] == "Downloaded file is not found"
+    assert response.json()["detail"] == "Download is finished but file not found"
 
 
 def test_delete_non_existing_download(app_client: TestClient):
