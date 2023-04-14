@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react'
 import PropTypes from "prop-types";
 
 import styled from 'styled-components';
-import { LoadingContext } from '../context/LoadingContext.js';
+import { LoadingContext } from '../context/LoadingContext.jsx';
 import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
 import API from '../api';

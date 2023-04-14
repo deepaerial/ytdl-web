@@ -3,16 +3,14 @@ services:
   ytdl-web:
     container_name: "ytdl-web"
     build:
-      context: ./web/
+      context: .
       target: dev
     ports:
       - 8080:8080
     volumes:
-      - "./web/:/app"
+      - ".:/app"
     environment:
       - API_URL=http://127.0.0.1:8000/api
-    depends_on:
-      - ytdl-api
     networks:
       - default
 

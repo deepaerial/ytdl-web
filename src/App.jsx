@@ -10,7 +10,7 @@ import SearchBar from './components/SearchBar.jsx';
 import { toast } from 'react-toastify';
 import API from './api.js';
 import { parametrizeUrl } from './utils.js';
-import { LoadingContext } from './context/LoadingContext.js';
+import { LoadingContext } from './context/LoadingContext.jsx';
 import { downloadsReducer } from './reducers.js'
 import Preview from "./components/Preview.jsx"
 import 'react-toastify/dist/ReactToastify.css';
