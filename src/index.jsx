@@ -3,9 +3,9 @@ import ReactDom from 'react-dom/client';
 import styled from 'styled-components';
 
 import App from './App.jsx';
-import { LoadingContextProvider } from './context/LoadingContext.js';
+import { LoadingContextProvider } from './context/LoadingContext.jsx';
 
-import "../public/styles.css";
+import "./styles.css";
 
 
 const Content = styled.div`
