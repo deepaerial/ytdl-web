@@ -8,7 +8,7 @@ import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx';
 
 import { toast } from 'react-toastify';
-import API from './api.js';
+import {apiURL, API} from './api.js';
 import { parametrizeUrl } from './utils.js';
 import { LoadingContext } from './context/LoadingContext.jsx';
 import { downloadsReducer } from './reducers.js'
@@ -64,7 +64,7 @@ const App = () => {
             window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
             const { apiVersion } = await API.getApiVersion();
             setVersion(apiVersion);
-            const eventSource = new EventSource(parametrizeUrl(`${API_URL}/download/stream`), { withCredentials: true });
+            const eventSource = new EventSource(parametrizeUrl(`${apiURL}/download/stream`), { withCredentials: true });
             eventSource.addEventListener("message", (event) => {
                 onProgressUpdate(JSON.parse(event.data));
             });

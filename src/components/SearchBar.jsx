@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
-import API from '../api';
+import {API} from '../api';
 
 const SearchBarWrapper = styled.div`
     margin-top: 3rem;

@@ -9,7 +9,7 @@ import { secondsToHumanReadable } from '../utils';
 import { Statuses } from '../constants.js';
 
 import DownloadSpinner from "./DownloadSpinner.jsx";
-import API from '../api';
+import {API} from '../api';
 import { toast } from 'react-toastify';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import { IconButton } from '@mui/material';
