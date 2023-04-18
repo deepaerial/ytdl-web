@@ -8,8 +8,19 @@ services:
     ports:
       - 8080:8080
     volumes:
-      - ".:/app"
+      - "./src/:/app/src"
     environment:
-      - API_URL=http://127.0.0.1:8000/api
+      - VITE_API_URL=http://127.0.0.1:8000/api
+    networks:
+      - default
+  ytdl-web-prod:
+    container_name: "ytdl-web-prod"
+    build:
+      context: .
+      target: prod
+      args:
+        - API_URL=http://127.0.0.1:8000/api
+    ports:
+      - 8081:80
     networks:
       - default
