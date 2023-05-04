@@ -25,3 +25,8 @@ $ npm run devserver
 ```
 
 App should be automatically opened on http://localhost:8080
+
+## Deploying on Fly.io
+```shell
+$ fly deploy --build-arg API_URL=https://link-to-ytdl-backend.api
+```

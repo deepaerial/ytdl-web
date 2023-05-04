@@ -6,7 +6,7 @@ services:
       context: .
       target: dev
     ports:
-      - 8080:8080
+      - 8080:80
     volumes:
       - "./src/:/app/src"
     environment:
@@ -21,6 +21,6 @@ services:
       args:
         - API_URL=http://127.0.0.1:8000/api
     ports:
-      - 8081:80
+      - 8081:8080
     networks:
       - default
