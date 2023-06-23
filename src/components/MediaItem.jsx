@@ -84,7 +84,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
     }
 
     const onDeleteClick = async () => {
-        confirm({description: "Are you sure you want to delete this download?"}).then(async () => await deleteMedia()).catch(() => {})
+        confirm({description: "Are you sure you want to delete this download?"}).then(async () => await deleteMedia())
     }
 
     const deleteMedia = async () => {

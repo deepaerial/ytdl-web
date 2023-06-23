@@ -26,9 +26,10 @@ const App = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         return viewportWidth > 1024;
     };
+    const appVersion = __APP_VERSION__;
 
     const [isDesktop, setIsDesktop] = useState(checkIsDesktop());
-    const [version, setVersion] = useState("");
+    const [apiVersion, setVersion] = useState("");
     const setIsLoading = useContext(LoadingContext);
     const [downloads, dispatch] = useReducer(downloadsReducer, {});
     const [preview, setPreview] = useState();
@@ -85,7 +86,7 @@ const App = () => {
             setIsLoading(false);
         };
         donwloadListLoad();
-    }, [version]);
+    }, [apiVersion]);
 
     const renderDownloads = () => {
         if (isDesktop) {
@@ -117,8 +118,8 @@ const App = () => {
                     transition={Slide}
                     draggable
                     pauseOnHover
-                />
-                <Header version={version} />
+                    />
+                <Header version={appVersion} />
                 <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
                 {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}
                 {renderDownloads()}
