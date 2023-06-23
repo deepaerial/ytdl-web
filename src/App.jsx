@@ -8,7 +8,7 @@ import Header from './components/Header.jsx'
 import SearchBar from './components/SearchBar.jsx';
 
 import { toast } from 'react-toastify';
-import {apiURL, API} from './api.js';
+import { apiURL, API } from './api.js';
 import { parametrizeUrl } from './utils.js';
 import { LoadingContext } from './context/LoadingContext.jsx';
 import { downloadsReducer } from './reducers.js'
@@ -16,6 +16,8 @@ import Preview from "./components/Preview.jsx"
 import 'react-toastify/dist/ReactToastify.css';
 import MediaItem from './components/MediaItem.jsx';
 import { ACTION } from './constants.js';
+
+import { ConfirmProvider } from "material-ui-confirm";
 
 
 
@@ -87,7 +89,7 @@ const App = () => {
 
     const renderDownloads = () => {
         if (isDesktop) {
-            return (<Grid container spacing={3} justifyContent="center">
+            return (<Grid container spacing={3} justifyContent="center" columns={11} margin={0}>
                 {downloads && Object.entries(downloads).map(entry => {
                     const [key, download] = entry;
                     return <Grid item xs={3} key={key}>
@@ -96,7 +98,7 @@ const App = () => {
                 })}
             </Grid>);
         }
-        return (<Stack direction="column" justifyContent="center" alignItems="flex-start" spacing={2}>
+        return (<Stack direction="column" justifyContent="center" alignItems="flex-start" spacing={2} margin={0}>
             {downloads && Object.entries(downloads).map(entry => {
                 const [key, download] = entry;
                 return (<MediaItem key={key} downloadItem={download} onDeleteAction={onDownloadDelete} />);
@@ -106,19 +108,21 @@ const App = () => {
     };
     return (
         <React.Fragment>
-            <ToastContainer
-                position={isDesktop ? "top-right" : "top-center"}
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={true}
-                transition={Slide}
-                draggable
-                pauseOnHover
-            />
-            <Header version={version} />
-            <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
-            {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}
-            {renderDownloads()}
+            <ConfirmProvider>
+                <ToastContainer
+                    position={isDesktop ? "top-right" : "top-center"}
+                    autoClose={3000}
+                    hideProgressBar={false}
+                    newestOnTop={true}
+                    transition={Slide}
+                    draggable
+                    pauseOnHover
+                />
+                <Header version={version} />
+                <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
+                {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}
+                {renderDownloads()}
+            </ConfirmProvider>
         </React.Fragment>
     );
 }

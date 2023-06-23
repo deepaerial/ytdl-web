@@ -14,6 +14,8 @@ import { toast } from 'react-toastify';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import { IconButton } from '@mui/material';
 
+import { useConfirm } from "material-ui-confirm";
+
 const CardBox = styled.div`
     position: relative;
     background-image: linear-gradient(
@@ -73,11 +75,16 @@ const ButtonsBox = styled.div`
 const MediaItem = ({ downloadItem, onDeleteAction }) => {
 
     const setIsLoading = useContext(LoadingContext);
+    const confirm = useConfirm();
     const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
 
     const downloadMedia = async () => {
         setIsLoading(true);
         API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
+    }
+
+    const onDeleteClick = async () => {
+        confirm({description: "Are you sure you want to delete this download?"}).then(async () => await deleteMedia()).catch(() => {})
     }
 
     const deleteMedia = async () => {
@@ -102,7 +109,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
             <Duration>{secondsToHumanReadable(duration)}</Duration>
             <ButtonsBox>
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={deleteMedia}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={onDeleteClick}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
             </ButtonsBox>
         </CardBox >
     )

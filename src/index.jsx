@@ -7,7 +7,6 @@ import { LoadingContextProvider } from './context/LoadingContext.jsx';
 
 import "./styles.css";
 
-
 const Content = styled.div`
     display: flex;
 	flex-direction: column;
