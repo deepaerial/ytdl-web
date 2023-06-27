@@ -1,12 +1,12 @@
 # YTDL-WEB
 
-Web interface for YTDL API.
+Web interface for [YTDL API](https://github.com/deepaerial/ytdl-api).
 
 ![YTDL Web Application](docs/web.png)
 
 ##  Requirements
 
-* Node v12.15.0
+* Node v18
 
 ## Installation
 Run command below to install application locally.

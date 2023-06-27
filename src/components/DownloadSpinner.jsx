@@ -1,4 +1,5 @@
 import * as React from 'react';
+import PropTypes from 'prop-types';
 import CircularProgress from '@mui/material/CircularProgress';
 import { styled } from '@mui/system';
 
@@ -21,5 +22,10 @@ const DownloadSpinner = ({ progress }) => {
     }
     return <CustomCircularProgress {...options} />;
 };
+
+DownloadSpinner.propTypes = {
+    progress: PropTypes.number
+}
+
 
 export default DownloadSpinner;

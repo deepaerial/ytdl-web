@@ -117,7 +117,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
 
 MediaItem.propTypes = {
     downloadItem: PropTypes.object,
-    isDesktop: PropTypes.bool
+    onDeleteAction: PropTypes.func
 }
 
 export default MediaItem;

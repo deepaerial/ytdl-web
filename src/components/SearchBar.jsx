@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import SearchIcon from '@mui/icons-material/Search';
 import { toast } from 'react-toastify';
-import {API} from '../api';
+import { API } from '../api';
 
 const SearchBarWrapper = styled.div`
     margin-top: 3rem;
@@ -41,14 +41,6 @@ const SearchBarInput = styled.input`
     }
 `;
 
-const SearchBarMediaSelect = styled.select`
-    appearance: none;
-    border: none;
-    background-color: #FFF;
-    font-size: 1.2rem;
-    line-height: 2.5rem;
-    margin-right: 1rem;
-`;
 
 const SearchBarButton = styled.button`
     width: 100px;

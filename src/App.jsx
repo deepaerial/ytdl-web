@@ -26,7 +26,7 @@ const App = () => {
         const viewportWidth = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
         return viewportWidth > 1024;
     };
-    const appVersion = __APP_VERSION__;
+    const appVersion = __APP_VERSION__; // eslint-disable-line no-undef
 
     const [isDesktop, setIsDesktop] = useState(checkIsDesktop());
     const [apiVersion, setVersion] = useState("");
@@ -59,7 +59,7 @@ const App = () => {
             mediaId,
             status
         });
-        toast.success(`${isAudio ? "Audio" : "Video"} file \"${title}\" was successfully deleted.`)
+        toast.success(`${isAudio ? "Audio" : "Video"} file "${title}" was successfully deleted.`)
     };
 
     useEffect(() => {
@@ -71,7 +71,7 @@ const App = () => {
             eventSource.addEventListener("message", (event) => {
                 onProgressUpdate(JSON.parse(event.data));
             });
-            eventSource.addEventListener("end", (_) => {
+            eventSource.addEventListener("end", (_) => {  // eslint-disable-line no-unused-vars
                 eventSource.close();
             });
             setIsLoading(false);
@@ -90,7 +90,7 @@ const App = () => {
 
     const renderDownloads = () => {
         if (isDesktop) {
-            return (<Grid container spacing={3} justifyContent="center" columns={11} margin={0}>
+            return (<Grid container spacing={1} justifyContent="center" columns={11} margin={0}>
                 {downloads && Object.entries(downloads).map(entry => {
                     const [key, download] = entry;
                     return <Grid item xs={3} key={key}>
@@ -118,7 +118,7 @@ const App = () => {
                     transition={Slide}
                     draggable
                     pauseOnHover
-                    />
+                />
                 <Header version={appVersion} />
                 <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
                 {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}

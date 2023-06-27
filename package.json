@@ -34,6 +34,8 @@
     "@vitejs/plugin-react": "^3.1.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-styled-components": "^2.x.x",
+    "eslint": "^8.43.0",
+    "eslint-plugin-react": "^7.32.2",
     "path": "^0.12.7",
     "vite": "^4.2.1"
   }

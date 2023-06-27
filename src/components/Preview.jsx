@@ -13,12 +13,11 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import CloseIcon from '@mui/icons-material/Close';
 import LinkIcon from '@mui/icons-material/Link';
 import Typography from '@mui/material/Typography';
-import { Box, IconButton, styled } from '@mui/material';
+import { IconButton, styled } from '@mui/material';
 
-import {API} from '../api';
+import { API } from '../api';
 import { useContext } from 'react';
 import { LoadingContext } from '../context/LoadingContext';
-import { Container } from '@mui/system';
 
 
 const CustomisedCardActions = styled(CardActions)(() => ({
@@ -141,7 +140,9 @@ Preview.propTypes = {
             resolution: PropTypes.string.isRequired
         })),
         mediaFormats: PropTypes.arrayOf(PropTypes.string)
-    })
+    }),
+    onDonwloadEnqueue: PropTypes.func,
+    setPreview: PropTypes.func
 }
 
 export default Preview;
