@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
 import styled from 'styled-components';
 
@@ -60,6 +61,10 @@ const Loader = ({ heightAndWidth }) => {
   )
 };
 
+Loader.propTypes = {
+  heightAndWidth: PropTypes.number
+}
+
 const LoadingContext = React.createContext({
   setIsLoading: () => { }
 });
@@ -71,12 +76,20 @@ const LoadingContextProvider = ({ children }) => {
     <LoadingContext.Provider value={setIsLoading}>
       {isLoading && <LoaderContainer size={loaderSize}><Loader heightAndWidth={loaderSize} /></LoaderContainer>}
       <LoadingContext.Consumer>
-        {setIsLoading => (
+        {() => (
           children
         )}
       </LoadingContext.Consumer>
     </LoadingContext.Provider>
   )
 };
+
+
+LoadingContextProvider.propTypes = {
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.node),
+    PropTypes.node
+  ]).isRequired
+}
 
 export { LoadingContext, LoadingContextProvider }
