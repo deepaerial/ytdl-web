@@ -30,3 +30,12 @@ App should be automatically opened on http://localhost:8080
 ```shell
 $ fly deploy --build-arg API_URL=https://link-to-ytdl-backend.api
 ```
+
+## Generating token for Github Actions
+Instructions based on [this documentation page from Fly.io](https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/)
+1. Run the command below and copy and copy the output:
+```
+$ fly tokens create deploy -x 999999h
+```
+
+2. Go to repo's **Settings** -> **Security** section -> **Secrets and variables** -> **Actions**. Click **New repository secret** button and paste copied output key from previous step int **Secret** input.

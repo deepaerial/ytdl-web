@@ -36,6 +36,7 @@
     "babel-plugin-styled-components": "^2.x.x",
     "eslint": "^8.43.0",
     "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "path": "^0.12.7",
     "vite": "^4.2.1"
   }
