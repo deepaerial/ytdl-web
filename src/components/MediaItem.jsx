@@ -13,8 +13,11 @@ import {API} from '../api';
 import { toast } from 'react-toastify';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import { IconButton } from '@mui/material';
+import HighlightOffRoundedIcon from '@mui/icons-material/HighlightOffRounded';
 
 import { useConfirm } from "material-ui-confirm";
+
+import { styled as styledMui} from '@mui/system';
 
 const CardBox = styled.div`
     position: relative;
@@ -71,12 +74,24 @@ const ButtonsBox = styled.div`
     bottom: 10px;
 `;
 
+const HighlightOffRoundedIconCustomStyled = styledMui(HighlightOffRoundedIcon)(() => ({
+    position: "absolute",
+    left: "2.2em",
+    top: "1.2em",
+    color: "#de3e40",
+    fontSize: "4rem"
+}));
+
 
 const MediaItem = ({ downloadItem, onDeleteAction }) => {
 
     const setIsLoading = useContext(LoadingContext);
     const confirm = useConfirm();
     const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
+
+    if (status === Statuses.FAILED){
+        toast.error(`${title} failed to download.`)
+    }
 
     const downloadMedia = async () => {
         setIsLoading(true);
@@ -106,10 +121,11 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
             {
                 [Statuses.DOWNLOADING, Statuses.CONVERTING].includes(status) && <DownloadSpinner progress={progress} />
             }
+            {Statuses.FAILED === status && <HighlightOffRoundedIconCustomStyled />}
             <Duration>{secondsToHumanReadable(duration)}</Duration>
             <ButtonsBox>
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
-                {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={onDeleteClick}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                {[Statuses.FINISHED, Statuses.DOWNLOADED, Statuses.FAILED].includes(status) && <IconButton onClick={onDeleteClick}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
             </ButtonsBox>
         </CardBox >
     )
