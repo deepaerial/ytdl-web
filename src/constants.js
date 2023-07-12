@@ -4,7 +4,8 @@ export const Statuses = {
     CONVERTING: "converting",
     FINISHED: "finished",
     DOWNLOADED: "downloaded",
-    DELETED: "deleted"
+    DELETED: "deleted",
+    FAILED: "failed"
 }
 
 export const ACTION = {
