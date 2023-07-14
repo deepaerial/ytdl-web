@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 import { LoadingContext } from '../context/LoadingContext.jsx';
 import { IconButton } from '@mui/material';
 import HighlightOffRoundedIcon from '@mui/icons-material/HighlightOffRounded';
+import ReplayIcon from '@mui/icons-material/Replay';
 
 import { useConfirm } from "material-ui-confirm";
 
@@ -76,8 +77,8 @@ const ButtonsBox = styled.div`
 
 const HighlightOffRoundedIconCustomStyled = styledMui(HighlightOffRoundedIcon)(() => ({
     position: "absolute",
-    left: "2.2em",
-    top: "1.2em",
+    left: "2.3em",
+    top: "1em",
     color: "#de3e40",
     fontSize: "4rem"
 }));
@@ -115,6 +116,19 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
         }
     }
 
+    const retryDownload = async () => {
+        try {
+            setIsLoading(true);
+            await API.retryDownload(mediaId);
+            toast.info(`Redownloading ${title}.`)
+        } catch (error) {
+            toast.error(error.message)
+            console.error(error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
     return (
         <CardBox backgroundUrl={thumbnailUrl}>
             <Title><Url href={url} target="_blank" rel="noopener noreferrer">{title}</Url></Title>
@@ -125,6 +139,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
             <Duration>{secondsToHumanReadable(duration)}</Duration>
             <ButtonsBox>
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
+                { Statuses.FAILED === status && <IconButton onClick={retryDownload}><ReplayIcon sx={{ color: "#FFFFFF" }}/></IconButton> }
                 {[Statuses.FINISHED, Statuses.DOWNLOADED, Statuses.FAILED].includes(status) && <IconButton onClick={onDeleteClick}><DeleteIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
             </ButtonsBox>
         </CardBox >
