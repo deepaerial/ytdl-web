@@ -101,7 +101,7 @@ export class API {
 
     static async downloadMediaFile(mediaId) {
         try {
-            const params = { media_id: mediaId }
+            const params = { mediaId: mediaId }
             const response = await api.get('download', { params, responseType: 'blob' });
             const filename = getFilenameFromContentDisposition(response);
             const link = document.createElement('a');
@@ -129,8 +129,29 @@ export class API {
 
     static async deleteMediaFile(mediaId) {
         try {
-            const params = { media_id: mediaId }
+            const params = { mediaId: mediaId }
             const response = await api.delete('delete', { params });
+            return response.data
+        } catch (exc) {
+            let error_message = null;
+            if (exc.response) {
+                const detail = exc.response.data.detail;
+                if (typeof detail === 'string') {
+                    error_message = detail;
+                }
+                else {
+                    error_message = detail[0].msg;
+                }
+            } else {
+                error_message = exc.message;
+            }
+            throw Error(error_message);
+        }
+    }
+
+    static async retryDownload(mediaId) {
+        try {
+            const response = await api.put('retry', null, { params: { mediaId } });
             return response.data
         } catch (exc) {
             let error_message = null;
