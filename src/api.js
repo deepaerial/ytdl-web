@@ -13,7 +13,10 @@ export class API {
             return response.data;
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 error_message = exc.response.data.detail;
             } else {
                 error_message = exc.message;
@@ -28,7 +31,10 @@ export class API {
             return response.data;
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 if (exc.response.status == 422) {
                     const error = exc.response.data.detail[0]
                     error_message = error.msg
@@ -46,7 +52,10 @@ export class API {
             return response.data["downloads"];
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 error_message = exc.response.data.detail;
             } else {
                 error_message = exc.message;
@@ -66,7 +75,10 @@ export class API {
             return response.data["downloads"];
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 error_message = exc.response.data.detail;
             } else {
                 error_message = exc.message;
@@ -84,7 +96,10 @@ export class API {
             return response.data.downloads;
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 const detail = exc.response.data.detail;
                 if (typeof detail === 'string') {
                     error_message = detail;
@@ -110,7 +125,10 @@ export class API {
             link.click();
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 const data = exc.response.data;
                 error_message = await new Promise((resolve, reject) => {
                     const fileReader = new FileReader();
@@ -134,7 +152,10 @@ export class API {
             return response.data
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 const detail = exc.response.data.detail;
                 if (typeof detail === 'string') {
                     error_message = detail;
@@ -155,7 +176,10 @@ export class API {
             return response.data
         } catch (exc) {
             let error_message = null;
-            if (exc.response) {
+            if (exc.code === 'ERR_NETWORK'){
+                error_message = "Network error or server is offline!"
+            }
+            else if (exc.response) {
                 const detail = exc.response.data.detail;
                 if (typeof detail === 'string') {
                     error_message = detail;
