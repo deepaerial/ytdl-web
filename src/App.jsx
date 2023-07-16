@@ -65,25 +65,36 @@ const App = () => {
     useEffect(() => {
         const onAppStart = async () => {
             window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
-            const { apiVersion } = await API.getApiVersion();
-            setVersion(apiVersion);
-            const eventSource = new EventSource(parametrizeUrl(`${apiURL}/download/stream`), { withCredentials: true });
-            eventSource.addEventListener("message", (event) => {
-                onProgressUpdate(JSON.parse(event.data));
-            });
-            eventSource.addEventListener("end", (_) => {  // eslint-disable-line no-unused-vars
-                eventSource.close();
-            });
-            setIsLoading(false);
+            try {
+                const { apiVersion } = await API.getApiVersion();
+                setVersion(apiVersion);
+                const eventSource = new EventSource(parametrizeUrl(`${apiURL}/download/stream`), { withCredentials: true });
+                eventSource.addEventListener("message", (event) => {
+                    onProgressUpdate(JSON.parse(event.data));
+                });
+                eventSource.addEventListener("end", (_) => {  // eslint-disable-line no-unused-vars
+                    eventSource.close();
+                });
+            } catch (error){
+                console.error("Could not fetch API version :(")
+            }
+            finally {
+                setIsLoading(false);
+            }
         };
         onAppStart();
     }, []);
     useEffect(() => {
         const donwloadListLoad = async () => {
             setIsLoading(true);
-            const downloads = await API.getDownloads();
-            onDownloadsFetched(downloads);
-            setIsLoading(false);
+            try {
+                const downloads = await API.getDownloads();
+                onDownloadsFetched(downloads);
+            } catch (error){
+                toast.error(error.message)
+            } finally {
+                setIsLoading(false);
+            }
         };
         donwloadListLoad();
     }, [apiVersion]);
