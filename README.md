@@ -39,3 +39,9 @@ $ fly tokens create deploy -x 999999h
 ```
 
 2. Go to repo's **Settings** -> **Security** section -> **Secrets and variables** -> **Actions**. Click **New repository secret** button and paste copied output key from previous step int **Secret** input.
+
+## Troubleshoots
+This section describes potential issues that may occur when using API.
+
+### 1. Issue: Video is downloaded and playing but audio is absent when opening video in QuickTime Player.
+**Solution:** Open video in another player (VLC Player for example). Maybe QuickTime Player doesn't support audio codec used in video.
