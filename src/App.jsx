@@ -67,6 +67,7 @@ const App = () => {
             window.addEventListener('resize', () => setIsDesktop(checkIsDesktop()));
             try {
                 const { apiVersion } = await API.getApiVersion();
+                console.debug(`API version: ${apiVersion}`);
                 setVersion(apiVersion);
                 const eventSource = new EventSource(parametrizeUrl(`${apiURL}/download/stream`), { withCredentials: true });
                 eventSource.addEventListener("message", (event) => {
