@@ -18,8 +18,9 @@ export class API {
             }
             else if (exc.response) {
                 error_message = exc.response.data.detail;
-            } else {
-                error_message = exc.message;
+            } else if (exc.message) {
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -40,7 +41,8 @@ export class API {
                     error_message = error.msg
                 } else error_message = exc.response.data.detail;
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -58,7 +60,8 @@ export class API {
             else if (exc.response) {
                 error_message = exc.response.data.detail;
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -81,7 +84,8 @@ export class API {
             else if (exc.response) {
                 error_message = exc.response.data.detail;
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -108,7 +112,8 @@ export class API {
                     error_message = detail[0].msg;
                 }
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -140,7 +145,8 @@ export class API {
                     fileReader.readAsText(data);
                 });
             } else
-                error_message = exc.message;
+                console.error(exc);
+                return;
             throw Error(error_message);
         }
     }
@@ -164,7 +170,8 @@ export class API {
                     error_message = detail[0].msg;
                 }
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
@@ -188,7 +195,8 @@ export class API {
                     error_message = detail[0].msg;
                 }
             } else {
-                error_message = exc.message;
+                console.error(exc);
+                return;
             }
             throw Error(error_message);
         }
