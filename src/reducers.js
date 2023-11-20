@@ -13,7 +13,7 @@ export const downloadsReducer = (downloads, action) => {
             let downloadItem = downloadsCopy[action.mediaId];
             if (downloadItem) {
                 downloadItem = Object.assign(downloadItem, {
-                    status: action.status, progress: action.progress
+                    status: action.status, progress: action.progress, filesizeHr: action.filesizeHr
                 });
                 downloadsCopy[action.mediaId] = downloadItem;
                 return downloadsCopy;

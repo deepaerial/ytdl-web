@@ -144,10 +144,9 @@ export class API {
                     fileReader.onerror = reject
                     fileReader.readAsText(data);
                 });
-            } else
-                console.error(exc);
-                return;
-            throw Error(error_message);
+            } 
+            console.error(exc);
+            throw Error(error_message)
         }
     }
 
