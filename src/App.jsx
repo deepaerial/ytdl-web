@@ -15,7 +15,7 @@ import { downloadsReducer } from './reducers.js'
 import Preview from "./components/Preview.jsx"
 import 'react-toastify/dist/ReactToastify.css';
 import MediaItem from './components/MediaItem.jsx';
-import { ACTION } from './constants.js';
+import { ACTION, Statuses } from './constants.js';
 
 import { ConfirmProvider } from "material-ui-confirm";
 
@@ -35,13 +35,16 @@ const App = () => {
     const [preview, setPreview] = useState();
 
     const onProgressUpdate = (download) => {
-        const { mediaId, status, progress } = download;
+        const { mediaId, status, progress, title } = download;
         dispatch({
             type: ACTION.STATUS_UPDATE,
             mediaId,
             status,
             progress
         });
+        if (status === Statuses.FAILED) {
+            toast.error(`${title} failed to download.`)
+        }
     };
 
     const onDownloadsFetched = (downloads) => {

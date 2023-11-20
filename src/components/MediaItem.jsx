@@ -90,10 +90,6 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
     const confirm = useConfirm();
     const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
 
-    if (status === Statuses.FAILED){
-        toast.error(`${title} failed to download.`)
-    }
-
     const downloadMedia = async () => {
         setIsLoading(true);
         API.downloadMediaFile(mediaId).catch(e => toast.error(e.message)).finally(() => setIsLoading(false));
