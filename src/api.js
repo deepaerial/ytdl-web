@@ -146,7 +146,7 @@ export class API {
                 });
             } 
             console.error(exc);
-            return;
+            throw Error(error_message)
         }
     }
 
