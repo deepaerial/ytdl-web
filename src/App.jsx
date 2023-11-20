@@ -35,12 +35,13 @@ const App = () => {
     const [preview, setPreview] = useState();
 
     const onProgressUpdate = (download) => {
-        const { mediaId, status, progress, title } = download;
+        const { mediaId, status, progress, title, filesizeHr } = download;
         dispatch({
             type: ACTION.STATUS_UPDATE,
             mediaId,
             status,
-            progress
+            progress,
+            filesizeHr
         });
         if (status === Statuses.FAILED) {
             toast.error(`${title} failed to download.`)

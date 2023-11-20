@@ -66,6 +66,14 @@ const Duration = styled.span`
     bottom: 15px;
 `;
 
+const FileSize = styled.span`
+    position: absolute;
+    color: #FFF;
+    text-shadow: 2px 2px 3px #000;
+    left: 48%;
+    bottom: 15px;
+`;
+
 const ButtonsBox = styled.div`
     position: absolute;
     display: flex;
@@ -88,7 +96,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
 
     const setIsLoading = useContext(LoadingContext);
     const confirm = useConfirm();
-    const { mediaId, title, thumbnailUrl, url, duration, progress, status } = downloadItem;
+    const { mediaId, title, thumbnailUrl, url, duration, progress, status, filesizeHr } = downloadItem;
 
     const downloadMedia = async () => {
         setIsLoading(true);
@@ -133,6 +141,7 @@ const MediaItem = ({ downloadItem, onDeleteAction }) => {
             }
             {Statuses.FAILED === status && <HighlightOffRoundedIconCustomStyled />}
             <Duration>{secondsToHumanReadable(duration)}</Duration>
+            {filesizeHr && <FileSize>{filesizeHr}</FileSize>}
             <ButtonsBox>
                 {[Statuses.FINISHED, Statuses.DOWNLOADED].includes(status) && <IconButton onClick={downloadMedia}><DownloadIcon sx={{ color: "#FFFFFF" }} /></IconButton>}
                 { Statuses.FAILED === status && <IconButton onClick={retryDownload}><ReplayIcon sx={{ color: "#FFFFFF" }}/></IconButton> }
