@@ -1,19 +1,26 @@
-version: '3.7'
+version: "3.8"
 services:
-  ytdl-web:
-    container_name: "ytdl-web"
+  app-dev:
+    container_name: "ytdl-web-dev"
     build:
       context: .
       target: dev
     ports:
       - 8080:8080
-    volumes:
-      - "./src/:/app/src"
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app/
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./package.json
     environment:
       - VITE_API_URL=http://127.0.0.1:8000/api
     networks:
       - default
-  ytdl-web-prod:
+  app-prod:
     container_name: "ytdl-web-prod"
     build:
       context: .

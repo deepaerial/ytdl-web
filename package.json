@@ -22,7 +22,7 @@
     "prop-types": "^15.7.2",
     "react": "^18.x.x",
     "react-dom": "^18.2.0",
-    "react-toastify": "^9.0.8",
+    "react-toastify": "^10.0.4",
     "styled-components": "^5.3.5"
   },
   "devDependencies": {
