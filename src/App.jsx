@@ -135,7 +135,7 @@ const App = () => {
                     draggable
                     pauseOnHover
                 />
-                <Header version={appVersion} />
+                <Header version={appVersion} apiVersion={apiVersion}/>
                 <SearchBar isDesktop={isDesktop} setPreview={setPreview} />
                 {preview && <Preview preview={preview} onDonwloadEnqueue={onDownloadsFetched} setPreview={setPreview} />}
                 {renderDownloads()}
