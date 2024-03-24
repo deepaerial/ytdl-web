@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Display API version when clicking on header.
 
+
+### [1.3.2] - 2023-11-20
+### Fixed
+- Fix/rendering issue when download failed.
+
+### [1.3.1] - 2023-07-16
+### Fixed
+- Improve error handling: handle situation when server is offline.
+
 ## [1.3.0] - 2023-07-14
 ### Added
 - Allow retrying failed download.
