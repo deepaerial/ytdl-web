@@ -1,5 +1,6 @@
-import React from "react";
+import React, {useState} from "react";
 import PropTypes from "prop-types";
+import { toast } from 'react-toastify';
 
 import styled from 'styled-components';
 
@@ -32,10 +33,22 @@ const Description = styled.p`
     margin-top: 10px;
 `;
 
-const Header = ({ version }) => {
+const Header = ({ version, apiVersion }) => {
+
+    const [counter, setCounter] = useState(0)
+
+    const onClickHeader = () => {
+        if (counter === 3) {
+            toast.info(`API version: ${apiVersion}`);
+            setCounter(0)
+        }
+        else {
+            setCounter(counter + 1);
+        }
+    }
     return (
         <header>
-            <HeaderTitle>
+            <HeaderTitle onClick={onClickHeader}>
                 <AppTitle>YTDL</AppTitle>
                 {version && <Version>ver. {version}</Version>}
             </HeaderTitle>
@@ -45,7 +58,8 @@ const Header = ({ version }) => {
 }
 
 Header.propTypes = {
-    version: PropTypes.string.isRequired
+    version: PropTypes.string.isRequired,
+    apiVersion: PropTypes.string
 }
 
 export default Header;
