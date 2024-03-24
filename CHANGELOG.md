@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.3] - 2024-03-24
+### Changed
+- Docker compose file update: added watch option.
+### Added
+- Display API version when clicking on header.
+
 ## [1.3.0] - 2023-07-14
 ### Added
 - Allow retrying failed download.
