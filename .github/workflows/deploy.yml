@@ -1,24 +1,24 @@
-name: Deploy
+# name: Deploy
 
-on:
-  push:
-    branches:
-      - master
-    paths:
-        - src/**
-        - package.json
-        - index.html
-        - nginx.conf
-        - vite.config.js
+# on:
+#   push:
+#     branches:
+#       - master
+#     paths:
+#         - src/**
+#         - package.json
+#         - index.html
+#         - nginx.conf
+#         - vite.config.js
 
-jobs:
-  deploy:
-    name: Web Deploy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --build-arg $API_URL_ARG
-        env:
-          FLY_API_TOKEN: '${{ secrets.FLY_API_TOKEN }}'
-          API_URL_ARG: '${{ secrets.API_URL_ARG }}'
+# jobs:
+#   deploy:
+#     name: Web Deploy
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: superfly/flyctl-actions/setup-flyctl@master
+#       - run: flyctl deploy --remote-only --build-arg $API_URL_ARG
+#         env:
+#           FLY_API_TOKEN: '${{ secrets.FLY_API_TOKEN }}'
+#           API_URL_ARG: '${{ secrets.API_URL_ARG }}'
